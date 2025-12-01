@@ -179,24 +179,6 @@
     }
 }
 
-/* Clear search button */
-.clear-search {
-    position: absolute;
-    right: 70px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #999;
-    cursor: pointer;
-    font-size: 18px;
-    display: none;
-}
-
-.clear-search:hover {
-    color: #ff5722;
-}
-
 /* Responsive Fixes */
 @media (max-width: 768px) {
     .search-container {
@@ -212,8 +194,8 @@
     }
 
     .search-icon {
-        width: 45px;
-        height: 45px;
+        width: 50px;
+        height: 50px;
     }
 
     .post-footer-actions {
