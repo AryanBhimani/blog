@@ -287,7 +287,7 @@
     position: absolute;
     top: 15px;
     right: 15px;
-    background: #ff7a00;
+    background: #e64a19;
     color: white;
     border: none;
     padding: 8px 12px;
@@ -299,7 +299,7 @@
 }
 
 .settings-btn:hover {
-    background: #e86b00;
+    background: #e64a19;
     transform: scale(1.05);
 }
 
