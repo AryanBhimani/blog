@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 - Page Not Found | Blog.in</title>
+
+  <link rel="icon" type="image/png" href="./assets/images/blog.in.png" />
+  <link rel="stylesheet" href="./css/main.css" />
+  <link rel="stylesheet" href="./css/navbar.css" />
+  <link rel="stylesheet" href="./css/footer.css" />
+  <link rel="stylesheet" href="./css/404.css" />
+</head>
+
+<body>
+
+  <div id="navbar-placeholder"></div>
+
+  <main class="container">
+    <div class="error-container">
+      <div class="error-content">
+        <div class="error-code">404</div>
+        <h1 class="error-title">Page Not Found</h1>
+        <p class="error-description">
+          Oops! It seems like the page you're looking for doesn't exist.
+        </p>
+        <p class="error-message">
+          The URL you entered might be incorrect or the page may have been removed.
+        </p>
+        
+        <div class="error-actions">
+          <button class="btn-primary" onclick="window.location.href='./index.html'">
+            Back to Home
+          </button>
+          <button class="btn-secondary" onclick="goBack()">
+            Go Back
+          </button>
+        </div>
+
+        <div class="error-suggestions">
+          <h3>What can you do?</h3>
+          <ul>
+            <li>Check the URL and try again</li>
+            <li>Use the search feature to find what you're looking for</li>
+            <li>Return to the homepage and navigate using the menu</li>
+            <li>Contact us if you believe this is an error</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="error-illustration">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- 404 Illustration -->
+          <circle cx="100" cy="100" r="90" fill="none" stroke="#e0e0e0" stroke-width="2" />
+          <text x="100" y="120" font-size="60" font-weight="bold" text-anchor="middle" fill="#ff6b6b">
+            404
+          </text>
+          <path d="M 60 150 Q 100 180 140 150" stroke="#ffa757" stroke-width="3" fill="none" stroke-linecap="round" />
+          <circle cx="75" cy="90" r="5" fill="#ff6b6b" />
+          <circle cx="125" cy="90" r="5" fill="#ff6b6b" />
+        </svg>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="./js/navbar.js"></script>
+  <script src="./js/footer.js"></script>
+  <script>
+    function goBack() {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = './index.html';
+      }
+    }
+  </script>
+
+</body>
+
+</html>
