@@ -101,3 +101,99 @@
   background-color: #ff5722; /* An even darker shade */
   transform: translateY(0); /* Resets the lift effect */
 }
+
+
+
+
+/*fab button */
+.fab-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: #ff5722;
+  color: white;
+  border: none;
+  font-size: 28px;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
+}
+.fab-btn:hover {
+  background: #e64a19;
+}
+
+
+
+
+
+
+/* Notification Bell Button */
+.notification-btn {
+  position: fixed;
+  right: 90px; /* beside + button */
+  bottom: 20px;
+  background: white;
+  border: none;
+  font-size: 26px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
+}
+
+.notification-btn:hover {
+  background: #f5f5f5;
+}
+
+/* Red dot for new notifications */
+.notif-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: red;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: none;
+}
+
+/* Notification Panel */
+.notification-panel {
+  position: fixed;
+  bottom: 85px;
+  right: 20px;
+  width: 260px;
+  max-height: 320px;
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
+  display: none;
+  overflow-y: auto;
+  z-index: 2000;
+}
+
+.notification-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notification-panel li {
+  padding: 8px 6px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.notification-panel li:last-child {
+  border-bottom: none;
+}

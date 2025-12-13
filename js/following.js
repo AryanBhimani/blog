@@ -1,58 +1,51 @@
-import { db, auth } from "./firebase/firebase-config.js";
-import {
-  doc, getDoc, getDocs, collection, deleteDoc
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { supabase } from "./supabase/supabaseClient.js";
 
 const params = new URLSearchParams(window.location.search);
 const userId = params.get("userId");
 
 const followingList = document.getElementById("following-list");
 
+// Load list of users this person follows
 async function loadFollowing() {
-  const snap = await getDocs(collection(db, "users", userId, "following"));
+  const { data: following, error } = await supabase
+    .from("followers")
+    .select("following")
+    .eq("follower", userId);
 
-  if (snap.empty) {
+  if (error) {
+    followingList.innerHTML = "<p>Error loading following list.</p>";
+    return;
+  }
+
+  if (!following.length) {
     followingList.innerHTML = "<p>Not following anyone.</p>";
     return;
   }
 
   let html = "";
 
-  for (const s of snap.docs) {
-    const fid = s.id;
-    const userSnap = await getDoc(doc(db, "users", fid));
-    const data = userSnap.exists() ? userSnap.data() : {};
+  for (const f of following) {
+    const fid = f.following;
+
+    const { data: userData } = await supabase
+      .from("users")
+      .select("username, avatar_url")
+      .eq("id", fid)
+      .single();
 
     html += `
-      <div class="user-list-item">
-        <span onclick="window.location.href='profile.html?userId=${fid}'">
-          ${data.username || "Unknown User"}
-        </span>
-        <button class="remove-btn" id="remove-${fid}">Remove</button>
+      <div class="user-list-item" 
+           onclick="window.location.href='profile.html?userId=${fid}'">
+
+        <img src="${userData?.avatar_url || './assets/images/default-avatar.png'}" 
+             class="user-avatar" />
+
+        <span>${userData?.username || "Unknown User"}</span>
       </div>
     `;
   }
 
   followingList.innerHTML = html;
-  setupRemoveButtons();
-}
-
-function setupRemoveButtons() {
-  const currentUser = auth.currentUser;
-
-  document.querySelectorAll(".remove-btn").forEach((btn) => {
-    const uid = btn.id.replace("remove-", "");
-
-    btn.onclick = async () => {
-      const ok = confirm("Remove this user?");
-      if (!ok) return;
-
-      await deleteDoc(doc(db, "users", currentUser.uid, "following", uid));
-      await deleteDoc(doc(db, "users", uid, "followers", currentUser.uid));
-
-      btn.parentElement.remove();
-    };
-  });
 }
 
 loadFollowing();

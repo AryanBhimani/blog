@@ -4,10 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Google AdSense Site Verification -->
+
+  <!-- Google AdSense -->
   <meta name="google-adsense-account" content="ca-pub-9563291311030793">
-  <!-- MUST BE EARLY IN HEAD -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9563291311030793" crossorigin="anonymous"></script>
+
   <title>🔥 Profile</title>
   <link rel="icon" type="image/png" href="./assets/images/blog.in.png">
 
@@ -19,6 +20,7 @@
 </head>
 
 <body>
+
   <div id="navbar-placeholder"></div>
 
   <main class="container profile-page">
@@ -26,59 +28,79 @@
     <!-- PROFILE HEADER -->
     <section class="profile-header" id="profile-info">
 
-      <!-- FIXED SETTINGS BUTTON -->
+      <!-- Settings button -->
       <button id="settings-btn" class="settings-btn" style="display:none;">⚙️</button>
 
-      <!-- <div class="profile-avatar">
-        <img src="./assets/images/blog.in.png" alt="User Avatar" class="avatar">
-      </div> -->
+      <div class="profile-avatar">
+        <img src="./assets/images/mobintix.png" alt="User Avatar" class="avatar" id="profile-avatar">
+      </div>
 
       <div class="profile-details">
+
+        <!-- USER NAME -->
         <h2 id="profile-name">User Name</h2>
+
+        <!-- USER BIO -->
         <p id="profile-bio">A short bio goes here. Passionate about blogging, coding, and sharing ideas 🚀</p>
-        
-        <button id="follow-btn" style="display: none;">Follow</button> 
-        
+
+        <!-- FOLLOW BUTTON (only visible on other users' profiles) -->
+        <button id="follow-btn" style="display:none;">Follow</button>
+
+        <!-- VISIBLE ONLY ON OWN PROFILE -->
         <button id="edit-profile" onclick="window.location.href='editprofile.html'">Edit Profile</button>
         <button id="post" onclick="window.location.href='post.html'">Blog Post</button>
         <button id="Login" onclick="window.location.href='auth.html'">Login</button>
+
       </div>
 
     </section>
 
+
+    <!-- PROFILE STATS -->
     <section class="profile-stats">
+
       <div>
         <h3 id="posts-count">0</h3>
         <p>Posts</p>
       </div>
-      <div id="followers-stat" class="stat-clickable">
+
+      <!-- CLICKABLE FOLLOWERS -->
+      <div id="followers-stat" class="stat-clickable"
+           onclick="window.location.href='followers.html?userId=' + new URLSearchParams(window.location.search).get('userId')">
         <h3 id="followers-count">0</h3>
         <p>Followers</p>
       </div>
-      <div id="following-stat" class="stat-clickable">
+
+      <!-- CLICKABLE FOLLOWING -->
+      <div id="following-stat" class="stat-clickable"
+           onclick="window.location.href='following.html?userId=' + new URLSearchParams(window.location.search).get('userId')">
         <h3 id="following-count">0</h3>
         <p>Following</p>
       </div>
+
     </section>
-    
-    <section id="following-list-section" class="user-list" style="display: none;">
+
+    <!-- Optional extra sections (you are using dynamic lists in JS) -->
+    <section id="following-list-section" class="user-list" style="display:none;">
       <h2>Following</h2>
       <div id="following-users">
         <p>Loading...</p>
       </div>
     </section>
-    
-    <section id="followers-list-section" class="user-list" style="display: none;">
+
+    <section id="followers-list-section" class="user-list" style="display:none;">
       <h2>Followers</h2>
       <div id="followers-users">
         <p>Loading...</p>
       </div>
     </section>
-    
+
+    <!-- USER POSTS -->
     <section id="user-posts" class="post-list">
       <h2>📝 My Blogs</h2>
       <div id="user-posts-list"></div>
     </section>
+
   </main>
 
   <div id="footer-placeholder"></div>
@@ -87,6 +109,6 @@
   <script type="module" src="./js/footer.js"></script>
   <script type="module" src="./js/profile.js"></script>
   <script type="module" src="./js/feed.js"></script>
-</body>
 
+</body>
 </html>

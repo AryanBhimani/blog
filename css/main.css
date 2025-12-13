@@ -210,3 +210,14 @@ a:hover {
     font-size: 14px;
     cursor: pointer;
 }
+
+/* Medium-size images inside post cards */
+.post-card img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;   /* crop to square */
+  border-radius: 12px;
+  display: block;
+  margin: 10px 0;
+}
+

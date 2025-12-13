@@ -1,13 +1,4 @@
-import { auth, db } from "./firebase/firebase-config.js";
-import {
-  onAuthStateChanged,
-  updateProfile,
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import {
-  doc,
-  setDoc,
-  getDoc,
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { supabase } from "./supabase/supabaseClient.js";
 
 const editProfileForm = document.getElementById("editProfileForm");
 const usernameInput = document.getElementById("username");
@@ -15,24 +6,27 @@ const bioInput = document.getElementById("bio");
 
 let currentUser = null;
 
-// Load existing user data
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    currentUser = user;
+// Load logged-in user
+supabase.auth.getUser().then(async ({ data }) => {
+  const user = data?.user;
 
-    // Load existing Firestore data
-    const snap = await getDoc(doc(db, "users", user.uid));
-    if (snap.exists()) {
-      const data = snap.data();
-      usernameInput.value = data.username || user.displayName || "";
-      bioInput.value = data.bio || "";
-    } else {
-      usernameInput.value = user.displayName || "";
-    }
-  } else {
+  if (!user) {
     alert("⚠️ Please login first!");
     window.location.href = "auth.html";
+    return;
   }
+
+  currentUser = user;
+
+  // Load existing profile data
+  const { data: profile } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  usernameInput.value = profile?.name || "";
+  bioInput.value = profile?.bio || "";
 });
 
 // Handle profile update
@@ -44,24 +38,20 @@ editProfileForm.addEventListener("submit", async (e) => {
   const newUsername = usernameInput.value.trim();
   const newBio = bioInput.value.trim();
 
-  try {
-    // Update Firebase Auth (for displayName)
-    await updateProfile(currentUser, { displayName: newUsername });
+  const { error } = await supabase
+    .from("users")
+    .update({
+      name: newUsername,
+      bio: newBio,
+    })
+    .eq("id", currentUser.id);
 
-    // Save/update Firestore user document
-    await setDoc(
-      doc(db, "users", currentUser.uid),
-      {
-        username: newUsername,
-        bio: newBio,
-      },
-      { merge: true }
-    );
-
-    alert("✅ Profile updated successfully!");
-    window.location.href = "profile.html";
-  } catch (error) {
-    console.error("❌ Profile update error:", error);
-    alert("❌ Error updating profile.");
+  if (error) {
+    alert("❌ Error updating profile");
+    console.error(error);
+    return;
   }
+
+  alert("✅ Profile updated successfully!");
+  window.location.href = "profile.html";
 });

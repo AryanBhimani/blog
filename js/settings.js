@@ -1,9 +1,6 @@
-import { auth } from "./firebase/firebase-config.js";
-import {
-  updatePassword, reauthenticateWithCredential,
-  EmailAuthProvider, deleteUser
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { supabase } from "./supabase/supabaseClient.js";
 
+/* Navigation */
 window.openScreen = (id) => {
   document.getElementById("settings-main").style.display = "none";
   document.getElementById(id).style.display = "block";
@@ -14,35 +11,66 @@ window.goBack = () => {
   document.getElementById("settings-main").style.display = "block";
 };
 
+/* Toggle Password Eye */
+window.togglePassword = (id, el) => {
+  const input = document.getElementById(id);
+
+  if (input.type === "password") {
+    input.type = "text";
+    el.textContent = "🙈";
+  } else {
+    input.type = "password";
+    el.textContent = "👁️";
+  }
+};
+
+/* Password Verification */
+async function verifyPassword(email, password) {
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  return !error;
+}
+
+/* Change Password */
 window.changePassword = async () => {
-  const user = auth.currentUser;
-  if (!user) return window.location.href = "auth.html";
+  const { data } = await supabase.auth.getUser();
+  const user = data?.user;
+  if (!user) return alert("Please login again.");
 
-  const cur = document.getElementById("currentPass").value;
-  const np = document.getElementById("newPass").value;
-  const cp = document.getElementById("confirmPass").value;
+  const currentPass = document.getElementById("currentPass").value;
+  const newPass = document.getElementById("newPass").value;
+  const confirmPass = document.getElementById("confirmPass").value;
 
-  if (np !== cp) return alert("Passwords do not match");
+  if (!currentPass || !newPass || !confirmPass)
+    return alert("All fields required.");
 
-  const cred = EmailAuthProvider.credential(user.email, cur);
-  await reauthenticateWithCredential(user, cred);
-  await updatePassword(user, np);
+  if (newPass !== confirmPass)
+    return alert("New passwords do not match.");
 
-  alert("Password changed");
+  const valid = await verifyPassword(user.email, currentPass);
+  if (!valid) return alert("Incorrect current password.");
+
+  const { error } = await supabase.auth.updateUser({ password: newPass });
+  if (error) return alert(error.message);
+
+  alert("Password updated!");
   goBack();
 };
 
+/* Delete Account */
 window.deleteAccount = async () => {
-  const user = auth.currentUser;
-  if (!user) return window.location.href = "auth.html";
+  const { data } = await supabase.auth.getUser();
+  const user = data?.user;
+  if (!user) return alert("Please login again.");
 
   const pass = document.getElementById("deletePass").value;
-  if (!pass) return alert("Enter password");
+  if (!pass) return alert("Enter your password.");
 
-  const cred = EmailAuthProvider.credential(user.email, pass);
-  await reauthenticateWithCredential(user, cred);
-  await deleteUser(user);
+  const valid = await verifyPassword(user.email, pass);
+  if (!valid) return alert("Incorrect password.");
 
-  alert("Account deleted");
+  await supabase.from("users").update({ deleted: true }).eq("id", user.id);
+  await supabase.auth.signOut();
+
+  alert("Account deleted.");
   window.location.href = "auth.html";
 };

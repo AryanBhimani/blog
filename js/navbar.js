@@ -1,31 +1,29 @@
-// /js/navbar.js
-import { auth } from "./firebase/firebase-config.js";
-import { onAuthStateChanged, signOut } 
-  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { supabase } from "./supabase/supabaseClient.js";
 
-// Load navbar into every page
+// Load navbar HTML
 fetch("./components/navbar.html")
   .then(res => res.text())
   .then(data => {
     document.body.insertAdjacentHTML("afterbegin", data);
 
-    // Mobile menu toggle + close on outside click
     const menuToggle = document.querySelector(".menu-toggle");
     const navLinks = document.querySelector(".nav-links");
+    const authButton = document.getElementById("auth-btn");
+    const fabButton = document.getElementById("fab-add-post");
 
+    // --------------------------------------------
+    // MOBILE MENU TOGGLE
+    // --------------------------------------------
     if (menuToggle && navLinks) {
-
-      // Toggle menu when clicking the 3 lines
       menuToggle.addEventListener("click", (event) => {
-        event.stopPropagation();   // Prevent immediate close
+        event.stopPropagation();
         navLinks.classList.toggle("show");
       });
 
-      // Close menu when clicking outside
       document.addEventListener("click", (event) => {
         if (
-          navLinks.classList.contains("show") && 
-          !navLinks.contains(event.target) && 
+          navLinks.classList.contains("show") &&
+          !navLinks.contains(event.target) &&
           !menuToggle.contains(event.target)
         ) {
           navLinks.classList.remove("show");
@@ -33,64 +31,166 @@ fetch("./components/navbar.html")
       });
     }
 
-    // Get the login/logout button
-    const authButton = document.getElementById('auth-btn');
+    // --------------------------------------------
+    // AUTH BUTTON (LOGIN / LOGOUT)
+    // --------------------------------------------
+    updateNavbar();
 
-    if (authButton) {
-      // ✅ Use Firebase Auth state
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          authButton.textContent = 'Logout';
-          authButton.classList.add('logout-button');
-          authButton.onclick = async () => {
-            await signOut(auth);
-          };
-        } else {
-          authButton.textContent = 'Login';
-          authButton.classList.remove('logout-button');
-          authButton.onclick = () => {
-            window.location.href = './auth.html';
-          };
+    supabase.auth.onAuthStateChange(() => {
+      updateNavbar();
+    });
+
+    async function updateNavbar() {
+      const { data } = await supabase.auth.getUser();
+      const user = data?.user;
+
+      if (!authButton) return;
+
+      if (user) {
+        authButton.textContent = "Logout";
+        authButton.classList.add("logout-button");
+        authButton.onclick = async () => {
+          await supabase.auth.signOut();
+          window.location.href = "auth.html";
+        };
+      } else {
+        authButton.textContent = "Login";
+        authButton.classList.remove("logout-button");
+        authButton.onclick = () => {
+          window.location.href = "auth.html";
+        };
+      }
+    }
+
+    // --------------------------------------------
+    // FAB BUTTON (ADD POST)
+    // --------------------------------------------
+    let currentUser = null;
+
+    supabase.auth.getUser().then(({ data }) => {
+      currentUser = data?.user || null;
+    });
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      currentUser = session?.user || null;
+    });
+
+    if (fabButton) {
+      fabButton.style.display = "flex";
+
+      fabButton.onclick = () => {
+        if (!currentUser) {
+          alert("⚠️ Please login first to post a blog!");
+          return;
         }
+        window.location.href = "post.html";
+      };
+    }
+
+    // ================================
+    // 🔔 NOTIFICATION SYSTEM (STORED)
+    // ================================
+    const bell = document.getElementById("notification-bell");
+    const notifDot = document.getElementById("notif-dot");
+    const notifPanel = document.getElementById("notification-panel");
+    const notifList = document.getElementById("notification-list");
+
+    let userId = null;
+
+    supabase.auth.getUser().then(({ data }) => {
+      userId = data?.user?.id || null;
+      if (userId) loadStoredNotifications();
+    });
+
+    // Toggle panel
+    if (bell) {
+      bell.onclick = async () => {
+        const open = notifPanel.style.display === "block";
+        notifPanel.style.display = open ? "none" : "block";
+        if (!open) notifDot.style.display = "none";
+      };
+    }
+
+    // Render notification
+    function renderNotification(message) {
+      notifList.insertAdjacentHTML(
+        "afterbegin",
+        `<li>${message}</li>`
+      );
+    }
+
+    // Store + show notification
+    async function pushNotification(message) {
+      if (!userId) return;
+
+      notifDot.style.display = "block";
+      renderNotification(message);
+
+      await supabase.from("notifications").insert({
+        user_id: userId,
+        message
       });
     }
-  })
-  .catch(err => console.error("Navbar load error:", err));
 
+    // Load past notifications
+    async function loadStoredNotifications() {
+      const { data } = await supabase
+        .from("notifications")
+        .select("message")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
 
-// FAB Add Blog Button
-const fabButton = document.getElementById("fab-add-post");
+      if (!data || !data.length) return;
 
-let currentUser = null;
+      notifDot.style.display = "block";
+      notifList.innerHTML = "";
 
-// Track login state
-onAuthStateChanged(auth, (user) => {
-  currentUser = user;
-
-  if (user) {
-    // Auth button as usual
-    authButton.textContent = 'Logout';
-    authButton.classList.add('logout-button');
-    authButton.onclick = async () => { await signOut(auth); };
-  } else {
-    authButton.textContent = 'Login';
-    authButton.classList.remove('logout-button');
-    authButton.onclick = () => { window.location.href = './auth.html'; };
-  }
-});
-
-// FAB button action (always visible)
-if (fabButton) {
-  fabButton.style.display = "flex"; // Always visible
-
-  fabButton.onclick = () => {
-    if (!currentUser) {
-      // User not logged in → show alert
-      alert("Please login first to post a blog!");
-      return;
+      data.forEach(n => renderNotification(n.message));
     }
 
-    // User logged in → open post page
-    window.location.href = "./post.html";
-  };
-}
+    // --------------------------------------------
+    // LIVE: Someone followed you
+    // --------------------------------------------
+    supabase
+      .channel("followers-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", table: "followers", schema: "public" },
+        (payload) => {
+          if (payload.new.following === userId) {
+            pushNotification("🔔 Someone started following you!");
+          }
+        }
+      )
+      .subscribe();
+
+    // --------------------------------------------
+    // LIVE: Someone you follow posted
+    // --------------------------------------------
+    async function followPostListener() {
+      if (!userId) return;
+
+      const { data: following } = await supabase
+        .from("followers")
+        .select("following")
+        .eq("follower", userId);
+
+      const followingIds = following?.map(f => f.following) || [];
+
+      supabase
+        .channel("posts-realtime")
+        .on(
+          "postgres_changes",
+          { event: "INSERT", table: "posts", schema: "public" },
+          (payload) => {
+            if (followingIds.includes(payload.new.user_id)) {
+              pushNotification("📝 Someone you follow posted a new blog!");
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    followPostListener();
+  })
+  .catch(err => console.error("Navbar load error:", err));

@@ -1,78 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Settings</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings</title>
 
-    <link rel="stylesheet" href="./css/main.css">
-    <link rel="stylesheet" href="./css/navbar.css">
-    <link rel="stylesheet" href="./css/settings.css">
+  <link rel="stylesheet" href="./css/main.css" />
+  <link rel="stylesheet" href="./css/navbar.css" />
+  <link rel="stylesheet" href="./css/footer.css" />
+  <link rel="stylesheet" href="./css/settings.css" />
 </head>
 
 <body>
 
-<div id="navbar-placeholder"></div>
+  <div id="navbar-placeholder"></div>
 
-<main class="settings-container">
+  <main class="settings-container">
 
-    <!-- MAIN SETTINGS LIST -->
+    <!-- MAIN SETTINGS MENU (VERTICAL) -->
     <section id="settings-main">
+      <h2>Settings</h2>
 
-        <h2 class="settings-title">⚙️ Settings</h2>
-
-        <div class="settings-card" onclick="openScreen('password-screen')">
-            <h3>Change Password</h3>
-            <p>Update your account password securely</p>
+      <div class="settings-list">
+        <div class="settings-item" onclick="openScreen('password-screen')">Change Password</div>
+        <div class="settings-item" onclick="openScreen('delete-screen')">Delete Account</div>
+        <div class="settings-item" onclick="openScreen('privacy-screen')">Privacy Policy</div>
+        <div class="settings-item" onclick="window.location.href='about.html'">
+         About Us
         </div>
-
-        <div class="settings-card" onclick="openScreen('delete-screen')">
-            <h3>Delete Account</h3>
-            <p>Permanently remove your account</p>
-        </div>
-
-        <div class="settings-card" onclick="openScreen('privacy-screen')">
-            <h3>Privacy Policy</h3>
-            <p>View our privacy policy</p>
-        </div>
+      </div>
     </section>
 
     <!-- CHANGE PASSWORD SCREEN -->
-    <section class="sub-screen" id="password-screen">
-        <button class="back-btn" onclick="goBack()">← Back</button>
-        <h2>Change Password</h2>
+    <section id="password-screen" class="sub-screen">
+      <h3>Change Password</h3>
 
+      <div class="password-group">
         <input type="password" id="currentPass" placeholder="Current Password">
-        <input type="password" id="newPass" placeholder="New Password">
-        <input type="password" id="confirmPass" placeholder="Confirm Password">
+        <span class="toggle-eye" onclick="togglePassword('currentPass', this)">👁️</span>
+      </div>
 
-        <button class="orange-btn" onclick="changePassword()">Update Password</button>
+      <div class="password-group">
+        <input type="password" id="newPass" placeholder="New Password">
+        <span class="toggle-eye" onclick="togglePassword('newPass', this)">👁️</span>
+      </div>
+
+      <div class="password-group">
+        <input type="password" id="confirmPass" placeholder="Confirm New Password">
+        <span class="toggle-eye" onclick="togglePassword('confirmPass', this)">👁️</span>
+      </div>
+
+      <button onclick="changePassword()" class="submit-btn-ui">Update Password</button>
+      <button onclick="goBack()" class="back-btn-ui">Back</button>
     </section>
 
     <!-- DELETE ACCOUNT SCREEN -->
-    <section class="sub-screen" id="delete-screen">
-        <button class="back-btn" onclick="goBack()">← Back</button>
-        <h2>Delete Account</h2>
+    <section id="delete-screen" class="sub-screen">
+      <h3>Delete Account</h3>
 
-        <p class="warning-text">⚠️ This action is permanent and cannot be undone.</p>
+      <p>Enter your password to confirm deletion.</p>
 
-        <input type="password" id="deletePass" placeholder="Enter Password To Confirm">
+      <div class="password-group">
+        <input type="password" id="deletePass" placeholder="Current Password">
+        <span class="toggle-eye" onclick="togglePassword('deletePass', this)">👁️</span>
+      </div>
 
-        <button class="danger-btn" onclick="deleteAccount()">Delete My Account</button>
+      <button onclick="deleteAccount()" class="delete-btn-ui">Delete Account</button>
+      <button onclick="goBack()" class="back-btn-ui">Back</button>
     </section>
 
     <!-- PRIVACY POLICY SCREEN -->
-    <section class="sub-screen" id="privacy-screen">
-        <button class="back-btn" onclick="goBack()">← Back</button>
-        <h2>Privacy Policy</h2>
+    <section id="privacy-screen" class="sub-screen">
+      <h3>Privacy Policy</h3>
 
-        <p>Your privacy policy text goes here…</p>
+      <p>
+        Your privacy is important to us. We securely store your data and never share it without your consent.
+      </p>
+
+      <p>
+        You may delete your account at any time, which permanently removes your profile, posts, and all associated data.
+      </p>
+
+      <button onclick="goBack()" class="back-btn-ui">Back</button>
     </section>
 
-</main>
+    <!-- ABOUT US SCREEN -->
+    
+  </main>
 
-<script type="module" src="./js/navbar.js"></script>
-<script type="module" src="./js/settings.js"></script>
+  <div id="footer-placeholder"></div>
+
+  <script type="module" src="./js/supabase/supabaseClient.js"></script>
+  <script type="module" src="./js/navbar.js"></script>
+  <script type="module" src="./js/settings.js"></script>
+  <script type="module" src="./js/footer.js"></script>
 
 </body>
 </html>

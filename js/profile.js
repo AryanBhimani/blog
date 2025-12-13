@@ -1,12 +1,11 @@
-import { auth, db } from "./firebase/firebase-config.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import {
-  doc, getDoc, setDoc, deleteDoc,
-  collection, getDocs, query, orderBy, onSnapshot
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { supabase } from "./supabase/supabaseClient.js";
 
+// ---------------------------
+// Get User ID from URL
+// ---------------------------
 let viewingUserId = new URLSearchParams(window.location.search).get("userId");
 
+// UI Elements
 const nameEl = document.getElementById("profile-name");
 const bioEl = document.getElementById("profile-bio");
 const editBtn = document.getElementById("edit-profile");
@@ -15,216 +14,223 @@ const loginBtn = document.getElementById("Login");
 const postsList = document.getElementById("user-posts-list");
 const followersCountEl = document.getElementById("followers-count");
 const followingCountEl = document.getElementById("following-count");
-const followersListContainer = document.getElementById("followers-users");
-const followingListContainer = document.getElementById("following-users");
 const postCounterEl = document.getElementById("posts-count");
 const settingsBtn = document.getElementById("settings-btn");
-const postBtn = document.getElementById("post");
 
+// Redirect to settings page
+if (settingsBtn) {
+  settingsBtn.onclick = () => {
+    window.location.href = "settings.html";
+  };
+}
+
+// Clear UI for logged-out users
 function clearUI() {
   nameEl.textContent = "Guest";
   bioEl.textContent = "Please login to view profile.";
+
   followersCountEl.textContent = "0";
   followingCountEl.textContent = "0";
+
   postsList.innerHTML = "<p>Please login to see posts.</p>";
-  settingsBtn.style.display = "none";
+
   editBtn.style.display = "none";
-  postBtn.style.display = "none";
+  settingsBtn.style.display = "none";
   followBtn.style.display = "none";
 }
 
-async function safeDeletePost(userId, postId) {
-  const ok = confirm("Are you sure you want to delete this post?");
-  if (!ok) return;
-
-  await deleteDoc(doc(db, "users", userId, "posts", postId));
-
-  const el = document.querySelector(`article.post-card[data-id="${postId}"]`);
-  if (el) el.remove();
-
-  if (!isNaN(Number(postCounterEl.textContent))) {
-    postCounterEl.textContent = Math.max(0, Number(postCounterEl.textContent) - 1);
-  }
-}
-
-onAuthStateChanged(auth, async (user) => {
+// ---------------------------
+// AUTH STATE
+// ---------------------------
+supabase.auth.onAuthStateChange(async (_event, session) => {
+  const user = session?.user || null;
 
   if (user) {
     loginBtn.textContent = "Logout";
     loginBtn.onclick = async () => {
-      await signOut(auth);
-      clearUI();
+      await supabase.auth.signOut();
       window.location.href = "auth.html";
     };
   } else {
     loginBtn.textContent = "Login";
-    loginBtn.onclick = () => window.location.href = "auth.html";
+    loginBtn.onclick = () => (window.location.href = "auth.html");
   }
 
-  if (!user && !viewingUserId) {
-    clearUI();
-    return;
-  }
+  if (!user && !viewingUserId) return clearUI();
 
   if (user && !viewingUserId) {
-    viewingUserId = user.uid;
-    history.replaceState(null, "", `?userId=${user.uid}`);
+    viewingUserId = user.id;
+    history.replaceState(null, "", `?userId=${user.id}`);
   }
 
-  const isOwner = user && user.uid === viewingUserId;
-
-  settingsBtn.style.display = isOwner ? "inline-block" : "none";
-  settingsBtn.onclick = () => window.location.href = "settings.html";
+  const isOwner = user && user.id === viewingUserId;
 
   editBtn.style.display = isOwner ? "inline-block" : "none";
-  postBtn.style.display = isOwner ? "inline-block" : "none";
-  followBtn.style.display = (!isOwner && user) ? "inline-block" : "none";
+  settingsBtn.style.display = isOwner ? "inline-block" : "none";
+  followBtn.style.display = !isOwner && user ? "inline-block" : "none";
+
+  document.getElementById("post").style.display = isOwner ? "inline-block" : "none";
+document.getElementById("Login").style.display = isOwner ? "inline-block" : "none";
 
   loadProfile(viewingUserId);
   loadFollowStats(viewingUserId);
-  loadUserLists(viewingUserId);
   loadPosts(viewingUserId);
 
-  /* -------------------------
-     FOLLOW / UNFOLLOW FIXED
-     ------------------------- */
-  if (user && !isOwner) {
-    // set initial follow state
-    const initial = await checkFollowingStatus(user.uid, viewingUserId);
-    updateFollowButton(initial);
-
-    followBtn.onclick = async () => {
-      const currentState = await checkFollowingStatus(user.uid, viewingUserId);
-
-      if (currentState) {
-        await unfollowUser(user.uid, viewingUserId);
-      } else {
-        await followUser(user.uid, viewingUserId);
-      }
-
-      const newState = await checkFollowingStatus(user.uid, viewingUserId);
-      updateFollowButton(newState);
-
-      loadFollowStats(viewingUserId);
-      loadUserLists(viewingUserId);
-    };
-  }
+  if (user && !isOwner) initializeFollowButton(user.id, viewingUserId);
 });
 
-function updateFollowButton(isFollowing) {
-  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
-  followBtn.classList.remove("follow", "unfollow");
-  followBtn.classList.add(isFollowing ? "unfollow" : "follow");
-}
-
-async function checkFollowingStatus(myId, theirId) {
-  return (await getDoc(doc(db, "users", myId, "following", theirId))).exists();
-}
-
-async function followUser(myId, theirId) {
-  await setDoc(doc(db, "users", myId, "following", theirId), {});
-  await setDoc(doc(db, "users", theirId, "followers", myId), {});
-}
-
-async function unfollowUser(myId, theirId) {
-  await deleteDoc(doc(db, "users", myId, "following", theirId));
-  await deleteDoc(doc(db, "users", theirId, "followers", myId));
-}
-
+// ---------------------------
+// Load Profile
+// ---------------------------
 async function loadProfile(uid) {
-  const snap = await getDoc(doc(db, "users", uid));
-  if (snap.exists()) {
-    const d = snap.data();
-    nameEl.textContent = d.username;
-    bioEl.textContent = d.bio || "No bio yet.";
-  }
+  const { data } = await supabase.from("users").select("*").eq("id", uid).single();
+
+  if (!data) return;
+
+  nameEl.textContent = data.name || "Unnamed User";
+  bioEl.textContent = data.bio || "No bio yet.";
 }
 
-async function loadFollowStats(uid) {
-  const f1 = await getDocs(collection(db, "users", uid, "followers"));
-  const f2 = await getDocs(collection(db, "users", uid, "following"));
-  followersCountEl.textContent = f1.size;
-  followingCountEl.textContent = f2.size;
-}
+// ---------------------------
+// Follow System
+// ---------------------------
+async function initializeFollowButton(myId, theirId) {
+  const isFollowing = await checkFollowing(myId, theirId);
+  updateFollowButton(isFollowing);
 
-async function loadUserLists(uid) {
-  await loadList(followersListContainer, uid, "followers", "No followers yet");
-  await loadList(followingListContainer, uid, "following", "Not following anyone");
-}
+  followBtn.onclick = async () => {
+    const currentlyFollowing = await checkFollowing(myId, theirId);
 
-async function loadList(container, uid, rel, emptyMsg) {
-  const snap = await getDocs(collection(db, "users", uid, rel));
-  if (snap.empty) return container.innerHTML = `<p>${emptyMsg}</p>`;
-
-  let html = "";
-  for (const s of snap.docs) {
-    const usr = await getDoc(doc(db, "users", s.id));
-    const d = usr.exists() ? usr.data() : {};
-    html += `<a href="profile.html?userId=${s.id}" class="user-list-item"><span>${d.username || s.id}</span></a>`;
-  }
-  container.innerHTML = html;
-}
-
-let unsubPosts = null;
-function loadPosts(uid) {
-  if (unsubPosts) unsubPosts();
-
-  const q = query(collection(db, "users", uid, "posts"), orderBy("createdAt", "desc"));
-  unsubPosts = onSnapshot(q, (snap) => {
-    postCounterEl.textContent = snap.size;
-
-    if (snap.empty) {
-      postsList.innerHTML = "<p>No blogs yet</p>";
-      return;
+    if (currentlyFollowing) {
+      await supabase.from("followers").delete().match({
+        follower: myId,
+        following: theirId,
+      });
+    } else {
+      await supabase.from("followers").insert({
+        follower: myId,
+        following: theirId,
+      });
     }
 
-    postsList.innerHTML = "";
-    snap.forEach(docSnap => {
-      const p = docSnap.data();
-      const id = docSnap.id;
-      const isOwner = auth.currentUser && auth.currentUser.uid === uid;
+    const updated = await checkFollowing(myId, theirId);
+    updateFollowButton(updated);
+    loadFollowStats(theirId);
+  };
+}
 
-      postsList.innerHTML += `
-        <article class="post-card" data-id="${id}">
-          <h3>${p.title}</h3>
-          <p>${p.content}</p>
-          <small>${p.createdAt?.toDate().toLocaleString()}</small>
+async function checkFollowing(myId, theirId) {
+  const { data } = await supabase
+    .from("followers")
+    .select("*")
+    .eq("follower", myId)
+    .eq("following", theirId);
 
-          ${isOwner ? `
-            <div class="post-actions">
-              <button class="edit-post">✏️ Edit</button>
-              <button class="delete-post">🗑️ Delete</button>
-            </div>
-          ` : ""}
-        </article>
+  return data.length > 0;
+}
+
+function updateFollowButton(state) {
+  followBtn.textContent = state ? "Unfollow" : "Follow";
+  followBtn.classList.toggle("unfollow", state);
+}
+
+// ---------------------------
+// Follow Stats
+// ---------------------------
+async function loadFollowStats(uid) {
+  const { data: followers } = await supabase.from("followers").select("*").eq("following", uid);
+  const { data: following } = await supabase.from("followers").select("*").eq("follower", uid);
+
+  followersCountEl.textContent = followers.length;
+  followingCountEl.textContent = following.length;
+}
+
+// ----------------------------------------
+// Load Posts for User + Edit/Delete Actions
+// ----------------------------------------
+async function loadPosts(uid) {
+  const session = await supabase.auth.getSession();
+  const loggedInUser = session.data.session?.user || null;
+
+  const { data: posts, error } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("user_id", uid)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  postCounterEl.textContent = posts.length;
+
+  if (!posts.length) {
+    postsList.innerHTML = "<p>No blogs yet</p>";
+    return;
+  }
+
+  postsList.innerHTML = "";
+
+  posts.forEach((post) => {
+    const isOwner = loggedInUser && loggedInUser.id === uid;
+
+    const postCard = document.createElement("article");
+    postCard.classList.add("post-card");
+    postCard.innerHTML = `
+      <h3>${post.title}</h3>
+      <p>${post.content.substring(0, 150)}...</p>
+      <small>${new Date(post.created_at).toLocaleString()}</small>
+    `;
+
+    // ACTION BUTTONS (Edit + Delete)
+    if (isOwner) {
+      const actions = document.createElement("div");
+      actions.classList.add("post-actions");
+
+      actions.innerHTML = `
+        <button class="edit-btn">✏️ Edit</button>
+        <button class="delete-btn">🗑 Delete</button>
       `;
-    });
 
-    attachPostActions(uid);
+      // Attach event listeners
+      actions.querySelector(".edit-btn").addEventListener("click", () => {
+        editPost(post.id);
+      });
+
+      actions.querySelector(".delete-btn").addEventListener("click", () => {
+        deletePost(post.id);
+      });
+
+      postCard.appendChild(actions);
+    }
+
+    postsList.appendChild(postCard);
   });
 }
 
-function attachPostActions(uid) {
-  document.querySelectorAll(".edit-post").forEach(btn => {
-    btn.onclick = (e) => {
-      const id = e.target.closest("article").dataset.id;
-      window.location.href = `post.html?edit=${id}`;
-    };
-  });
 
-  document.querySelectorAll(".delete-post").forEach(btn => {
-    btn.onclick = (e) => {
-      const id = e.target.closest("article").dataset.id;
-      safeDeletePost(uid, id);
-    };
-  });
+// ---------------------------
+// Delete a Post
+// ---------------------------
+async function deletePost(postId) {
+  if (!confirm("Are you sure you want to delete this post?")) return;
+
+  const { error } = await supabase.from("posts").delete().eq("id", postId);
+
+  if (error) {
+    alert("Failed to delete post ❌");
+    return;
+  }
+
+  alert("Post deleted successfully ✔");
+  loadPosts(viewingUserId); 
 }
 
-/* Followers / Following page link */
-document.getElementById("followers-stat").onclick = () => {
-  window.location.href = `followers.html?userId=${viewingUserId}`;
-};
+// ---------------------------
+// Edit a Post (redirect to edit page)
+// ---------------------------
+function editPost(postId) {
+  window.location.href = `post.html?postId=${postId}`;
+}
 
-document.getElementById("following-stat").onclick = () => {
-  window.location.href = `following.html?userId=${viewingUserId}`;
-};

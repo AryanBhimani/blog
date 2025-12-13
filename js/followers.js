@@ -1,74 +1,51 @@
-import { db, auth } from "./firebase/firebase-config.js";
-import {
-  doc, getDoc, getDocs, collection, setDoc, deleteDoc
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { supabase } from "./supabase/supabaseClient.js";
 
 const params = new URLSearchParams(window.location.search);
 const userId = params.get("userId");
 
 const followersList = document.getElementById("followers-list");
 
+// Load list of followers
 async function loadFollowers() {
-  const snap = await getDocs(collection(db, "users", userId, "followers"));
+  const { data: followers, error } = await supabase
+    .from("followers")
+    .select("follower")
+    .eq("following", userId);
 
-  if (snap.empty) {
+  if (error) {
+    followersList.innerHTML = "<p>Error loading followers.</p>";
+    return;
+  }
+
+  if (!followers.length) {
     followersList.innerHTML = "<p>No followers yet.</p>";
     return;
   }
 
   let html = "";
 
-  for (const s of snap.docs) {
-    const fid = s.id;
-    const userSnap = await getDoc(doc(db, "users", fid));
-    const data = userSnap.exists() ? userSnap.data() : {};
+  for (const f of followers) {
+    const fid = f.follower;
+
+    const { data: userData } = await supabase
+      .from("users")
+      .select("username, avatar_url")
+      .eq("id", fid)
+      .single();
 
     html += `
-      <div class="user-list-item">
-        <span onclick="window.location.href='profile.html?userId=${fid}'">
-          ${data.username || "Unknown User"}
-        </span>
-        <button class="follow-btn-small" id="btn-${fid}">...</button>
+      <div class="user-list-item" 
+           onclick="window.location.href='profile.html?userId=${fid}'">
+        
+        <img src="${userData?.avatar_url || './assets/images/default-avatar.png'}" 
+             class="user-avatar" />
+
+        <span>${userData?.username || "Unknown User"}</span>
       </div>
     `;
   }
 
   followersList.innerHTML = html;
-  setupButtons();
-}
-
-async function setupButtons() {
-  const currentUser = auth.currentUser;
-  if (!currentUser) return;
-
-  const snaps = await getDocs(collection(db, "users", currentUser.uid, "following"));
-  const followingSet = new Set(snaps.docs.map(d => d.id));
-
-  document.querySelectorAll(".follow-btn-small").forEach((btn) => {
-    const uid = btn.id.replace("btn-", "");
-
-    if (followingSet.has(uid)) {
-      btn.textContent = "Unfollow";
-      btn.className = "follow-btn-small unfollow";
-    } else {
-      btn.textContent = "Follow";
-      btn.className = "follow-btn-small follow";
-    }
-
-    btn.onclick = async () => {
-      if (btn.textContent === "Follow") {
-        await setDoc(doc(db, "users", currentUser.uid, "following", uid), {});
-        await setDoc(doc(db, "users", uid, "followers", currentUser.uid), {});
-        btn.textContent = "Unfollow";
-        btn.className = "follow-btn-small unfollow";
-      } else {
-        await deleteDoc(doc(db, "users", currentUser.uid, "following", uid));
-        await deleteDoc(doc(db, "users", uid, "followers", currentUser.uid));
-        btn.textContent = "Follow";
-        btn.className = "follow-btn-small follow";
-      }
-    };
-  });
 }
 
 loadFollowers();

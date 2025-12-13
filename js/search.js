@@ -1,635 +1,241 @@
-// Import Firebase modules from your existing configuration
-import { db } from './firebase/firebase-config.js';
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+// ===============================
+// search.js (Supabase – FIXED + LOADING)
+// ===============================
 
-// DOM elements
-const queryInput = document.getElementById('query');
-const resultsEl = document.getElementById('results');
-const clearBtn = document.getElementById('clearBtn');
-const searchBtn = document.getElementById('searchBtn');
-const searchHelp = document.getElementById('searchHelp');
-const firebaseStatus = document.getElementById('firebaseStatus');
-const filterBtns = document.querySelectorAll('.filter-btn');
-const profileModal = document.getElementById('profileModal');
-const profileModalContent = document.getElementById('profileModalContent');
-const profileModalClose = document.querySelector('.profile-modal-close');
+import { supabase } from "./supabase/supabaseClient.js";
 
-// Search state
+// -------------------------------
+// DOM ELEMENTS
+// -------------------------------
+const queryInput = document.getElementById("query");
+const resultsEl = document.getElementById("results");
+const clearBtn = document.getElementById("clearBtn");
+const searchBtn = document.getElementById("searchBtn");
+const filterBtns = document.querySelectorAll(".filter-btn");
+const loadingEl = document.getElementById("firebaseStatus");
+
+// -------------------------------
+// STATE
+// -------------------------------
 let postsIndex = [];
 let usersIndex = [];
-let lastQuery = '';
-let currentFilter = 'all';
-let firebaseInitialized = false;
+let lastQuery = "";
+let currentFilter = "all";
+let dataLoaded = false;
 
-// Initialize Firebase and load data
-async function initializeFirebase() {
-    try {
-        updateFirebaseStatus('<i class="fas fa-sync-alt fa-spin"></i> Connecting to Firebase...', 'loading');
-        
-        updateFirebaseStatus('<i class="fas fa-sync-alt fa-spin"></i> Loading data from Firestore...', 'loading');
-        
-        // Load posts and users from Firestore
-        const [postsSnapshot, usersSnapshot] = await Promise.all([
-            getDocs(collection(db, 'posts')),
-            getDocs(collection(db, 'users'))
+// -------------------------------
+// INIT
+// -------------------------------
+init();
+
+async function init() {
+  showLoading();
+  await loadData();
+  hideLoading();
+  bindEvents();
+}
+
+// -------------------------------
+// LOAD DATA FROM SUPABASE
+// -------------------------------
+async function loadData() {
+  try {
+    const [{ data: posts }, { data: users }] = await Promise.all([
+      supabase.from("posts").select("*"),
+      supabase.from("users").select("*"),
+    ]);
+
+    // POSTS INDEX
+    postsIndex = (posts || []).map((p) => ({
+      type: "post",
+      id: p.id,
+      title: p.title || "",
+      content: p.content || "",
+      excerpt: (p.content || "").substring(0, 180),
+      url: `post.html?postId=${p.id}`,
+      createdAt: p.created_at,
+    }));
+
+    // USERS INDEX (followers & following preserved)
+    usersIndex = await Promise.all(
+      (users || []).map(async (u) => {
+        const [{ count: followers }, { count: following }] = await Promise.all([
+          supabase
+            .from("followers")
+            .select("*", { count: "exact", head: true })
+            .eq("following", u.id),
+          supabase
+            .from("followers")
+            .select("*", { count: "exact", head: true })
+            .eq("follower", u.id),
         ]);
-        
-        // Map posts data
-        postsIndex = postsSnapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                type: 'post',
-                title: data.title || '',
-                url: data.url || data.slug || `#post-${doc.id}`,
-                excerpt: data.excerpt || data.description || data.content?.substring(0, 200) || '',
-                tags: Array.isArray(data.tags) ? data.tags : 
-                      (data.tags ? String(data.tags).split(',').map(s => s.trim()) : []),
-                date: formatDate(data.date || data.published || data.createdAt || data.timestamp || ''),
-                content: data.content || data.body || '',
-                author: data.author || data.user || '',
-                authorId: data.authorId || data.uid || ''
-            };
-        });
 
-        // Map users data with followers/following
-        usersIndex = await Promise.all(
-            usersSnapshot.docs.map(async (doc) => {
-                const data = doc.data();
-                const userId = doc.id;
-                
-                // Get followers count
-                let followersCount = 0;
-                try {
-                    const followersSnapshot = await getDocs(collection(db, 'users', userId, 'followers'));
-                    followersCount = followersSnapshot.size;
-                } catch (error) {
-                    console.warn(`Could not fetch followers for user ${userId}:`, error);
-                    // If followers subcollection doesn't exist, use a default value
-                    followersCount = data.followersCount || 0;
-                }
-                
-                // Get following count
-                let followingCount = 0;
-                try {
-                    const followingSnapshot = await getDocs(collection(db, 'users', userId, 'following'));
-                    followingCount = followingSnapshot.size;
-                } catch (error) {
-                    console.warn(`Could not fetch following for user ${userId}:`, error);
-                    // If following subcollection doesn't exist, use a default value
-                    followingCount = data.followingCount || 0;
-                }
-                
-                return {
-                    id: userId,
-                    type: 'user',
-                    name: data.name || '',
-                    username: data.username || '',
-                    email: data.email || '',
-                    bio: data.bio || '',
-                    createdAt: formatDate(data.createdAt || ''),
-                    updatedAt: formatDate(data.updatedAt || data.lastModified || ''),
-                    uid: data.uid || userId,
-                    followersCount: followersCount,
-                    followingCount: followingCount,
-                    profileImage: data.profileImage || data.avatar || ''
-                };
-            })
-        );
-        
-        firebaseInitialized = true;
-        updateFirebaseStatus(`<i class="fas fa-check-circle"></i> Successfully loaded ${postsIndex.length} posts and ${usersIndex.length} users from Firebase`, 'success');
-        updateUIState('ready');
-        
-        // If there's a query in URL, perform search
-        const params = new URLSearchParams(location.search);
-        const q = params.get('q') || '';
-        if (q) {
-            queryInput.value = q;
-            doSearch(q);
-        }
-        
-    } catch (error) {
-        console.error('Firebase initialization error:', error);
-        updateFirebaseStatus(`<i class="fas fa-exclamation-circle"></i> Error loading data from Firebase: ${error.message}`, 'error');
-        updateUIState('error', 'Failed to load data from Firebase. Please check console for details.');
-    }
-}
-
-// Format date from various possible formats
-function formatDate(dateValue) {
-    if (!dateValue) return '';
-    
-    try {
-        // If it's a Firestore timestamp
-        if (dateValue.toDate) {
-            return dateValue.toDate().toLocaleDateString();
-        }
-        
-        // If it's a string or number
-        const date = new Date(dateValue);
-        if (!isNaN(date.getTime())) {
-            return date.toLocaleDateString();
-        }
-        
-        return String(dateValue);
-    } catch (e) {
-        return String(dateValue);
-    }
-}
-
-// Show user profile in modal with followers/following
-async function showUserProfile(user) {
-    try {
-        // Get fresh followers and following data
-        let followersCount = user.followersCount || 0;
-        let followingCount = user.followingCount || 0;
-        
-        try {
-            const followersSnapshot = await getDocs(collection(db, 'users', user.id, 'followers'));
-            followersCount = followersSnapshot.size;
-        } catch (error) {
-            console.warn(`Could not fetch followers for user ${user.id}:`, error);
-        }
-        
-        try {
-            const followingSnapshot = await getDocs(collection(db, 'users', user.id, 'following'));
-            followingCount = followingSnapshot.size;
-        } catch (error) {
-            console.warn(`Could not fetch following for user ${user.id}:`, error);
-        }
-        
-        profileModalContent.innerHTML = `
-            <div class="user-card">
-                <div class="user-avatar" style="${user.profileImage ? `background-image: url('${escapeHtml(user.profileImage)}'); background-size: cover;` : ''}">
-                    ${user.profileImage ? '' : (user.name ? user.name.charAt(0).toUpperCase() : 'U')}
-                </div>
-                <div class="user-info">
-                    <div class="user-name">${escapeHtml(user.name || 'Unknown User')}</div>
-                    <div class="user-username">@${escapeHtml(user.username || '')}</div>
-                    <div class="user-bio">${escapeHtml(user.bio || 'No bio available')}</div>
-                    
-                    <div class="user-stats">
-                        <div class="user-stat">
-                            <div class="user-stat-value">${followersCount}</div>
-                            <div class="user-stat-label">Followers</div>
-                        </div>
-                        <div class="user-stat">
-                            <div class="user-stat-value">${followingCount}</div>
-                            <div class="user-stat-label">Following</div>
-                        </div>
-                    </div>
-                    
-                    <div class="card-badges" style="margin-top: 1rem;">
-                        <span class="badge badge-primary">User Profile</span>
-                        <span>Joined: ${escapeHtml(user.createdAt || 'Unknown')}</span>
-                    </div>
-                    <div style="margin-top: 1rem;">
-                        <h4>Contact</h4>
-                        <p>Email: ${escapeHtml(user.email || 'Not provided')}</p>
-                    </div>
-                </div>
-            </div>
-        `;
-        profileModal.classList.add('active');
-    } catch (error) {
-        console.error('Error loading user profile:', error);
-        profileModalContent.innerHTML = `
-            <div class="error-notice">
-                <i class="fas fa-exclamation-circle"></i> Error loading user profile. Please try again.
-            </div>
-        `;
-        profileModal.classList.add('active');
-    }
-}
-
-// Show post details in modal
-function showPostDetails(post) {
-    profileModalContent.innerHTML = `
-        <div>
-            <h3>${escapeHtml(post.title || 'Untitled Post')}</h3>
-            <div class="card-meta">
-                <time><i class="far fa-calendar"></i> ${escapeHtml(post.date || 'Unknown date')}</time>
-                ${post.author ? `<span><i class="fas fa-user"></i> by ${escapeHtml(post.author)}</span>` : ''}
-            </div>
-            <div class="card-excerpt" style="margin-top: 1rem;">
-                ${escapeHtml(post.content || post.excerpt || 'No content available')}
-            </div>
-            ${Array.isArray(post.tags) && post.tags.length > 0 ? `
-                <div class="card-badges" style="margin-top: 1rem;">
-                    ${post.tags.map(tag => `<span class="badge badge-secondary">${escapeHtml(tag)}</span>`).join('')}
-                </div>
-            ` : ''}
-        </div>
-    `;
-    profileModal.classList.add('active');
-}
-
-// Update Firebase connection status
-function updateFirebaseStatus(message, type = 'info') {
-    const className = type === 'error' ? 'error-notice' : 
-                    type === 'success' ? 'success-notice' : 
-                    type === 'loading' ? 'info-notice' : 'info-notice';
-    
-    firebaseStatus.innerHTML = message;
-    firebaseStatus.className = className;
-}
-
-// Update UI based on state
-function updateUIState(state, message = '') {
-    switch(state) {
-        case 'loading':
-            searchBtn.disabled = true;
-            searchHelp.textContent = 'Loading search index...';
-            break;
-        case 'ready':
-            searchBtn.disabled = false;
-            const query = queryInput.value.trim();
-            if (!query) {
-                searchHelp.textContent = `Ready to search ${postsIndex.length} posts and ${usersIndex.length} users`;
-            }
-            break;
-        case 'error':
-            searchBtn.disabled = false;
-            searchHelp.textContent = message;
-            break;
-    }
-}
-
-// Highlight search terms in text
-function highlight(text, terms) {
-    if (!terms.length) return escapeHtml(text);
-    
-    let highlighted = escapeHtml(text);
-    terms.forEach(term => {
-        const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi');
-        highlighted = highlighted.replace(regex, '<mark class="highlight">$1</mark>');
-    });
-    return highlighted;
-}
-
-// Escape HTML to prevent XSS
-function escapeHtml(s) {
-    if (typeof s !== 'string') return '';
-    return s.replace(/[&<>"']/g, c => 
-        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])
+        return {
+          type: "user",
+          id: u.id,
+          name: u.name || "",
+          email: u.email || "",
+          avatar: u.avatar_url || "",
+          followersCount: followers || 0,
+          followingCount: following || 0,
+          profileUrl: `profile.html?userId=${u.id}`,
+        };
+      })
     );
+
+    dataLoaded = true;
+  } catch (err) {
+    console.error("Search init error:", err);
+  }
 }
 
-// Escape regex special characters
-function escapeRegExp(s) {
-    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// -------------------------------
+// SEARCH LOGIC
+// -------------------------------
+function search(query) {
+  if (!query || !dataLoaded) return { posts: [], users: [] };
+
+  const terms = query.toLowerCase().split(/\s+/);
+
+  const posts = postsIndex.filter((p) =>
+    terms.some(
+      (t) =>
+        p.title.toLowerCase().includes(t) ||
+        p.content.toLowerCase().includes(t)
+    )
+  );
+
+  const users = usersIndex.filter((u) =>
+    terms.some(
+      (t) =>
+        u.name.toLowerCase().includes(t) ||
+        u.email.toLowerCase().includes(t)
+    )
+  );
+
+  return { posts, users };
 }
 
-// Perform search on the indexes
-function search(q) {
-    q = (q || '').trim();
-    if (!q) return { posts: [], users: [] };
-    
-    const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
-    const termSet = new Set(terms);
-    
-    // Search posts
-    const postResults = postsIndex
-        .map(item => {
-            const searchText = [
-                item.title || '',
-                item.excerpt || '',
-                item.content || '',
-                Array.isArray(item.tags) ? item.tags.join(' ') : '',
-                item.author || ''
-            ].join(' ').toLowerCase();
-            
-            let score = 0;
-            for (const term of termSet) {
-                if (item.title && item.title.toLowerCase().includes(term)) {
-                    score += 5;
-                }
-                
-                if (Array.isArray(item.tags) && item.tags.some(tag => 
-                    tag.toLowerCase().includes(term))) {
-                    score += 3;
-                }
-                
-                const contentMatches = (item.content || '').toLowerCase().split(term).length - 1;
-                score += contentMatches * 0.1;
-                
-                const excerptMatches = (item.excerpt || '').toLowerCase().split(term).length - 1;
-                score += excerptMatches * 0.5;
-                
-                if (item.author && item.author.toLowerCase().includes(term)) {
-                    score += 2;
-                }
-            }
-            
-            return {item, score};
-        })
-        .filter(r => r.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .map(r => r.item);
+// -------------------------------
+// RENDER RESULTS
+// -------------------------------
+function renderResults({ posts, users }, query) {
+  hideLoading();
+  resultsEl.innerHTML = "";
 
-    // Search users
-    const userResults = usersIndex
-        .map(item => {
-            const searchText = [
-                item.name || '',
-                item.username || '',
-                item.bio || '',
-                item.email || ''
-            ].join(' ').toLowerCase();
-            
-            let score = 0;
-            for (const term of termSet) {
-                if (item.name && item.name.toLowerCase().includes(term)) {
-                    score += 5;
-                }
-                
-                if (item.username && item.username.toLowerCase().includes(term)) {
-                    score += 4;
-                }
-                
-                if (item.bio && item.bio.toLowerCase().includes(term)) {
-                    score += 3;
-                }
-                
-                if (item.email && item.email.toLowerCase().includes(term)) {
-                    score += 1;
-                }
-            }
-            
-            return {item, score};
-        })
-        .filter(r => r.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .map(r => r.item);
-    
-    return { posts: postResults, users: userResults };
-}
+  if (!query) {
+    resultsEl.innerHTML = `<p class="no-results">Enter a search term</p>`;
+    return;
+  }
 
-// Render search results
-function render(results, q) {
-    const terms = q ? q.toLowerCase().split(/\s+/).filter(Boolean) : [];
-    const { posts, users } = results;
-    
-    let totalResults = 0;
-    let filteredResults = [];
-    
-    // Filter results based on current filter
-    if (currentFilter === 'all') {
-        filteredResults = [
-            ...posts.map(item => ({ ...item, type: 'post' })),
-            ...users.map(item => ({ ...item, type: 'user' }))
-        ];
-        totalResults = posts.length + users.length;
-    } else if (currentFilter === 'posts') {
-        filteredResults = posts.map(item => ({ ...item, type: 'post' }));
-        totalResults = posts.length;
-    } else if (currentFilter === 'users') {
-        filteredResults = users.map(item => ({ ...item, type: 'user' }));
-        totalResults = users.length;
-    }
-    
-    // Update search stats
-    if (q) {
-        let filterText = '';
-        if (currentFilter === 'posts') filterText = ' in posts';
-        if (currentFilter === 'users') filterText = ' in users';
-        
-        searchHelp.textContent = totalResults === 0 ? 
-            `No results found for "${q}"${filterText}` : 
-            `Found ${totalResults} result${totalResults !== 1 ? 's' : ''} for "${q}"${filterText}`;
+  let items = [];
+
+  if (currentFilter === "all") {
+    items = [...users, ...posts];
+  } else if (currentFilter === "users") {
+    items = users;
+  } else if (currentFilter === "posts") {
+    items = posts;
+  }
+
+  if (!items.length) {
+    resultsEl.innerHTML = `<p class="no-results">No results found</p>`;
+    return;
+  }
+
+  items.forEach((item) => {
+    if (item.type === "user") {
+      resultsEl.insertAdjacentHTML(
+        "beforeend",
+        `
+        <div class="result-card user-card" onclick="window.location.href='${item.profileUrl}'">
+          <img src="${item.avatar || "./assets/images/default-avatar.png"}" />
+          <div>
+            <strong>${escapeHtml(item.name)}</strong>
+            <small>${item.followersCount} followers · ${item.followingCount} following</small>
+          </div>
+        </div>
+        `
+      );
     } else {
-        if (firebaseInitialized) {
-            searchHelp.textContent = `Ready to search ${postsIndex.length} posts and ${usersIndex.length} users`;
-        } else {
-            searchHelp.textContent = 'Loading search data...';
-        }
-    }
-    
-    // Render results
-    if (!q) {
-        resultsEl.innerHTML = `
-            <div class="no-results">
-                <i class="fas fa-search"></i>
-                <h3>Ready to Search</h3>
-                <p>Enter a query above to discover posts and users</p>
-            </div>
-        `;
-        return;
-    }
-    
-    if (totalResults === 0) {
-        resultsEl.innerHTML = `
-            <div class="no-results">
-                <i class="fas fa-search"></i>
-                <h3>No Results Found</h3>
-                <p>Try different keywords or browse all content</p>
-            </div>
-        `;
-        return;
-    }
-    
-    resultsEl.innerHTML = '';
-    
-    for (const item of filteredResults) {
-        const card = document.createElement('div');
-        card.className = 'result-card';
-        
-        if (item.type === 'post') {
-            // Render post item
-            card.innerHTML = `
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <a href="${escapeHtml(item.url || '#')}" class="profile-link" data-type="post" data-id="${item.id}">
-                            ${highlight(item.title || 'Untitled Post', terms)}
-                        </a>
-                    </h3>
-                    <div class="card-meta">
-                        ${item.date ? `<time><i class="far fa-calendar"></i> ${escapeHtml(item.date)}</time>` : ''}
-                        ${item.author ? `<span><i class="fas fa-user"></i> ${escapeHtml(item.author)}</span>` : ''}
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="card-excerpt">
-                        ${highlight(item.excerpt || '', terms)}
-                    </div>
-                </div>
-                ${Array.isArray(item.tags) && item.tags.length > 0 ? `
-                    <div class="card-footer">
-                        <div class="card-badges">
-                            ${item.tags.slice(0, 3).map(tag => `<span class="badge badge-secondary">${escapeHtml(tag)}</span>`).join('')}
-                            ${item.tags.length > 3 ? `<span class="badge">+${item.tags.length - 3} more</span>` : ''}
-                        </div>
-                        <div class="card-actions">
-                            <button class="action-btn" title="Bookmark"><i class="far fa-bookmark"></i></button>
-                            <button class="action-btn" title="Share"><i class="fas fa-share-alt"></i></button>
-                        </div>
-                    </div>
-                ` : ''}
-            `;
-        } else if (item.type === 'user') {
-            // Render user item with followers/following
-            card.innerHTML = `
-                <div class="card-header">
-                    <div class="user-card">
-                        <div class="user-avatar" style="${item.profileImage ? `background-image: url('${escapeHtml(item.profileImage)}'); background-size: cover;` : ''}">
-                            ${item.profileImage ? '' : (item.name ? item.name.charAt(0).toUpperCase() : 'U')}
-                        </div>
-                        <div class="user-info">
-                            <div class="user-name">
-                                <span class="profile-link" data-type="user" data-username="${item.username}">
-                                    ${highlight(item.name || 'Unknown User', terms)}
-                                </span>
-                            </div>
-                            <div class="user-username">
-                                @${highlight(item.username, terms)}
-                            </div>
-                            <div class="user-bio">
-                                ${highlight(item.bio || '', terms)}
-                            </div>
-                            <div class="user-stats">
-                                <div class="user-stat">
-                                    <div class="user-stat-value">${item.followersCount || 0}</div>
-                                    <div class="user-stat-label">Followers</div>
-                                </div>
-                                <div class="user-stat">
-                                    <div class="user-stat-value">${item.followingCount || 0}</div>
-                                    <div class="user-stat-label">Following</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <div class="card-badges">
-                        <span class="badge badge-primary">User</span>
-                        <span>Joined ${escapeHtml(item.createdAt || '')}</span>
-                    </div>
-                    <div class="card-actions">
-                        <button class="action-btn" title="Message"><i class="far fa-envelope"></i></button>
-                        <button class="action-btn" title="Follow"><i class="fas fa-user-plus"></i></button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        resultsEl.appendChild(card);
-    }
+      resultsEl.insertAdjacentHTML(
+        "beforeend",
+        `
+        <div class="result-card post-card">
+          <h3><a href="${item.url}">${escapeHtml(item.title)}</a></h3>
+         <p class="post-excerpt">${item.excerpt}...</p>
 
-    // Add click listeners to profile links
-    document.querySelectorAll('.profile-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const type = link.dataset.type;
-            const id = link.dataset.id;
-            const username = link.dataset.username;
-            
-            if (type === 'user') {
-                const user = usersIndex.find(u => u.username === username) || 
-                           usersIndex.find(u => u.name === username);
-                if (user) {
-                    showUserProfile(user);
-                }
-            } else if (type === 'post') {
-                const post = postsIndex.find(p => p.id === id);
-                if (post) {
-                    showPostDetails(post);
-                }
-            }
-        });
-    });
+        </div>
+        `
+      );
+    }
+  });
 }
 
-// Debounce function to limit search frequency
-function debounce(fn, wait = 300) {
-    let timeout;
-    return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => fn(...args), wait);
+// -------------------------------
+// EVENTS
+// -------------------------------
+function bindEvents() {
+  queryInput.addEventListener(
+    "input",
+    debounce((e) => {
+      lastQuery = e.target.value.trim();
+      showLoading();
+      renderResults(search(lastQuery), lastQuery);
+    }, 300)
+  );
+
+  clearBtn.onclick = () => {
+    queryInput.value = "";
+    resultsEl.innerHTML = "";
+    hideLoading();
+  };
+
+  searchBtn.onclick = () => {
+    lastQuery = queryInput.value.trim();
+    showLoading();
+    renderResults(search(lastQuery), lastQuery);
+  };
+
+  filterBtns.forEach((btn) => {
+    btn.onclick = () => {
+      filterBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentFilter = btn.dataset.filter;
+      showLoading();
+      renderResults(search(lastQuery), lastQuery);
     };
+  });
 }
 
-// Perform search with debouncing
-const doSearch = debounce((q) => {
-    if (q === lastQuery) return;
-    
-    lastQuery = q;
-    
-    // Show loading state
-    if (q.trim()) {
-        resultsEl.innerHTML = `
-            <div class="loading">
-                <div class="spinner"></div>
-            </div>
-        `;
-    }
-    
-    setTimeout(() => {
-        const results = search(q);
-        render(results, q);
-    }, 300);
-}, 200);
+// -------------------------------
+// LOADING HELPERS
+// -------------------------------
+function showLoading() {
+  if (loadingEl) loadingEl.style.display = "block";
+}
 
-// Event listeners
-queryInput.addEventListener('input', (e) => {
-    const q = e.target.value;
-    
-    const u = new URL(location);
-    if (q) {
-        u.searchParams.set('q', q);
-    } else {
-        u.searchParams.delete('q');
-    }
-    history.replaceState({}, '', u);
-    
-    doSearch(q);
-});
+function hideLoading() {
+  if (loadingEl) loadingEl.style.display = "none";
+}
 
-clearBtn.addEventListener('click', () => {
-    queryInput.value = '';
-    queryInput.focus();
-    history.replaceState({}, '', location.pathname);
-    render({ posts: [], users: [] }, '');
-    lastQuery = '';
-});
+// -------------------------------
+// UTILITIES
+// -------------------------------
+function debounce(fn, delay) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), delay);
+  };
+}
 
-document.getElementById('searchForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const q = queryInput.value;
-    doSearch(q);
-});
-
-// Filter button event listeners
-filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentFilter = btn.dataset.filter;
-        
-        if (lastQuery) {
-            const results = search(lastQuery);
-            render(results, lastQuery);
-        }
-    });
-});
-
-// Profile modal event listeners
-profileModalClose.addEventListener('click', () => {
-    profileModal.classList.remove('active');
-});
-
-profileModal.addEventListener('click', (e) => {
-    if (e.target === profileModal) {
-        profileModal.classList.remove('active');
-    }
-});
-
-// Close modal with Escape key
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && profileModal.classList.contains('active')) {
-        profileModal.classList.remove('active');
-    }
-});
-
-// Initialize when page loads
-initializeFirebase();
+function escapeHtml(str) {
+  if (!str) return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}

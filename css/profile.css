@@ -306,3 +306,103 @@
 .profile-header {
     position: relative;
 }
+
+
+/* Add spacing between each blog card */
+#user-posts-list .post-card {
+  margin-bottom: 20px;     /* space BETWEEN blogs */
+  padding: 22px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.06);
+  transition: 0.25s ease;
+}
+
+#user-posts-list .post-card:last-child {
+  margin-bottom: 0; /* remove extra margin on last blog */
+}
+
+/* Hover effect */
+#user-posts-list .post-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+}
+
+/* Make images square */
+#user-posts-list img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.post-card {
+  position: relative;
+  padding: 12px;
+}
+
+.post-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.edit-btn, .delete-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.edit-btn {
+  background: #1d8cff;
+  color: white;
+}
+
+.delete-btn {
+  background: #ff4b4b;
+  color: white;
+}
+
+
+
+
+
+
+
+
+
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.user-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #f9f9f9;
+  transition: 0.2s ease;
+}
+
+.user-list-item:hover {
+  background: #ececec;
+}
+
+.user-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ddd;
+}

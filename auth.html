@@ -5,8 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🔥 Authentication</title>
-  <link rel="icon" type="image/png" href="./assets/images/blog.in.png">
-
+  
   <link rel="stylesheet" href="./css/main.css">
   <link rel="stylesheet" href="./css/auth.css">
   <link rel="stylesheet" href="css/navbar.css">
@@ -17,44 +16,45 @@
   <div id="navbar-placeholder"></div>
 
   <main class="auth-container">
-    <!-- Left Section -->
     <section class="auth-illustration">
       <img src="./assets/images/blog.in.png" alt="Auth Illustration">
       <h2>Welcome to <span class="brand">BlogPlatform</span> ✨</h2>
       <p>Login or create an account to share your stories with the world.</p>
     </section>
 
-    <!-- Right Section -->
     <section class="auth-form-card">
-      <!-- Toggle Buttons -->
+      
       <div class="auth-toggle">
         <button id="login-tab" class="active">Login</button>
         <button id="signup-tab">Signup</button>
       </div>
 
-      <!-- Login Form -->
       <form id="login-form" class="auth-form">
         <h2>Login</h2>
         <input type="email" id="login-email" placeholder="Email" required>
         <input type="password" id="login-pass" placeholder="Password" required>
+        
         <button type="button" id="login-btn">Login</button>
-        <button type="button" id="google-login" class="google-auth-btn">
+        
+        <button type="button" class="google-auth-btn">
           <img src="./assets/images/google.png" alt="Google Logo">
           Continue with Google
         </button>
+        
         <p class="auth-links">
           <a href="./forgot.html">Forgot password?</a>
         </p>
       </form>
 
-      <!-- Signup Form (Hidden by Default) -->
       <form id="signup-form" class="auth-form hidden">
         <h2>Create Account</h2>
         <input type="text" id="signup-name" placeholder="Full Name" required>
         <input type="email" id="signup-email" placeholder="Email" required>
         <input type="password" id="signup-pass" placeholder="Password" required>
+        
         <button type="button" id="signup-btn">Signup</button>
-        <button type="button" id="google-login" class="google-auth-btn">
+        
+        <button type="button" class="google-auth-btn">
           <img src="./assets/images/google.png" alt="Google Logo">
           Continue with Google
         </button>
@@ -66,10 +66,11 @@
 
   <script type="module" src="./js/navbar.js"></script>
   <script type="module" src="./js/footer.js"></script>
-  <script type="module">
-    import { login, signup } from "./js/firebase/auth.js";
 
-    // Toggle Forms
+  <script type="module">
+    import { login, signup, loginWithGoogle } from "./js/supabase/auth.js";
+
+    // --- UI TABS ---
     const loginTab = document.getElementById("login-tab");
     const signupTab = document.getElementById("signup-tab");
     const loginForm = document.getElementById("login-form");
@@ -89,43 +90,58 @@
       loginForm.classList.add("hidden");
     };
 
-    // Login Handler
-    document.getElementById("login-btn").onclick = () => {
-      login(
-        document.getElementById("login-email").value,
-        document.getElementById("login-pass").value
-      );
+    // --- GOOGLE ---
+    document.querySelectorAll(".google-auth-btn").forEach(btn => {
+      btn.onclick = () => loginWithGoogle();
+    });
+
+    // --- LOGIN HANDLER (With Anti-Spam) ---
+    document.getElementById("login-btn").onclick = async () => {
+      const btn = document.getElementById("login-btn");
+      const email = document.getElementById("login-email").value.trim();
+      const pass = document.getElementById("login-pass").value.trim();
+      
+      // Disable Button
+      btn.disabled = true;
+      btn.innerText = "Logging in...";
+
+      // Run Login
+      await login(email, pass);
+
+      // Re-enable if it failed (if successful, page redirects anyway)
+      btn.disabled = false;
+      btn.innerText = "Login";
     };
 
-    // Signup Handler
-    document.getElementById("signup-btn").onclick = () => {
-      signup(
-        document.getElementById("signup-email").value,
-        document.getElementById("signup-pass").value
-      );
+    // --- SIGNUP HANDLER (With Anti-Spam) ---
+    document.getElementById("signup-btn").onclick = async () => {
+      const btn = document.getElementById("signup-btn");
+      const name = document.getElementById("signup-name").value.trim();
+      const email = document.getElementById("signup-email").value.trim();
+      const pass = document.getElementById("signup-pass").value.trim();
+
+      // Disable Button
+      btn.disabled = true;
+      btn.innerText = "Creating Account...";
+
+      // Run Signup
+      await signup(name, email, pass);
+
+      // Re-enable
+      btn.disabled = false;
+      btn.innerText = "Signup";
     };
 
-    // -------- ENTER KEY TO SUBMIT (Login & Signup) --------
+    // --- ENTER KEY HANDLER ---
     document.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
-        // If Login form is visible
         if (!loginForm.classList.contains("hidden")) {
-          login(
-            document.getElementById("login-email").value,
-            document.getElementById("login-pass").value
-          );
-        }
-
-        // If Signup form is visible
-        if (!signupForm.classList.contains("hidden")) {
-          signup(
-            document.getElementById("signup-email").value,
-            document.getElementById("signup-pass").value
-          );
+          document.getElementById("login-btn").click();
+        } else {
+          document.getElementById("signup-btn").click();
         }
       }
     });
   </script>
 </body>
-
 </html>

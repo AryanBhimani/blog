@@ -4,10 +4,13 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+
     <!-- Google AdSense Site Verification -->
     <meta name="google-adsense-account" content="ca-pub-9563291311030793">
-    <!-- MUST BE EARLY IN HEAD -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9563291311030793" crossorigin="anonymous"></script>
+    <script async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9563291311030793"
+        crossorigin="anonymous"></script>
+
     <link rel="icon" type="image/png" href="./assets/images/blog.in.png">
     <title>🔥 Search</title>
 
@@ -22,69 +25,82 @@
 <body>
     <div id="navbar-placeholder"></div>
 
-    <div class="search-container" role="main">
+    <main class="search-container" role="main">
+
+        <!-- HEADER -->
         <div class="search-header">
             <h1>Discover Amazing Content</h1>
             <p>Search through thousands of posts, users, and blogs to find exactly what you need.</p>
         </div>
 
+        <!-- SEARCH BOX -->
         <div class="search-box">
             <form id="searchForm" class="search-form" role="search">
+
                 <div class="form-group">
                     <label for="query">Find posts, users, and blogs</label>
+
                     <div class="search-input-container">
                         <i class="fas fa-search search-icon"></i>
-                        <input id="query" name="q" type="search" class="search-input"
-                            placeholder="Search posts, users, profiles, blogs..." autocomplete="off"
-                            aria-describedby="searchHelp" />
+                        <input
+                            id="query"
+                            type="search"
+                            class="search-input"
+                            placeholder="Search posts, users, profiles, blogs..."
+                            autocomplete="off"
+                        />
                     </div>
                 </div>
 
+                <!-- SEARCH ACTIONS -->
                 <div class="search-actions">
-                    <button id="searchBtn" class="search-btn" type="submit">
+                    <button id="searchBtn" type="submit" class="search-btn">
                         <i class="fas fa-search"></i>
                         Search
                     </button>
-                    <button id="clearBtn" class="clear-btn" type="button" title="Clear">
+
+                    <button id="clearBtn" class="clear-btn" type="button">
                         <i class="fas fa-times"></i>
                         Clear
                     </button>
                 </div>
 
-                <div id="searchHelp" class="search-stats" aria-live="polite">
+                <div class="search-stats">
                     Enter a search term to find posts, users, and blogs
                 </div>
             </form>
 
+            <!-- FILTERS -->
             <div class="search-filters">
                 <button class="filter-btn active" data-filter="all">All</button>
                 <button class="filter-btn" data-filter="posts">Posts</button>
                 <button class="filter-btn" data-filter="users">Users</button>
-                <button class="filter-btn" data-filter="blogs">Blogs</button>
             </div>
         </div>
 
+        <!-- LOADING -->
         <div id="firebaseStatus" class="info-notice">
-            <i class="fas fa-sync-alt fa-spin"></i> Loading search functionality...
+            <i class="fas fa-sync-alt fa-spin"></i> Loading...
         </div>
 
-        <div id="results" class="results-container" aria-live="polite">
-            <!-- Results will be dynamically inserted here -->
+        <!-- RESULTS -->
+        <div id="results" class="results-container">
+
+
         </div>
 
-        <!-- Profile Preview Modal -->
+        <!-- PROFILE MODAL -->
         <div id="profileModal" class="profile-modal">
             <div class="profile-modal-content">
                 <div class="profile-modal-header">
                     <h3>User Profile</h3>
                     <button class="profile-modal-close">&times;</button>
                 </div>
-                <div id="profileModalContent">
-                    <!-- Profile content will be loaded here -->
-                </div>
+                <div id="profileModalContent"></div>
             </div>
         </div>
-    </div>
+
+    </main>
 
     <div id="footer-placeholder"></div>
 
@@ -92,6 +108,6 @@
     <script type="module" src="./js/navbar.js"></script>
     <script type="module" src="./js/footer.js"></script>
     <script type="module" src="./js/search.js"></script>
-</body>
 
+</body>
 </html>

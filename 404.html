@@ -1,83 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>404 - Page Not Found | Blog.in</title>
+  <title>404 – Page Not Found</title>
 
-  <link rel="icon" type="image/png" href="./assets/images/blog.in.png" />
-  <link rel="stylesheet" href="./css/main.css" />
-  <link rel="stylesheet" href="./css/navbar.css" />
-  <link rel="stylesheet" href="./css/footer.css" />
-  <link rel="stylesheet" href="./css/404.css" />
+  <link rel="icon" type="image/png" href="./assets/images/blog.in.png">
+
+  <!-- Fonts & Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="./css/main.css">
+
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f9fafb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .notfound-container {
+      text-align: center;
+      max-width: 500px;
+      padding: 40px;
+    }
+
+    .notfound-code {
+      font-size: 96px;
+      font-weight: 800;
+      color: #ff5a1f;
+      margin-bottom: 10px;
+    }
+
+    .notfound-title {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .notfound-text {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .notfound-actions {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: #ff5a1f;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.25s ease;
+    }
+
+    .btn-primary:hover {
+      background: #e64a14;
+    }
+
+    .btn-secondary {
+      border: 2px solid #ddd;
+      padding: 12px 24px;
+      border-radius: 999px;
+      text-decoration: none;
+      color: #333;
+      font-weight: 600;
+      transition: all 0.25s ease;
+    }
+
+    .btn-secondary:hover {
+      border-color: #ff5a1f;
+      color: #ff5a1f;
+    }
+  </style>
 </head>
 
 <body>
 
-  <div id="navbar-placeholder"></div>
+  <div class="notfound-container">
+    <div class="notfound-code">404</div>
 
-  <main class="container">
-    <div class="error-container">
-      <div class="error-content">
-        <div class="error-code">404</div>
-        <h1 class="error-title">Page Not Found</h1>
-        <p class="error-description">
-          Oops! It seems like the page you're looking for doesn't exist.
-        </p>
-        <p class="error-message">
-          The URL you entered might be incorrect or the page may have been removed.
-        </p>
-        
-        <div class="error-actions">
-          <button class="btn-primary" onclick="window.location.href='./index.html'">
-            Back to Home
-          </button>
-          <button class="btn-secondary" onclick="goBack()">
-            Go Back
-          </button>
-        </div>
-
-        <div class="error-suggestions">
-          <h3>What can you do?</h3>
-          <ul>
-            <li>Check the URL and try again</li>
-            <li>Use the search feature to find what you're looking for</li>
-            <li>Return to the homepage and navigate using the menu</li>
-            <li>Contact us if you believe this is an error</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="error-illustration">
-        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-          <!-- 404 Illustration -->
-          <circle cx="100" cy="100" r="90" fill="none" stroke="#e0e0e0" stroke-width="2" />
-          <text x="100" y="120" font-size="60" font-weight="bold" text-anchor="middle" fill="#ff6b6b">
-            404
-          </text>
-          <path d="M 60 150 Q 100 180 140 150" stroke="#ffa757" stroke-width="3" fill="none" stroke-linecap="round" />
-          <circle cx="75" cy="90" r="5" fill="#ff6b6b" />
-          <circle cx="125" cy="90" r="5" fill="#ff6b6b" />
-        </svg>
-      </div>
+    <div class="notfound-title">
+      Oops! Page not found
     </div>
-  </main>
 
-  <div id="footer-placeholder"></div>
+    <p class="notfound-text">
+      The page you’re looking for doesn’t exist or may have been moved.
+      Don’t worry, let’s get you back on track.
+    </p>
 
-  <script src="./js/navbar.js"></script>
-  <script src="./js/footer.js"></script>
-  <script>
-    function goBack() {
-      if (window.history.length > 1) {
-        window.history.back();
-      } else {
-        window.location.href = './index.html';
-      }
-    }
-  </script>
+    <div class="notfound-actions">
+      <a href="index.html" class="btn-primary">
+        <i class="fas fa-home"></i> Go Home
+      </a>
+
+      <a href="search.html" class="btn-secondary">
+        <i class="fas fa-search"></i> Search
+      </a>
+    </div>
+  </div>
 
 </body>
-
 </html>

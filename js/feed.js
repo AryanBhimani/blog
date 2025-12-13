@@ -1,12 +1,4 @@
-// feed.js (RESTORED DESIGN + FIXED LOGIC — NO CSS CHANGE)
-
-import { db, auth } from "./firebase/firebase-config.js";
-import {
-  collection,
-  getDocs,
-  query,
-  orderBy,
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { supabase } from "./supabase/supabaseClient.js";
 
 // DOM Elements
 const postsList = document.getElementById("all-posts-list");
@@ -25,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ------------------------------------------
-   Load ALL posts from ALL users
+   Load ALL posts from Supabase
 --------------------------------------------- */
 async function loadAllPosts() {
   postsList.innerHTML = `
@@ -35,44 +27,43 @@ async function loadAllPosts() {
     </div>
   `;
 
-  try {
-    const usersSnap = await getDocs(collection(db, "users"));
-    const posts = [];
+  const { data, error } = await supabase
+    .from("posts")
+    .select(
+      `
+      id,
+      title,
+      content,
+      created_at,
+      user_id,
+      users (
+        name
+      )
+    `
+    )
+    .order("created_at", { ascending: false });
 
-    for (const userDoc of usersSnap.docs) {
-      const userId = userDoc.id;
-      const userData = userDoc.data();
-      const authorName = userData.username || "Unknown";
-
-      const postsRef = collection(db, "users", userId, "posts");
-      const q = query(postsRef, orderBy("createdAt", "desc"));
-      const postsSnap = await getDocs(q);
-
-      postsSnap.forEach((postDoc) => {
-        const postData = postDoc.data();
-        posts.push({
-          id: postDoc.id,
-          userId,
-          title: postData.title || "",
-          content: postData.content || "",
-          createdAt: postData.createdAt?.toDate?.() || new Date(),
-          author: authorName,
-        });
-      });
-    }
-
-    posts.sort((a, b) => b.createdAt - a.createdAt);
-
-    allPosts = posts;
-    renderPosts(allPosts);
-  } catch (err) {
-    console.error("Error loading posts:", err);
+  if (error) {
+    console.error("Error loading posts:", error.message);
     postsList.innerHTML = `<p>Failed to load blogs. Try again.</p>`;
+    return;
   }
+
+  // Convert Supabase rows into your existing post format:
+  allPosts = data.map((post) => ({
+    id: post.id,
+    userId: post.user_id,
+    title: post.title || "",
+    content: post.content || "",
+    createdAt: new Date(post.created_at),
+    author: post.users?.name || "Unknown",
+  }));
+
+  renderPosts(allPosts);
 }
 
 /* ------------------------------------------
-   SEARCH SETUP
+   SEARCH SETUP (unchanged)
 --------------------------------------------- */
 function setupSearch() {
   if (!searchInput) return;
@@ -122,7 +113,7 @@ function setupSearch() {
 }
 
 /* ------------------------------------------
-   RENDER POSTS (KEEP ORIGINAL DESIGN)
+   RENDER POSTS (same design)
 --------------------------------------------- */
 function renderPosts(posts, highlightTerm = "") {
   if (!posts.length) {
@@ -133,26 +124,33 @@ function renderPosts(posts, highlightTerm = "") {
   let html = "";
 
   posts.forEach((post) => {
-    const excerpt = escapeHtml(post.content.substring(0, 150));
-    const fullContent = escapeHtml(post.content);
+    const safeTitle = escapeHtml(post.title); // keep title safe
 
-    const title = escapeHtml(post.title);
+    // Create excerpt from content (HTML allowed)
+    const excerptHTML =
+      post.content.length > 150
+        ? post.content.substring(0, 150) + "..."
+        : post.content;
 
     html += `
       <article class="post-card" data-post-id="${post.id}">
-        <h3>${highlight(title, highlightTerm)}</h3>
+        <h3>${highlight(safeTitle, highlightTerm)}</h3>
 
-        <p class="excerpt">${highlight(excerpt, highlightTerm)}${post.content.length > 150 ? "..." : ""}</p>
+        <!-- Show excerpt with HTML (no escaping) -->
+        <div class="excerpt">
+          ${excerptHTML}
+        </div>
 
-        <p class="full-content" style="display:none;">
-          ${highlight(fullContent, highlightTerm)}
-        </p>
+        <!-- Full HTML content (hidden initially) -->
+        <div class="full-content" style="display:none;">
+          ${post.content}
+        </div>
 
         <small>By ${escapeHtml(post.author)} on ${post.createdAt.toLocaleDateString()}</small>
 
         <div class="post-footer-actions">
           <button class="toggle-btn primary-action-button">Read More</button>
-          <a href="comment.html?userId=${post.userId}&postId=${post.id}" class="comment-btn">💬 Comment</a>
+          <a href="comment.html?postId=${post.id}" class="comment-btn">💬 Comment</a>
         </div>
       </article>
     `;
@@ -160,7 +158,7 @@ function renderPosts(posts, highlightTerm = "") {
 
   postsList.innerHTML = html;
 
-  /* ENABLE READ MORE / SHOW LESS */
+  // READ MORE / SHOW LESS
   document.querySelectorAll(".toggle-btn").forEach((btn) => {
     btn.onclick = (e) => {
       const card = e.target.closest(".post-card");
@@ -180,8 +178,9 @@ function renderPosts(posts, highlightTerm = "") {
   });
 }
 
+
 /* ------------------------------------------
-   UTILITIES (KEEP ORIGINAL FORMAT)
+   UTILITIES
 --------------------------------------------- */
 function escapeHtml(str) {
   return str
@@ -199,5 +198,5 @@ function highlight(text, term) {
 }
 
 function escapeRegExp(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return s.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
 }
