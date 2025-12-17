@@ -67,3 +67,13 @@
 .publish-btn:hover {
   opacity: 0.9;
 }
+
+@media (max-width: 600px) {
+  .blog-editor-wrapper {
+    padding: 0.5rem;
+  }
+
+  .blog-editor {
+    padding: 1.5rem;
+  }
+}
