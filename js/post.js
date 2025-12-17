@@ -3,6 +3,7 @@ import { supabase } from "./supabase/supabaseClient.js";
 const createSection = document.getElementById("create-post");
 const postBtn = document.getElementById("submit-post");
 const titleInput = document.getElementById("post-title");
+const imageInput = document.getElementById("main-image");
 
 // Get edit mode
 const editId = new URLSearchParams(window.location.search).get("edit");
@@ -10,13 +11,11 @@ const isEdit = !!editId;
 
 // Change title if editing
 if (isEdit) {
-  document.querySelector("#create-post h2").textContent = "✏️ Edit Blog";
+  document.querySelector(".post-header h2").textContent = "✏️ Edit Blog";
   postBtn.textContent = "Update Blog";
 }
 
-// -------------------------------
-//  INITIALIZE QUILL + IMAGE UPLOAD
-// -------------------------------
+// Initialize Quill
 const quill = new Quill("#editor-container", {
   theme: "snow",
   placeholder: "Write your blog...",
@@ -25,7 +24,7 @@ const quill = new Quill("#editor-container", {
       container: [
         ["bold", "italic", "underline"],
         [{ list: "ordered" }, { list: "bullet" }],
-        ["link", "image"],   // ENABLE IMAGE BUTTON
+        ["link", "image"],
         ["clean"]
       ],
       handlers: {
@@ -38,7 +37,6 @@ const quill = new Quill("#editor-container", {
             const file = input.files[0];
             if (file) uploadImage(file);
           };
-
           input.click();
         }
       }
@@ -49,7 +47,6 @@ const quill = new Quill("#editor-container", {
 // Upload image to Supabase Storage
 async function uploadImage(file) {
   const fileName = `${Date.now()}_${file.name}`;
-
   const { data, error } = await supabase.storage
     .from("blog-images")
     .upload(fileName, file);
@@ -64,19 +61,30 @@ async function uploadImage(file) {
     .from("blog-images")
     .getPublicUrl(fileName);
 
-  // Insert image into editor
   const range = quill.getSelection();
   quill.insertEmbed(range.index, "image", publicURL.publicUrl);
 }
 
-let currentUser = null;
+// Main image upload
+let mainImageUrl = null;
+imageInput.addEventListener("change", async () => {
+  const file = imageInput.files[0];
+  if (!file) return;
+
+  const fileName = `${Date.now()}_${file.name}`;
+  const { error } = await supabase.storage.from("blog-images").upload(fileName, file);
+  if (error) return alert("❌ Failed to upload main image");
+
+  const { data: publicURL } = supabase.storage.from("blog-images").getPublicUrl(fileName);
+  mainImageUrl = publicURL.publicUrl;
+});
 
 // -------------------------------
-//  CHECK LOGIN (SUPABASE)
+// Check login
 // -------------------------------
+let currentUser = null;
 supabase.auth.getUser().then(async ({ data }) => {
   const user = data?.user;
-
   if (!user) return (window.location.href = "auth.html");
 
   currentUser = user;
@@ -84,62 +92,52 @@ supabase.auth.getUser().then(async ({ data }) => {
 
   // Load existing post in edit mode
   if (isEdit) {
-    const { data: post } = await supabase
+    const { data: post, error } = await supabase
       .from("posts")
-      .select("*")
+      .select(`id, title, content, image_url, created_at, user_id, users(name)`)
       .eq("id", editId)
       .eq("user_id", user.id)
       .single();
 
-    if (!post) return (window.location.href = "profile.html");
+    if (error || !post) return (window.location.href = "profile.html");
 
     titleInput.value = post.title;
     quill.root.innerHTML = post.content;
+    mainImageUrl = post.image_url || null;
   }
 });
 
 // -------------------------------
-//  CREATE / UPDATE POST
+// Create / Update Post
 // -------------------------------
 postBtn.onclick = async () => {
   if (!currentUser) return alert("Please login!");
 
   const title = titleInput.value.trim();
-  const content = quill.root.innerHTML.trim(); // IMPORTANT: store HTML with images
+  const content = quill.root.innerHTML.trim();
 
-  if (!title || content === "<p><br></p>") {
-    return alert("Please enter title and content!");
-  }
+  if (!title || content === "<p><br></p>") return alert("Please enter title and content!");
 
   if (isEdit) {
     // Update
     const { error } = await supabase
       .from("posts")
-      .update({ title, content })
+      .update({ title, content, image_url: mainImageUrl })
       .eq("id", editId)
       .eq("user_id", currentUser.id);
 
-    if (error) {
-      alert("❌ Error updating post!");
-      console.error(error);
-      return;
-    }
-
+    if (error) return alert("❌ Error updating post!");
     alert("✅ Post updated!");
   } else {
-    // Create new post
+    // Create
     const { error } = await supabase.from("posts").insert({
       user_id: currentUser.id,
       title,
       content,
+      image_url: mainImageUrl
     });
 
-    if (error) {
-      alert("❌ Error publishing post!");
-      console.error(error);
-      return;
-    }
-
+    if (error) return alert("❌ Error publishing post!");
     alert("🎉 Blog published!");
   }
 
