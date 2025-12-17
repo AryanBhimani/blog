@@ -5,11 +5,10 @@ const postBtn = document.getElementById("submit-post");
 const titleInput = document.getElementById("post-title");
 const imageInput = document.getElementById("main-image");
 
-// Get edit mode
+// Edit mode
 const editId = new URLSearchParams(window.location.search).get("edit");
 const isEdit = !!editId;
 
-// Change title if editing
 if (isEdit) {
   document.querySelector(".post-header h2").textContent = "✏️ Edit Blog";
   postBtn.textContent = "Update Blog";
@@ -44,23 +43,13 @@ const quill = new Quill("#editor-container", {
   }
 });
 
-// Upload image to Supabase Storage
+// Upload image to Supabase Storage (for inline images)
 async function uploadImage(file) {
   const fileName = `${Date.now()}_${file.name}`;
-  const { data, error } = await supabase.storage
-    .from("blog-images")
-    .upload(fileName, file);
+  const { data, error } = await supabase.storage.from("blog-images").upload(fileName, file);
+  if (error) return alert("❌ Failed to upload image");
 
-  if (error) {
-    alert("❌ Failed to upload image");
-    console.error(error);
-    return;
-  }
-
-  const { data: publicURL } = supabase.storage
-    .from("blog-images")
-    .getPublicUrl(fileName);
-
+  const { data: publicURL } = supabase.storage.from("blog-images").getPublicUrl(fileName);
   const range = quill.getSelection();
   quill.insertEmbed(range.index, "image", publicURL.publicUrl);
 }
@@ -102,7 +91,7 @@ supabase.auth.getUser().then(async ({ data }) => {
     if (error || !post) return (window.location.href = "profile.html");
 
     titleInput.value = post.title;
-    quill.root.innerHTML = post.content;
+    quill.root.innerHTML = post.content; // optional: load with formatting
     mainImageUrl = post.image_url || null;
   }
 });
@@ -113,27 +102,31 @@ supabase.auth.getUser().then(async ({ data }) => {
 postBtn.onclick = async () => {
   if (!currentUser) return alert("Please login!");
 
-  const title = titleInput.value.trim();
-  const content = quill.root.innerHTML.trim();
+  // Get content as plain text
+  let content = quill.getText().trim();
 
-  if (!title || content === "<p><br></p>") return alert("Please enter title and content!");
+  if (!titleInput.value.trim() || !content) {
+    return alert("Please enter title and content!");
+  }
 
   if (isEdit) {
-    // Update
     const { error } = await supabase
       .from("posts")
-      .update({ title, content, image_url: mainImageUrl })
+      .update({ 
+        title: titleInput.value.trim(), 
+        content,       // plain text only
+        image_url: mainImageUrl 
+      })
       .eq("id", editId)
       .eq("user_id", currentUser.id);
 
     if (error) return alert("❌ Error updating post!");
     alert("✅ Post updated!");
   } else {
-    // Create
     const { error } = await supabase.from("posts").insert({
       user_id: currentUser.id,
-      title,
-      content,
+      title: titleInput.value.trim(),
+      content,       // plain text only
       image_url: mainImageUrl
     });
 
