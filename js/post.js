@@ -1,138 +1,91 @@
 import { supabase } from "./supabase/supabaseClient.js";
 
-const createSection = document.getElementById("create-post");
-const postBtn = document.getElementById("submit-post");
+const section = document.getElementById("create-post");
 const titleInput = document.getElementById("post-title");
+const tagsInput = document.getElementById("post-tags");
 const imageInput = document.getElementById("main-image");
+const submitBtn = document.getElementById("submit-post");
+const pageTitle = document.getElementById("page-title");
 
-// Edit mode
+// Edit Mode
 const editId = new URLSearchParams(window.location.search).get("edit");
-const isEdit = !!editId;
+const isEdit = Boolean(editId);
 
-if (isEdit) {
-  document.querySelector(".post-header h2").textContent = "✏️ Edit Blog";
-  postBtn.textContent = "Update Blog";
-}
-
-// Initialize Quill
+// Quill
 const quill = new Quill("#editor-container", {
   theme: "snow",
-  placeholder: "Write your blog...",
+  placeholder: "Write something amazing...",
   modules: {
-    toolbar: {
-      container: [
-        ["bold", "italic", "underline"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["link", "image"],
-        ["clean"]
-      ],
-      handlers: {
-        image: function () {
-          const input = document.createElement("input");
-          input.type = "file";
-          input.accept = "image/*";
-
-          input.onchange = () => {
-            const file = input.files[0];
-            if (file) uploadImage(file);
-          };
-          input.click();
-        }
-      }
-    }
+    toolbar: [
+      ["bold", "italic", "underline"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link"],
+      ["clean"]
+    ]
   }
 });
 
-// Upload image to Supabase Storage (for inline images)
-async function uploadImage(file) {
-  const fileName = `${Date.now()}_${file.name}`;
-  const { data, error } = await supabase.storage.from("blog-images").upload(fileName, file);
-  if (error) return alert("❌ Failed to upload image");
-
-  const { data: publicURL } = supabase.storage.from("blog-images").getPublicUrl(fileName);
-  const range = quill.getSelection();
-  quill.insertEmbed(range.index, "image", publicURL.publicUrl);
-}
-
-// Main image upload
+// Auth
+let user = null;
 let mainImageUrl = null;
-imageInput.addEventListener("change", async () => {
-  const file = imageInput.files[0];
-  if (!file) return;
 
-  const fileName = `${Date.now()}_${file.name}`;
-  const { error } = await supabase.storage.from("blog-images").upload(fileName, file);
-  if (error) return alert("❌ Failed to upload main image");
-
-  const { data: publicURL } = supabase.storage.from("blog-images").getPublicUrl(fileName);
-  mainImageUrl = publicURL.publicUrl;
-});
-
-// -------------------------------
-// Check login
-// -------------------------------
-let currentUser = null;
 supabase.auth.getUser().then(async ({ data }) => {
-  const user = data?.user;
-  if (!user) return (window.location.href = "auth.html");
+  if (!data.user) return location.href = "auth.html";
+  user = data.user;
+  section.style.display = "block";
 
-  currentUser = user;
-  createSection.style.display = "block";
-
-  // Load existing post in edit mode
   if (isEdit) {
-    const { data: post, error } = await supabase
+    pageTitle.textContent = "Edit Blog";
+    submitBtn.textContent = "Update Blog";
+
+    const { data: post } = await supabase
       .from("posts")
-      .select(`id, title, content, image_url, created_at, user_id, users(name)`)
+      .select("title, content, image_url, tags")
       .eq("id", editId)
       .eq("user_id", user.id)
       .single();
 
-    if (error || !post) return (window.location.href = "profile.html");
+    if (!post) return location.href = "profile.html";
 
     titleInput.value = post.title;
-    quill.root.innerHTML = post.content; // optional: load with formatting
-    mainImageUrl = post.image_url || null;
+    quill.setText(post.content);
+    tagsInput.value = post.tags?.join(", ") || "";
+    mainImageUrl = post.image_url;
   }
 });
 
-// -------------------------------
-// Create / Update Post
-// -------------------------------
-postBtn.onclick = async () => {
-  if (!currentUser) return alert("Please login!");
+// Image Upload
+imageInput.addEventListener("change", async () => {
+  const file = imageInput.files[0];
+  if (!file) return;
 
-  // Get content as plain text
-  let content = quill.getText().trim();
+  const name = `${Date.now()}_${file.name}`;
+  await supabase.storage.from("blog-images").upload(name, file);
+  const { data } = supabase.storage.from("blog-images").getPublicUrl(name);
+  mainImageUrl = data.publicUrl;
+});
 
-  if (!titleInput.value.trim() || !content) {
-    return alert("Please enter title and content!");
-  }
+// Save
+submitBtn.onclick = async () => {
+  const title = titleInput.value.trim();
+  const content = quill.getText().trim();
+  const tags = tagsInput.value.split(",").map(t => t.trim()).filter(Boolean);
+
+  if (!title || !content) return alert("Title & content required");
+
+  const payload = {
+    title,
+    content,
+    tags,
+    image_url: mainImageUrl,
+    user_id: user.id
+  };
 
   if (isEdit) {
-    const { error } = await supabase
-      .from("posts")
-      .update({ 
-        title: titleInput.value.trim(), 
-        content,       // plain text only
-        image_url: mainImageUrl 
-      })
-      .eq("id", editId)
-      .eq("user_id", currentUser.id);
-
-    if (error) return alert("❌ Error updating post!");
-    alert("✅ Post updated!");
+    await supabase.from("posts").update(payload).eq("id", editId);
   } else {
-    const { error } = await supabase.from("posts").insert({
-      user_id: currentUser.id,
-      title: titleInput.value.trim(),
-      content,       // plain text only
-      image_url: mainImageUrl
-    });
-
-    if (error) return alert("❌ Error publishing post!");
-    alert("🎉 Blog published!");
+    await supabase.from("posts").insert(payload);
   }
 
-  window.location.href = "profile.html";
+  location.href = "profile.html";
 };
