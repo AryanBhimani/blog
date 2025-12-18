@@ -32,7 +32,7 @@ function clearUI() {
   followersCountEl.textContent = "0";
   followingCountEl.textContent = "0";
 
-  postsList.innerHTML = "<p>Please login to see posts.</p>";
+  postsList.innerHTML = "Please login to see posts.";
 
   editBtn.style.display = "none";
   settingsBtn.style.display = "none";
@@ -68,9 +68,6 @@ supabase.auth.onAuthStateChange(async (_event, session) => {
   editBtn.style.display = isOwner ? "inline-block" : "none";
   settingsBtn.style.display = isOwner ? "inline-block" : "none";
   followBtn.style.display = !isOwner && user ? "inline-block" : "none";
-
-  document.getElementById("post").style.display = isOwner ? "inline-block" : "none";
-document.getElementById("Login").style.display = isOwner ? "inline-block" : "none";
 
   loadProfile(viewingUserId);
   loadFollowStats(viewingUserId);
@@ -166,7 +163,7 @@ async function loadPosts(uid) {
   postCounterEl.textContent = posts.length;
 
   if (!posts.length) {
-    postsList.innerHTML = "<p>No blogs yet</p>";
+    postsList.innerHTML = "No blogs yet";
     return;
   }
 
@@ -177,11 +174,28 @@ async function loadPosts(uid) {
 
     const postCard = document.createElement("article");
     postCard.classList.add("post-card");
-    postCard.innerHTML = `
-      <h3>${post.title}</h3>
-      <p>${post.content.substring(0, 150)}...</p>
-      <small>${new Date(post.created_at).toLocaleString()}</small>
-    `;
+    // Title
+    const title = document.createElement("h3");
+    title.textContent = post.title;
+
+    // Content (HTML SAFE)
+    const content = document.createElement("div");
+    content.classList.add("post-preview");
+    content.innerHTML = post.content;
+
+    // Image
+    if (post.image_url) {
+      const img = document.createElement("img");
+      img.src = post.image_url;
+      img.classList.add("post-image");
+      postCard.appendChild(img);
+    }
+
+    const date = document.createElement("small");
+    date.textContent = new Date(post.created_at).toLocaleString();
+
+    postCard.append(title, content, date);
+
 
     // ACTION BUTTONS (Edit + Delete)
     if (isOwner) {
@@ -228,9 +242,96 @@ async function deletePost(postId) {
 }
 
 // ---------------------------
-// Edit a Post (redirect to edit page)
+// Edit Post (Rich Editor + Image Support)
 // ---------------------------
-function editPost(postId) {
-  window.location.href = `post.html?postId=${postId}`;
-}
+async function editPost(postId) {
+  const { data: post, error } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("id", postId)
+    .single();
 
+  if (error || !post) {
+    alert("Failed to load post ❌");
+    return;
+  }
+
+  // Modal
+  const overlay = document.createElement("div");
+  overlay.className = "edit-overlay";
+
+  overlay.innerHTML = `
+    <div class="edit-modal">
+      <h2>Edit Blog</h2>
+
+      <input 
+        type="text" 
+        id="edit-title" 
+        value="${post.title}"
+        placeholder="Blog title"
+      />
+
+      <!-- Rich Content -->
+      <div 
+        id="edit-content" 
+        class="edit-content" 
+        contenteditable="true"
+      >
+        ${post.content}
+      </div>
+
+      <input type="file" id="edit-image" accept="image/*" />
+<div id="image-preview"></div>
+
+
+      <div class="edit-actions">
+        <button id="save-edit">Save</button>
+        <button id="cancel-edit">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  
+  // Cancel
+  overlay.querySelector("#cancel-edit").onclick = () => overlay.remove();
+
+  // Save
+  overlay.querySelector("#save-edit").onclick = async () => {
+  const newTitle = overlay.querySelector("#edit-title").value.trim();
+  const newContent = overlay.querySelector("#edit-content").innerHTML.trim();
+
+  if (!newTitle || !newContent) {
+    alert("Title and content cannot be empty ❌");
+    return;
+  }
+
+  const {
+    data,
+    error
+  } = await supabase
+    .from("posts")
+    .update({
+      title: newTitle,
+      content: newContent
+    })
+    .eq("id", postId)
+    .eq("user_id", (await supabase.auth.getUser()).data.user.id) // 🔥 EXTRA SAFETY
+    .select();
+
+  if (error) {
+    console.error("UPDATE ERROR:", error);
+    alert(error.message); // 👈 show real error
+    return;
+  }
+
+  console.log("UPDATED POST:", data);
+
+  overlay.remove();
+  await loadPosts(viewingUserId);
+
+  alert("Post updated successfully ✔");
+};
+
+}
