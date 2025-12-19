@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.4.0/uicons-solid-rounded/css/uicons-solid-rounded.css">
 
   <!-- Google AdSense -->
   <meta name="google-adsense-account" content="ca-pub-9563291311030793">
@@ -13,9 +14,9 @@
   <link rel="icon" type="image/png" href="./assets/images/blog.in.png">
 
   <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/profile.css">
   <link rel="stylesheet" href="./css/navbar.css">
   <link rel="stylesheet" href="./css/footer.css">
-  <link rel="stylesheet" href="./css/profile.css">
   <link rel="stylesheet" href="./css/feed.css">
 </head>
 
@@ -29,7 +30,15 @@
     <section class="profile-header" id="profile-info">
 
       <!-- Settings button -->
-      <button id="settings-btn" class="settings-btn" style="display:none;">⚙️</button>
+     <button id="settings-btn" class="settings-btn" style="display:none;">
+       <i class="fi fi-sr-settings"></i>
+     </button>
+     
+     <br>
+
+     <button id="saved-posts-btn" class="settings-btn" style="right:70px;">
+       <i class="fi fi-sr-bookmark"></i>
+     </button>
 
       <div class="profile-avatar">
         <img src="./assets/images/mobintix.png" alt="User Avatar" class="avatar" id="profile-avatar">
