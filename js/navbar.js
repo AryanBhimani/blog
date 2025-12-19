@@ -83,7 +83,7 @@ fetch("./components/navbar.html")
           alert("⚠️ Please login first to post a blog!");
           return;
         }
-        window.location.href = "post.html";
+        window.location.href = "../post.html";
       };
     }
   })
