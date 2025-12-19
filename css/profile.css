@@ -285,27 +285,34 @@
 /* Settings button inside profile card */
 .settings-btn {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    background: #000000;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    font-size: 18px;
-    border-radius: 8px;
+    top: 16px;
+    right: 16px;
+    background: #f3f3f3;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 8px 10px;
+    font-size: 17px;
+    border-radius: 10px;
     cursor: pointer;
-    z-index: 20; /* IMPORTANT FIX: ensures clickable */
+    z-index: 20;
     transition: 0.2s ease;
 }
 
 .settings-btn:hover {
-    background: #444241;
+    background: #eaeaea;
     transform: scale(1.05);
 }
 
 .profile-header {
     position: relative;
 }
+.settings-btn i {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
 
 /* Add spacing between each blog card */
@@ -368,7 +375,6 @@
   background: #ff4b4b;
   color: white;
 }
-
 .user-list {
   display: flex;
   flex-direction: column;
