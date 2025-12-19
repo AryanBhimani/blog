@@ -28,7 +28,10 @@ document.addEventListener("DOMContentLoaded", () => {
    LOAD POSTS
 ---------------------------- */
 async function loadAllPosts() {
-  postsList.innerHTML = `<p>Loading blogs...</p>`;
+  postsList.innerHTML = `<div class="loading">
+    <div class="loading-spinner"></div>
+    <p>Loading blogs...</p>
+  </div>`;
 
   const { data, error } = await supabase
     .from("posts")
@@ -36,7 +39,7 @@ async function loadAllPosts() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    postsList.innerHTML = `<p>Failed to load blogs</p>`;
+    postsList.innerHTML = `<p class="no-results">Failed to load blogs</p>`;
     return;
   }
 
@@ -72,7 +75,7 @@ function setupSearch() {
     );
 
     renderPosts(filtered);
-    searchResultsInfo.textContent = `Showing ${filtered.length} results`;
+    searchResultsInfo.textContent = `Showing ${filtered.length} result${filtered.length === 1 ? '' : 's'}`;
   });
 }
 
@@ -80,10 +83,13 @@ function setupSearch() {
    RENDER POSTS
 ---------------------------- */
 function renderPosts(posts) {
-  postsList.innerHTML= "";
+  postsList.innerHTML = "";
 
   if (!posts.length) {
-    postsList.innerHTML = "<p>No blogs found</p>";
+    postsList.innerHTML = `<div class="no-results">
+      <div class="no-results-icon">📭</div>
+      <p>No blogs found</p>
+    </div>`;
     return;
   }
 
@@ -95,8 +101,8 @@ function renderPosts(posts) {
     card.innerHTML = `
       <h3>${escapeHtml(post.title)}</h3>
 
-      <div class="excerpt">${post.content.substring(0,150)}...</div>
-      <div class="full-content" style="display:none;">${post.content}</div>
+      <div class="excerpt">${escapeHtml(post.content.substring(0,150))}...</div>
+      <div class="full-content" style="display:none;">${escapeHtml(post.content)}</div>
 
       <small>By ${escapeHtml(post.author)} · ${post.createdAt.toLocaleDateString()}</small>
 
@@ -104,19 +110,18 @@ function renderPosts(posts) {
         <button class="toggle-btn primary-action-button">Read More</button>
 
         <div class="post-icons">
-          <button class="icon-btn like-btn">
+          <button class="icon-btn like-btn" aria-label="Like">
             <i class="fi fi-rr-heart"></i>
             <span class="like-count">0</span>
           </button>
 
-          <button class="icon-btn save-btn">
+          <button class="icon-btn save-btn" aria-label="Save">
             <i class="fi fi-rr-bookmark"></i>
           </button>
 
-          <a href="comment.html?postId=${post.id}" class="icon-btn comment-btn">
-             <i class="fi fi-sr-comment-alt"></i>
+          <a href="comment.html?postId=${post.id}" class="icon-btn comment-btn" aria-label="Comment">
+            <i class="fi fi-sr-comment-alt"></i>
           </a>
-
         </div>
       </div>
     `;
@@ -136,8 +141,18 @@ function renderPosts(posts) {
     };
 
     // Like / Save
-    card.querySelector(".like-btn").onclick = () => handleLike(post.id);
-    card.querySelector(".save-btn").onclick = () => handleSave(post.id);
+    const likeBtn = card.querySelector(".like-btn");
+    const saveBtn = card.querySelector(".save-btn");
+    
+    likeBtn.onclick = (e) => {
+      e.stopPropagation();
+      handleLike(post.id);
+    };
+    
+    saveBtn.onclick = (e) => {
+      e.stopPropagation();
+      handleSave(post.id);
+    };
 
     // Like count + realtime
     loadLikeCount(post.id, card);
@@ -148,7 +163,12 @@ function renderPosts(posts) {
 
     // Double tap / double click to like
     let lastTap = 0;
-    card.addEventListener("click", () => {
+    card.addEventListener("click", (e) => {
+      // Don't trigger double-tap like if clicking on buttons or links
+      if (e.target.closest('.icon-btn') || e.target.closest('.toggle-btn')) {
+        return;
+      }
+      
       const now = Date.now();
       if (now - lastTap < 300) {
         handleLike(post.id);
@@ -218,9 +238,10 @@ async function setInitialLikeState(postId, card) {
     .maybeSingle();
 
   if (data) {
-    const icon = card.querySelector(".like-btn i");
+    const likeBtn = card.querySelector(".like-btn");
+    const icon = likeBtn.querySelector("i");
     icon.classList.replace("fi-rr-heart", "fi-sr-heart");
-    icon.style.color = "#ff3040";
+    likeBtn.classList.add("liked");
   }
 }
 
@@ -235,9 +256,10 @@ async function setInitialSaveState(postId, card) {
     .maybeSingle();
 
   if (data) {
-    const icon = card.querySelector(".save-btn i");
+    const saveBtn = card.querySelector(".save-btn");
+    const icon = saveBtn.querySelector("i");
     icon.classList.replace("fi-rr-bookmark", "fi-sr-bookmark");
-    icon.style.color = "#ff5722";
+    saveBtn.classList.add("saved");
   }
 }
 
@@ -245,11 +267,15 @@ async function setInitialSaveState(postId, card) {
    LIKE POST
 ---------------------------- */
 async function handleLike(postId) {
-  if (!currentUser) return alert("Login required");
+  if (!currentUser) {
+    showToast("Please login to like posts");
+    return;
+  }
 
-  const icon = document.querySelector(
-    `[data-post-id="${postId}"] .like-btn i`
+  const likeBtn = document.querySelector(
+    `[data-post-id="${postId}"] .like-btn`
   );
+  const icon = likeBtn.querySelector("i");
 
   const { data } = await supabase
     .from("likes")
@@ -258,22 +284,33 @@ async function handleLike(postId) {
     .eq("user_id", currentUser.id);
 
   if (data.length) {
+    // Unlike
     await supabase.from("likes").delete()
       .eq("post_id", postId)
       .eq("user_id", currentUser.id);
 
     icon.classList.replace("fi-sr-heart", "fi-rr-heart");
-    icon.style.color = "";
+    likeBtn.classList.remove("liked");
     refreshLikeCount(postId);
+    showToast("Like removed");
   } else {
+    // Like
     await supabase.from("likes").insert({
       post_id: postId,
       user_id: currentUser.id
     });
 
     icon.classList.replace("fi-rr-heart", "fi-sr-heart");
-    icon.style.color = "#ff3040";
+    likeBtn.classList.add("liked");
+    
+    // Add pulse animation
+    likeBtn.style.animation = 'none';
+    setTimeout(() => {
+      likeBtn.style.animation = 'heartPulse 0.4s ease';
+    }, 10);
+    
     refreshLikeCount(postId);
+    showToast("Liked! ❤️");
   }
 }
 
@@ -281,11 +318,15 @@ async function handleLike(postId) {
    SAVE POST
 ---------------------------- */
 async function handleSave(postId) {
-  if (!currentUser) return alert("Login required");
+  if (!currentUser) {
+    showToast("Please login to save posts");
+    return;
+  }
 
-  const icon = document.querySelector(
-    `[data-post-id="${postId}"] .save-btn i`
+  const saveBtn = document.querySelector(
+    `[data-post-id="${postId}"] .save-btn`
   );
+  const icon = saveBtn.querySelector("i");
 
   const { data } = await supabase
     .from("saved_posts")
@@ -294,21 +335,30 @@ async function handleSave(postId) {
     .eq("user_id", currentUser.id);
 
   if (data.length) {
+    // Unsave
     await supabase.from("saved_posts").delete()
       .eq("post_id", postId)
       .eq("user_id", currentUser.id);
 
     icon.classList.replace("fi-sr-bookmark", "fi-rr-bookmark");
-    icon.style.color = "";
+    saveBtn.classList.remove("saved");
     showToast("Removed from saved ❌");
   } else {
+    // Save
     await supabase.from("saved_posts").insert({
       post_id: postId,
       user_id: currentUser.id
     });
 
     icon.classList.replace("fi-rr-bookmark", "fi-sr-bookmark");
-    icon.style.color = "#ff5722";
+    saveBtn.classList.add("saved");
+    
+    // Add bounce animation
+    saveBtn.style.animation = 'none';
+    setTimeout(() => {
+      saveBtn.style.animation = 'heartPulse 0.4s ease';
+    }, 10);
+    
     showToast("Post saved ✅");
   }
 }
@@ -317,17 +367,30 @@ async function handleSave(postId) {
    TOAST
 ---------------------------- */
 function showToast(msg) {
+  // Remove existing toast
+  const existingToast = document.querySelector('.toast');
+  if (existingToast) {
+    existingToast.remove();
+  }
+  
   const t = document.createElement("div");
   t.className = "toast";
   t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2000);
+  
+  // Auto remove after animation
+  setTimeout(() => {
+    if (t.parentNode) {
+      t.remove();
+    }
+  }, 2000);
 }
 
 /* ---------------------------
    UTIL
 ---------------------------- */
 function escapeHtml(str) {
+  if (!str) return '';
   return str
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -335,3 +398,43 @@ function escapeHtml(str) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
+/* ---------------------------
+   ADDITIONAL CSS ANIMATIONS
+---------------------------- */
+// Add CSS animations dynamically if not already in stylesheet
+function addDynamicStyles() {
+  if (!document.getElementById('dynamic-styles')) {
+    const style = document.createElement('style');
+    style.id = 'dynamic-styles';
+    style.textContent = `
+      @keyframes heartPulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.2);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      
+      @keyframes bookmarkBounce {
+        0% {
+          transform: scale(1) rotate(0deg);
+        }
+        50% {
+          transform: scale(1.2) rotate(10deg);
+        }
+        100% {
+          transform: scale(1) rotate(0deg);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+// Call dynamic styles on load
+document.addEventListener('DOMContentLoaded', addDynamicStyles);
