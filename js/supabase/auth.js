@@ -7,7 +7,7 @@ export async function signup(name, email, password) {
   // 1. Validate
   if (!name || !email || !password) {
     alert("Please fill all fields ❗");
-    return false; // Return false so the button knows it failed
+    return false;
   }
 
   // 2. Create User
@@ -25,13 +25,14 @@ export async function signup(name, email, password) {
   }
 
   // 3. Handle Email Confirmation Check
+  // If email confirmation is enabled, data.session will be null for new users
   if (data.session) {
-    // Session exists = Email confirmation is OFF (You are logged in)
     alert("Signup successful! 🎉");
     window.location.href = "index.html";
-  } else {
-    // No session = Email confirmation is ON (Check email)
+  } else if (data.user && !data.session) {
     alert("Signup successful! Please check your email to verify 📩");
+    // Optionally redirect to login tab
+    document.getElementById('login-tab').click();
   }
   
   return true;

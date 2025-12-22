@@ -20,19 +20,31 @@ let currentUser = null;
 supabase.auth.getUser().then(({ data }) => {
   currentUser = data?.user;
 
+  const formWrapper = document.getElementById("comment-form-wrapper");
+  const loginPrompt = document.getElementById("login-prompt");
+
   if (currentUser) {
-    commentFormContainer.style.display = "block";
+    formWrapper.style.display = "flex";
+    loginPrompt.style.display = "none";
+    
+    // Set current user avatar in the input box
+    // Fetch profile to get avatar
+    supabase.from("users").select("avatar_url").eq("id", currentUser.id).single()
+      .then(({data: uData}) => {
+         if(uData?.avatar_url) {
+             document.getElementById("current-user-avatar").src = uData.avatar_url;
+         }
+      });
+
   } else {
-    commentFormContainer.style.display = "none";
-    commentsListEl.insertAdjacentHTML(
-      "beforebegin",
-      `<p class="login-prompt">
-        <a href="auth.html">Log in</a> to post a comment.
-      </p>`
-    );
+    formWrapper.style.display = "none";
+    loginPrompt.style.display = "block";
   }
 });
 
+// ----------------------------------------------------
+// 2. LOAD BLOG POST
+// ----------------------------------------------------
 // ----------------------------------------------------
 // 2. LOAD BLOG POST
 // ----------------------------------------------------
@@ -41,34 +53,43 @@ async function loadPost() {
 
   const { data: post, error } = await supabase
     .from("posts")
-    .select(`
-      *,
-      users ( name )
-    `)
+    .select(`*, users ( name, avatar_url )`) // Fetch avatar
     .eq("id", postId)
     .single();
 
   if (error) {
-    console.error("Error loading post:", error);
-    postTitleEl.textContent = "Post not found.";
+    document.getElementById("post-title").textContent = "Post not found or deleted.";
     return;
   }
 
-  postTitleEl.textContent = post.title;
-  postContentEl.innerHTML = post.content;
+  // Populate Header
+  document.getElementById("post-title").textContent = post.title;
+  document.getElementById("post-author-name").textContent = post.users?.name || "Unknown";
+  document.getElementById("post-date").textContent = new Date(post.created_at).toLocaleDateString(undefined, {
+      year: 'numeric', month: 'long', day: 'numeric'
+  });
+  
+  // Avatar
+  const authorAvatar = post.users?.avatar_url || "./assets/images/default-avatar.png";
+  document.getElementById("post-author-avatar").src = authorAvatar;
+  
+  // Link to profile
+  const profileLinkClickHandler = () => window.location.href = `profile.html?userId=${post.user_id}`;
+  document.getElementById("post-author-name").onclick = profileLinkClickHandler;
+  document.getElementById("post-author-avatar").onclick = profileLinkClickHandler;
 
-  // CLICKABLE AUTHOR
-  postMetaEl.innerHTML = `
-    <span class="post-author"
-          onclick="window.location.href='profile.html?userId=${post.user_id}'"
-          style="cursor:pointer; font-weight:600; color:#ff5722;">
-      ${post.users?.name || "Unknown User"}
-    </span> 
-    • ${new Date(post.created_at).toLocaleDateString()}
-  `;
+  // Featured Image
+  if (post.image_url) {
+    document.getElementById("post-featured-image-container").innerHTML = 
+        `<img src="${post.image_url}" class="article-featured-image" alt="${post.title}">`;
+  }
+
+  // Content
+  document.getElementById("post-content").innerHTML = post.content;
 }
 
 loadPost();
+
 
 // ----------------------------------------------------
 // 3. LOAD COMMENTS
@@ -77,50 +98,44 @@ async function loadComments() {
   const { data: comments, error } = await supabase
     .from("comments")
     .select(`
-      id,
-      content,
-      created_at,
-      user_id,
-      users ( name )
+      id, content, created_at, user_id,
+      users ( name, avatar_url )
     `)
     .eq("post_id", postId)
     .order("created_at", { ascending: true });
 
-  if (error) {
-    commentsListEl.innerHTML = "<p>Error loading comments</p>";
+  const listEl = document.getElementById("comments-list");
+
+  if (error) return;
+  if (!comments || comments.length === 0) {
+    listEl.innerHTML = `<p style="text-align:center; color:var(--text-muted); margin-top:20px;">No comments yet. Be the first!</p>`;
     return;
   }
 
-  if (comments.length === 0) {
-    commentsListEl.innerHTML = "<p>Be the first to comment!</p>";
-    return;
-  }
-
-  commentsListEl.innerHTML = "";
-
+  listEl.innerHTML = "";
   comments.forEach((c) => renderSingleComment(c));
 }
 
 function renderSingleComment(c) {
-  const userName = c.users?.name || "Unknown User";
+  const userName = c.users?.name || "User";
+  const avatar = c.users?.avatar_url || "./assets/images/default-avatar.png";
+  const dateStr = new Date(c.created_at).toLocaleDateString(undefined, {month:'short', day:'numeric'});
 
   const html = `
-    <div class="comment-card">
-      <p>
-        <strong class="comment-username"
-                onclick="window.location.href='profile.html?userId=${c.user_id}'"
-                style="cursor:pointer; color:#ff5722;">
-          ${userName}
-        </strong>: ${c.content}
-      </p>
-      <small>${new Date(c.created_at).toLocaleString()}</small>
+    <div class="comment-item">
+      <img src="${avatar}" class="comment-avatar-img" onclick="window.location.href='profile.html?userId=${c.user_id}'">
+      <div class="comment-content-box">
+        <div class="comment-meta-header">
+           <a class="comment-author-link" onclick="window.location.href='profile.html?userId=${c.user_id}'">${userName}</a>
+           <span class="comment-date-display">${dateStr}</span>
+        </div>
+        <div class="comment-body-text">${c.content}</div>
+      </div>
     </div>
-    <hr>
   `;
 
-  commentsListEl.insertAdjacentHTML("beforeend", html);
+  document.getElementById("comments-list").insertAdjacentHTML("beforeend", html);
 }
-
 loadComments();
 
 // ----------------------------------------------------
@@ -137,11 +152,14 @@ supabase
 
       const { data: userData } = await supabase
         .from("users")
-        .select("name")
+        .select("name, avatar_url")
         .eq("id", newComment.user_id)
         .single();
 
-      newComment.users = { name: userData?.name };
+      newComment.users = { 
+          name: userData?.name, 
+          avatar_url: userData?.avatar_url 
+      };
 
       renderSingleComment(newComment);
     }
@@ -172,15 +190,6 @@ submitCommentBtn.onclick = async () => {
     return;
   }
 
-  // Fetch user name
-  const { data: userData } = await supabase
-    .from("users")
-    .select("name")
-    .eq("id", currentUser.id)
-    .single();
-
-  inserted.users = { name: userData?.name };
-
-  renderSingleComment(inserted);
+  // Real-time subscription will handle rendering the new comment
   commentInput.value = "";
 };

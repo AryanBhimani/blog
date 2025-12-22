@@ -5,46 +5,76 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🔥 Blog Post Detail</title>
-  <link rel="icon" type="image/png" href="./assets/images/blog.in.png">
+  <link rel="icon" type="image/png" href="/assets/images/blog.in.png">
 
-  <link rel="stylesheet" href="./css/main.css">
-  <link rel="stylesheet" href="./css/navbar.css">
-  <link rel="stylesheet" href="./css/footer.css">
-  <link rel="stylesheet" href="./css/feed.css">
-  <link rel="stylesheet" href="./css/comments.css"> <!-- ✅ Add this -->
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <link rel="stylesheet" href="/css/footer.css">
+  <link rel="stylesheet" href="/css/feed.css">
+  <link rel="stylesheet" href="/css/post-detail.css"> <!-- New Article UI -->
+  <link rel="stylesheet" href="/css/comments.css">
 </head>
 
 
 <body>
   <div id="navbar-placeholder"></div>
 
-  <main class="container">
-    <section id="post-details" class="post-card">
-      <h2 id="post-title">Loading Post...</h2>
-      <p id="post-content" class="full-post-content"></p>
-      <small id="post-meta"></small>
-    </section>
+  <main>
+    <!-- POST DETAIL (New UI) -->
+    <article class="article-container">
+      <header class="article-header">
+        <h1 id="post-title" class="article-title">Loading Article...</h1>
 
-    <section id="comments-section">
-      <h3>💬 Comments</h3>
+        <div class="article-meta">
+          <img id="post-author-avatar" src="/assets/images/default-avatar.png" class="article-author-img">
+          <div class="article-meta-info">
+            <a id="post-author-name" class="article-author-name">Unknown Author</a>
+            <span id="post-date" class="article-date">Processing...</span>
+          </div>
+        </div>
+      </header>
 
-      <div id="comment-form-container" class="comment-form" style="display: none;">
-        <h4>Add a Comment</h4>
-        <textarea id="comment-input" placeholder="Write your comment here..." required></textarea>
-        <button id="submit-comment">Post Comment</button>
+      <div id="post-featured-image-container">
+        <!-- Image injected here via JS if exists -->
       </div>
 
-      <div id="comments-list">
-        <p>Be the first to comment!</p>
+      <div id="post-content" class="article-content">
+        <!-- Content injected here -->
+      </div>
+    </article>
+
+
+    <!-- COMMENTS SECTION (New UI) -->
+    <section id="comments-section">
+      <h3 class="comments-header-title">Discussion</h3>
+
+      <!-- Login Prompt -->
+      <div id="login-prompt" class="login-prompt-card" style="display:none;">
+        <p>Join the conversation! <a href="auth.html" class="login-link">Log in</a> to leave a comment.</p>
+      </div>
+
+      <!-- Comment Form -->
+      <div id="comment-form-wrapper" class="comment-form-wrapper" style="display:none;">
+        <img id="current-user-avatar" src="/assets/images/default-avatar.png" class="current-user-avatar">
+        <div class="comment-input-area">
+          <textarea id="comment-input" class="comment-textarea" placeholder="Add to the discussion..."
+            required></textarea>
+          <button id="submit-comment" class="comment-submit-btn">Post</button>
+        </div>
+      </div>
+
+      <!-- List -->
+      <div id="comments-list" class="comments-list-container">
+        <p style="text-align:center; color:var(--text-muted);">No comments yet.</p>
       </div>
     </section>
   </main>
 
   <div id="footer-placeholder"></div>
 
-  <script type="module" src="./js/navbar.js"></script>
-  <script type="module" src="./js/footer.js"></script>
-  <script type="module" src="./js/comment.js"></script>
+  <script type="module" src="/js/navbar.js"></script>
+  <script type="module" src="/js/footer.js"></script>
+  <script type="module" src="/js/comment.js"></script>
 </body>
 
 </html>

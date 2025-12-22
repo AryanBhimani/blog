@@ -1,23 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;600&display=swap');
+
+/* Navbar Container */
+/* Navbar Container */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  background: #fff;
-  border-bottom: 1px solid #ddd;
+  padding: 16px 5%;
+  background: var(--navbar-bg);
+  /* Glassmorphism */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 1000;
+  transition: all 0.3s ease;
+  height: 70px;
 }
 
+/* Logo */
 .logo {
-  font-size: 20px;
-  font-weight: bold;
-  color: #ff5722;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   text-decoration: none;
+  letter-spacing: -0.5px;
 }
 
 .logo img {
@@ -28,94 +40,193 @@
   border: 2px solid #ff5722;
 }
 
+/* Nav Links */
 .nav-links {
   list-style: none;
   display: flex;
-  gap: 20px;
+  gap: 30px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
 }
 
 .nav-links li a {
   text-decoration: none;
-  color: #333;
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
   font-weight: 500;
-  transition: color 0.3s;
+  font-size: 1rem;
+  transition: all 0.2s ease;
 }
 
-.nav-links li a:hover {
+.nav-links li a:hover,
+.nav-links li a.active {
   color: #ff5722;
-}
-
-/* Mobile menu */
-.menu-toggle {
-  display: none;
-  font-size: 24px;
-  cursor: pointer;
-}
-
-@media (max-width: 768px) {
-  .nav-links {
-    display: none;
-    flex-direction: column;
-    position: absolute;
-    top: 60px;
-    right: 20px;
-    background: #fff;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-  }
-
-  .nav-links.show {
-    display: flex;
-  }
-
-  .menu-toggle {
-    display: block;
-  }
 }
 
 /* Login Button */
 .login-button {
-  background-color: #ff5722;
+  background: linear-gradient(135deg, #ff5722 0%, #ff7043 100%);
   color: #ffffff;
-  font-size: 16px;
-  font-weight: 500;
-  padding: 8px 16px;
-  border-radius: 5px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 50px;
+  /* Pill shape */
   border: none;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.2);
 }
 
 .login-button:hover {
-  background-color: #ff5722;
   transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(255, 87, 34, 0.3);
+  background: linear-gradient(135deg, #ff5722 0%, #ff7043 100%) !important;
+  /* Override global hover */
 }
 
 .login-button:active {
-  background-color: #ff5722;
   transform: translateY(0);
 }
 
-/* FAB BUTTON */
-.fab-btn {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  background: #ff5722;
-  color: white;
-  border: none;
-  font-size: 28px;
-  width: 55px;
-  height: 55px;
-  border-radius: 50%;
+/* Mobile Menu Toggle */
+.menu-toggle {
+  display: none;
+  font-size: 1.5rem;
+  /* Larger icon */
   cursor: pointer;
+  color: var(--text-main);
+  background: transparent !important;
+  /* Force transparent to override global button */
+  border: none;
+  padding: 5px;
+  transition: color 0.3s ease;
+}
+
+.menu-toggle:hover {
+  color: var(--brand);
+  background: transparent !important;
+}
+
+/* Theme Toggle */
+.theme-btn {
+  background: transparent !important;
+  /* Ensures no global button background override */
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  padding: 0;
 }
 
-.fab-btn:hover {
-  background: #e64a19;
+.theme-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  transform: rotate(15deg);
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .navbar {
+  background: var(--navbar-bg);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .theme-btn {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .theme-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .menu-toggle {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .nav-links {
+  background: #1e1e1e;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .nav-links li a {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Responsive Design */
+@media (max-width: 850px) {
+  .navbar {
+    padding: 15px 20px;
+    /* Fixed padding for mobile */
+    position: relative;
+    /* Ensure dropdown is relative to this */
+  }
+
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #1a1a1a;
+    background: transparent;
+    border: none;
+    z-index: 1001;
+    position: relative;
+    /* Ensure it stays in flow or absolute if needed */
+  }
+
+  .nav-links {
+    position: absolute;
+    top: 100%;
+    /* Directly below navbar */
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    padding: 0;
+    /* Reset padding */
+  }
+
+  .nav-links.show {
+    max-height: 400px;
+  }
+
+  .nav-links li {
+    width: 100%;
+    text-align: center;
+  }
+
+  .nav-links li a {
+    display: block;
+    padding: 15px 0;
+    width: 100%;
+    border-bottom: 1px solid #f8f9fa;
+  }
+
+  .nav-links li:last-child a {
+    border-bottom: none;
+  }
+
+  .nav-links .login-button {
+    margin: 20px 0;
+    width: 80%;
+  }
 }

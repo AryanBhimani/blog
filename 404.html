@@ -1,116 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>404 – Page Not Found</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Page Not Found - Blog.in</title>
+  <link rel="icon" type="image/png" href="/assets/images/blog.in.png">
 
-  <link rel="icon" type="image/png" href="./assets/images/blog.in.png">
+  <!-- Styles -->
+  <link rel="stylesheet" href="/css/main.css?v=2">
+  <link rel="stylesheet" href="/css/navbar.css?v=2">
+  <link rel="stylesheet" href="/css/footer.css?v=2">
 
-  <!-- Fonts & Icons -->
+  <!-- Flaticon/FontAwesome -->
+  <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- Main CSS -->
-  <link rel="stylesheet" href="./css/main.css">
-
   <style>
-    body {
-      min-height: 100vh;
+    .error-page {
+      min-height: 80vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: #f9fafb;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-
-    .notfound-container {
       text-align: center;
-      max-width: 500px;
-      padding: 40px;
+      padding: 40px 20px;
+      background: radial-gradient(circle at center, rgba(255, 87, 34, 0.05) 0%, transparent 70%);
     }
 
-    .notfound-code {
-      font-size: 96px;
+    .error-code {
+      font-family: 'Outfit', sans-serif;
+      font-size: 8rem;
       font-weight: 800;
-      color: #ff5a1f;
-      margin-bottom: 10px;
+      line-height: 1;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--brand) 0%, #ff9100 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      opacity: 0;
+      animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
-    .notfound-title {
-      font-size: 26px;
-      font-weight: 700;
-      margin-bottom: 10px;
+    .error-title {
+      font-size: 2rem;
+      margin-bottom: 15px;
+      color: var(--text-main);
+      opacity: 0;
+      animation: slideUp 0.6s ease forwards 0.2s;
     }
 
-    .notfound-text {
-      font-size: 16px;
-      color: #555;
-      margin-bottom: 30px;
-      line-height: 1.6;
+    .error-desc {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+      max-width: 500px;
+      opacity: 0;
+      animation: slideUp 0.6s ease forwards 0.3s;
     }
 
-    .notfound-actions {
+    .error-actions {
       display: flex;
-      justify-content: center;
-      gap: 15px;
-      flex-wrap: wrap;
+      gap: 20px;
+      opacity: 0;
+      animation: slideUp 0.6s ease forwards 0.4s;
     }
 
-    .btn-primary {
-      background: #ff5a1f;
-      color: #fff;
-      padding: 12px 24px;
-      border-radius: 999px;
-      text-decoration: none;
+    .btn-home {
+      background: var(--brand);
+      color: white;
+      padding: 14px 30px;
+      border-radius: 50px;
       font-weight: 600;
-      transition: background 0.25s ease;
-    }
-
-    .btn-primary:hover {
-      background: #e64a14;
-    }
-
-    .btn-secondary {
-      border: 2px solid #ddd;
-      padding: 12px 24px;
-      border-radius: 999px;
       text-decoration: none;
-      color: #333;
-      font-weight: 600;
-      transition: all 0.25s ease;
+      transition: all 0.3s;
+      box-shadow: 0 10px 20px rgba(255, 87, 34, 0.2);
     }
 
-    .btn-secondary:hover {
-      border-color: #ff5a1f;
-      color: #ff5a1f;
+    .btn-home:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(255, 87, 34, 0.3);
+      color: white;
+    }
+
+    .btn-search {
+      background: transparent;
+      color: var(--text-main);
+      padding: 14px 30px;
+      border-radius: 50px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 2px solid var(--border-color);
+      transition: all 0.3s;
+    }
+
+    .btn-search:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+      background: rgba(255, 87, 34, 0.05);
+    }
+
+    @keyframes popIn {
+      from {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Dark mode tweaks */
+    [data-theme="dark"] .btn-search {
+      border-color: rgba(255, 255, 255, 0.2);
     }
   </style>
 </head>
 
 <body>
 
-  <div class="notfound-container">
-    <div class="notfound-code">404</div>
+  <div id="navbar-placeholder"></div>
 
-    <div class="notfound-title">
-      Oops! Page not found
-    </div>
-
-    <p class="notfound-text">
-      The page you’re looking for doesn’t exist or may have been moved.
-      Don’t worry, let’s get you back on track.
+  <main class="error-page">
+    <h1 class="error-code">404</h1>
+    <h2 class="error-title">Page Not Found</h2>
+    <p class="error-desc">
+      The page you are looking for doesn't exist or has been moved.
+      Try searching for what you need or go back to the homepage.
     </p>
 
-    <div class="notfound-actions">
-      <a href="index.html" class="btn-primary">
-        <i class="fas fa-home"></i> Go Home
+    <div class="error-actions">
+      <a href="/index.html" class="btn-home">
+        <i class="fi fi-rr-home"></i> Go Home
       </a>
-
-      <a href="search.html" class="btn-secondary">
-        <i class="fas fa-search"></i> Search
+      <a href="/search.html" class="btn-search">
+        <i class="fi fi-rr-search"></i> Search
       </a>
     </div>
-  </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <!-- Scripts -->
+  <script type="module" src="/js/navbar.js"></script>
+  <script type="module" src="/js/footer.js"></script>
 
 </body>
+
 </html>

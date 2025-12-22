@@ -1,120 +1,128 @@
-# Blog.in - Blogging Platform
+# <div align="center">Blog.in ✍️</div>
 
-Blog.in is a lightweight blogging web application built with **HTML, CSS, JavaScript, and Firebase**.  
-It allows users to **sign up, log in, create posts, view blogs, edit their profile, and comment** on posts.  
-This project demonstrates **Firebase Authentication and Firestore Database** integration with a clean UI.
+<div align="center">
+  <h3>A Modern, Lightweight Blogging Platform</h3>
+  <p>Built with Vanilla JavaScript, CSS, and Supabase</p>
+  <a href="https://blog--in.vercel.app/">View Demo</a>
+</div>
+
+<br />
+
+**Blog.in** is a sleek, responsive blogging application that allows users to share their thoughts, connect with others, and manage their content seamlessly. It features a complete authentication system, dynamic feeds, and real-time data handling powered by [Supabase](https://supabase.com/).
 
 ---
 
 ## 🚀 Features
 
-- 🔐 **User Authentication**
-  - Register new users
-  - Login/Logout functionality
-  - Firebase Authentication
+### 🔐 Authentication & Accounts
+- **Secure Sign Up & Login**: Powered by Supabase Auth (Email/Password).
+- **Password Reset**: Secure email-based password recovery flow.
+- **Profile Management**: Customize bio, avatar, and personal details.
 
-- 📝 **Blog Management**
-  - Create, edit, and delete blog posts
-  - Rich text editor for posts
-  - Store posts linked to logged-in users
+### 📝 Content Management
+- **Rich Blog Creation**: Create and edit blog posts with a clean interface.
+- **Dynamic Feed**: Real-time fetching of latest posts from all users.
+- **Search**: Find posts and users instantly.
 
-- 👤 **User Profiles**
-  - Edit profile details
-  - View personal blogs
-  - Profile picture support
+### 🤝 Social Interaction
+- **Follow System**: Follow your favorite authors to see their posts in your feed.
+- **Comments**: Engage with content through a dynamic commenting system.
+- **Likes**: (Coming Soon) Express appreciation for posts.
 
-- 💬 **Comments**
-  - Comment on blog posts
-  - Firebase Firestore integration
-
-- 📱 **Responsive UI**
-  - Mobile-friendly design
-  - Reusable components (`navbar.html`, `footer.html`)
+### 🎨 UI/UX
+- **Responsive Design**: Fully optimized for mobile, tablet, and desktop.
+- **Glassmorphism UI**: Modern aesthetic with translucent cards and animated backgrounds.
+- **Dark Mode**: (In Progress) System-aware color themes.
 
 ---
 
-## 🏗️ Project Structure
-```
-blog-in/
-├── assets/
-│   └── images/
-│       ├── blog.in.png
-│       └── mobintix.png
-├── components/
-│   ├── footer.html
-│   └── navbar.html
-├── styles/
-│   ├── about.css
-│   ├── auth.css
-│   ├── comments.css
-│   ├── contact.css
-│   ├── editprofile.css
-│   ├── feed.css
-│   ├── footer.css
-│   ├── main.css
-│   ├── navbar.css
-│   ├── posts.css
-│   ├── profile.css
-│   └── responsive.css
-├── js/
-│   ├── firebase/
-│   │   ├── auth.js
-│   │   └── firebase-config.js
-│   ├── comments.js
-│   ├── contact.js
-│   ├── editprofile.js
-│   ├── feed.js
-│   ├── footer.js
-│   ├── navbar.js
-│   ├── posts.js
-│   ├── profile.js
-│   └── search.js
-├── about.html
-├── auth.html
-├── comment.html
-├── contact.html
-├── editprofile.html
-├── index.html
-├── profile.html
-├── search.html
-└── README.md
+## �️ Tech Stack
+
+- **Frontend**:
+  - HTML5 (Semantic Structure)
+  - CSS3 (Custom Variables, Flexbox/Grid, Glassmorphism)
+  - JavaScript (ES6+ Modules, Async/Await)
+- **Backend**:
+  - **Supabase Auth**: User management and session handling.
+  - **Supabase Database**: PostgreSQL for storing posts, profiles, and comments.
+  - **Supabase Storage**: (Optional) For hosting user avatars and post images.
+
+---
+
+## 📂 Project Structure
+
+```bash
+Blog.in/
+├── assets/             # Static assets (images, icons)
+├── components/         # Reusable HTML snippets (Navbar, Footer)
+├── css/                # Styling files
+│   ├── main.css        # Global variables and resets
+│   ├── auth.css        # Login/Register styles
+│   ├── feed.css        # Main feed layout
+│   ├── profile.css     # User profile styles
+│   └── ...             # Specific page styles
+├── js/                 # Application logic
+│   ├── supabase/       # Supabase configuration
+│   │   └── supabaseClient.js
+│   ├── auth.js         # Authentication logic
+│   ├── feed.js         # Feed rendering
+│   ├── profile.js      # Profile management
+│   └── ...             # Feature-specific scripts
+├── auth.html           # Login/Signup page
+├── index.html          # Main landing/feed page
+├── profile.html        # User profile page
+├── post.html           # Create/View post page
+└── ...                 # Other HTML pages
 ```
 
 ---
 
-## ⚙️ Tech Stack
+## ⚡ Getting Started
 
-- **Frontend:** HTML5, CSS3, JavaScript (Vanilla JS)
-- **Backend/Database:** Firebase Firestore
-- **Authentication:** Firebase Auth
-- **Hosting:** Firebase Hosting (or any static hosting)
+### Prerequisites
+- A modern web browser.
+- A [Supabase](https://supabase.com/) account.
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/blog.in.git
+   cd blog.in
+   ```
+
+2. **Configure Supabase**
+   - Create a new project in Supabase.
+   - Go to `Database` and create the following tables (or use the SQL editor):
+     - `profiles` (id, username, full_name, avatar_url, bio, website)
+     - `posts` (id, user_id, title, content, created_at)
+     - `comments` (id, post_id, user_id, content, created_at)
+     - `followers` (follower_id, following_id)
+
+3. **Connect to Supabase**
+   - Rename `js/supabase/supabaseClient.example.js` to `js/supabase/supabaseClient.js` (if strictly following a template, otherwise just edit the existing file).
+   - Open `js/supabase/supabaseClient.js` and paste your project credentials:
+     ```javascript
+     const supabaseUrl = "https://your-project-url.supabase.co";
+     const supabaseKey = "your-anon-key";
+     export const supabase = createClient(supabaseUrl, supabaseKey);
+     ```
+
+4. **Run the App**
+   - Use a local development server (e.g., [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) for VS Code).
+   - Open `index.html` in your browser.
 
 ---
 
-## 🔑 System Architecture
+## � Future Roadmap
 
-```
-mermaid
-flowchart TD
-    A[User] -->|Login / Register| B[Firebase Auth]
-    B --> C[Firestore Database]
-    A -->|Create Post| C
-    A -->|View Posts| C
-    A -->|Comment on Post| C
-    A -->|Edit Profile| C
-    subgraph UI [Frontend (HTML, CSS, JS)]
-        A
-    end
-    subgraph Firebase [Firebase Services]
-        B
-        C
-    end
+- [ ] **Rich Text Editor**: Integrate a library like Quill.js or Tiptap.
+- [ ] **Image Uploads**: Drag-and-drop image hosting via Supabase Storage.
+- [ ] **Notifications**: Real-time alerts for likes and comments.
+- [ ] **PWA Support**: Make the app installable on mobile devices.
 
-📌 Future Improvements
+---
 
-Add likes & reactions on posts
-
-Improve blog editor with markdown support
-
-Deploy using Firebase Hosting.
-```
+<div align="center">
+  <p>Made with ❤️ by the Blog.in Team</p>
+</div>

@@ -17,8 +17,7 @@ const followingCountEl = document.getElementById("following-count");
 const postCounterEl = document.getElementById("posts-count");
 const settingsBtn = document.getElementById("settings-btn");
 
-/* ✅ NEW (ADDED) */
-const savedBtn = document.getElementById("saved-posts-btn");
+/* ✅ NEW (ADDED) */const savedBtn = document.getElementById("saved-posts-btn");
 let showingSavedPosts = false;
 
 // Redirect to settings page
@@ -96,6 +95,12 @@ supabase.auth.onAuthStateChange(async (_event, session) => {
   loadPosts(viewingUserId);
 
   if (user && !isOwner) initializeFollowButton(user.id, viewingUserId);
+
+  // Initialize hidden lists or clear them if simpler
+  const followingDiv = document.getElementById("following-users");
+  const followersDiv = document.getElementById("followers-users");
+  if (followingDiv) followingDiv.innerHTML = ""; // Clear loading state init
+  if (followersDiv) followersDiv.innerHTML = "";
 });
 
 // ---------------------------
@@ -107,6 +112,12 @@ async function loadProfile(uid) {
 
   nameEl.textContent = data.name || "Unnamed User";
   bioEl.textContent = data.bio || "No bio yet.";
+
+  // Avatar
+  const avatarEl = document.getElementById("profile-avatar");
+  if (data.avatar_url && avatarEl) {
+    avatarEl.src = data.avatar_url;
+  }
 }
 
 // ---------------------------
@@ -144,23 +155,30 @@ async function checkFollowing(myId, theirId) {
     .eq("follower", myId)
     .eq("following", theirId);
 
-  return data.length > 0;
+  return data && data.length > 0;
 }
 
 function updateFollowButton(state) {
+  if (!followBtn) return;
   followBtn.textContent = state ? "Unfollow" : "Follow";
   followBtn.classList.toggle("unfollow", state);
 }
 
 // ---------------------------
-// Follow Stats (UNCHANGED)
+// Follow Stats
 // ---------------------------
 async function loadFollowStats(uid) {
   const { data: followers } = await supabase.from("followers").select("*").eq("following", uid);
   const { data: following } = await supabase.from("followers").select("*").eq("follower", uid);
 
-  followersCountEl.textContent = followers.length;
-  followingCountEl.textContent = following.length;
+  if (followersCountEl) followersCountEl.textContent = followers?.length || 0;
+  if (followingCountEl) followingCountEl.textContent = following?.length || 0;
+  
+  // Clear loading text from the lists
+  const followingDiv = document.getElementById("following-users");
+  const followersDiv = document.getElementById("followers-users");
+  if (followingDiv) followingDiv.innerHTML = "";
+  if (followersDiv) followersDiv.innerHTML = "";
 }
 
 // ----------------------------------------
@@ -186,10 +204,31 @@ async function loadPosts(uid) {
 
     const postCard = document.createElement("article");
     postCard.classList.add("post-card");
+    
+    // Format date
+    const dateStr = new Date(post.created_at).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
+
     postCard.innerHTML = `
-      <h3>${post.title}</h3>
-      <p>${post.content.substring(0,150)}...</p>
-      <small>${new Date(post.created_at).toLocaleString()}</small>
+      <div class="post-media">
+        ${post.image_url 
+          ? `<img src="${post.image_url}" loading="lazy" alt="Post Image" />` 
+          : `<div class="no-image-placeholder"><i class="fi fi-rr-picture"></i></div>`
+        }
+      </div>
+      <div class="post-content">
+        <div class="post-meta">
+          <span class="post-date"><i class="fi fi-rr-calendar"></i> ${dateStr}</span>
+        </div>
+        <h3><a href="comment.html?postId=${post.id}">${escapeHtml(post.title)}</a></h3>
+        <p>${escapeHtml(post.content).substring(0, 100)}...</p>
+        <div class="post-footer">
+          <a href="comment.html?postId=${post.id}" class="read-more">Read Article <i class="fi fi-rr-arrow-small-right"></i></a>
+        </div>
+      </div>
     `;
 
     if (isOwner) {
@@ -197,16 +236,24 @@ async function loadPosts(uid) {
       actions.classList.add("post-actions");
 
       actions.innerHTML = `
-        <button class="edit-btn">✏️ Edit</button>
-        <button class="delete-btn">🗑 Delete</button>
+        <button class="edit-btn" title="Edit Post"><i class="fi fi-rr-edit"></i></button>
+        <button class="delete-btn" title="Delete Post"><i class="fi fi-rr-trash"></i></button>
       `;
 
-      actions.querySelector(".edit-btn").onclick = () => editPost(post.id);
-      actions.querySelector(".delete-btn").onclick = () => deletePost(post.id);
+      actions.querySelector(".edit-btn").onclick = (e) => {
+        e.stopPropagation(); // Prevent card click if we add one later
+        editPost(post.id);
+      };
+      actions.querySelector(".delete-btn").onclick = (e) => {
+         e.stopPropagation();
+         deletePost(post.id);
+      };
 
+      // Append actions to the content area or absolute position them
+      // For this design, let's put them absolute top-right in CSS, or append to card
       postCard.appendChild(actions);
     }
-
+    
     postsList.appendChild(postCard);
   });
 }
@@ -234,9 +281,30 @@ async function loadSavedPosts() {
   data.forEach(({ posts }) => {
     const card = document.createElement("article");
     card.className = "post-card";
+    
+    const dateStr = new Date(posts.created_at).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
+
     card.innerHTML = `
-      <h3>${posts.title}</h3>
-      <p>${posts.content.substring(0,150)}...</p>
+      <div class="post-media">
+        ${posts.image_url 
+          ? `<img src="${posts.image_url}" loading="lazy" alt="Post Image" />`
+          : `<div class="no-image-placeholder"><i class="fi fi-rr-picture"></i></div>`
+        }
+      </div>
+      <div class="post-content">
+        <div class="post-meta">
+          <span class="post-date"><i class="fi fi-rr-calendar"></i> ${dateStr}</span>
+        </div>
+        <h3><a href="comment.html?postId=${posts.id}">${escapeHtml(posts.title)}</a></h3>
+        <p>${escapeHtml(posts.content).substring(0, 100)}...</p>
+        <div class="post-footer">
+           <a href="comment.html?postId=${posts.id}" class="read-more">Read Article <i class="fi fi-rr-arrow-small-right"></i></a>
+        </div>
+      </div>
     `;
     postsList.appendChild(card);
   });
@@ -255,5 +323,104 @@ async function deletePost(postId) {
 // Edit Post (UNCHANGED)
 // ---------------------------
 function editPost(postId) {
-  window.location.href = `post.html?postId=${postId}`;
+  window.location.href = `post.html?edit=${postId}`;
+}
+
+// ---------------------------
+// VIEW SWITCHING (Tabs)
+// ---------------------------
+const postsStatBtn = document.getElementById('posts-stat');
+const followersStatBtn = document.getElementById('followers-stat');
+const followingStatBtn = document.getElementById('following-stat');
+
+if (postsStatBtn) postsStatBtn.addEventListener('click', () => switchTab('posts'));
+if (followersStatBtn) followersStatBtn.addEventListener('click', () => switchTab('followers'));
+if (followingStatBtn) followingStatBtn.addEventListener('click', () => switchTab('following'));
+
+async function switchTab(tabName) {
+  // Hide all sections
+  document.getElementById("user-posts").style.display = "none";
+  document.getElementById("followers-list-section").style.display = "none";
+  document.getElementById("following-list-section").style.display = "none";
+
+  // Show selected
+  if (tabName === 'posts') {
+    document.getElementById("user-posts").style.display = "block";
+  } else if (tabName === 'followers') {
+    document.getElementById("followers-list-section").style.display = "flex";
+    await loadFollowersList();
+  } else if (tabName === 'following') {
+    document.getElementById("following-list-section").style.display = "flex";
+    await loadFollowingList();
+  }
+};
+
+async function loadFollowersList() {
+  const listEl = document.getElementById("followers-users");
+  listEl.innerHTML = '<p>Loading...</p>';
+  
+  const { data: followers, error } = await supabase
+    .from("followers")
+    .select("follower, users:follower(*)") // Join with users table
+    .eq("following", viewingUserId);
+
+  listEl.innerHTML = "";
+  if (error || !followers || followers.length === 0) {
+    listEl.innerHTML = "<p>No followers yet.</p>";
+    return;
+  }
+
+  followers.forEach(item => {
+    // item.users is the user object of the follower
+    renderUserCard(item.users, listEl);
+  });
+}
+
+async function loadFollowingList() {
+  const listEl = document.getElementById("following-users");
+  listEl.innerHTML = '<p>Loading...</p>';
+
+  const { data: following, error } = await supabase
+    .from("followers")
+    .select("following, users:following(*)") // Join with users table
+    .eq("follower", viewingUserId);
+
+  listEl.innerHTML = "";
+  if (error || !following || following.length === 0) {
+    listEl.innerHTML = "<p>Not following anyone yet.</p>";
+    return;
+  }
+
+  following.forEach(item => {
+    // item.users is the user object of the person being followed
+    renderUserCard(item.users, listEl);
+  });
+}
+
+function renderUserCard(user, container) {
+  if (!user) return;
+  const card = document.createElement("a");
+  card.className = "user-list-item";
+  card.href = `profile.html?userId=${user.id}`;
+  
+  const avatarUrl = user.avatar_url || "./assets/images/default-avatar.png";
+  
+  card.innerHTML = `
+    <img src="${avatarUrl}" class="user-avatar" onerror="this.src='./assets/images/default-avatar.png'">
+    <span>${escapeHtml(user.name)}</span>
+  `;
+  container.appendChild(card);
+}
+
+// ---------------------------
+// UTIL: XSS Protection
+// ---------------------------
+function escapeHtml(str) {
+  if (!str) return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }

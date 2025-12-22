@@ -1,0 +1,131 @@
+/* =========================================
+   BLOG POST DETAIL (Full Article View)
+   ========================================= */
+
+/* Main Container */
+.article-container {
+    max-width: 800px;
+    /* Optimal reading width */
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* --- Article Header --- */
+.article-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.article-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--text-main);
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+}
+
+.article-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.article-author-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--bg-card);
+    box-shadow: var(--shadow-sm);
+}
+
+.article-meta-info {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+}
+
+.article-author-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.article-author-name:hover {
+    color: var(--brand);
+}
+
+.article-date {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* --- Featured Image --- */
+.article-featured-image {
+    width: 100%;
+    max-height: 500px;
+    object-fit: cover;
+    border-radius: 20px;
+    margin-bottom: 40px;
+    box-shadow: var(--shadow-md);
+}
+
+/* --- Article Content --- */
+.article-content {
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: var(--text-main);
+}
+
+.article-content p {
+    margin-bottom: 24px;
+}
+
+.article-content h2 {
+    font-size: 2rem;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    color: var(--text-main);
+}
+
+.article-content h3 {
+    font-size: 1.5rem;
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+.article-content img {
+    max-width: 100%;
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.article-content blockquote {
+    border-left: 4px solid var(--brand);
+    padding-left: 20px;
+    margin: 30px 0;
+    font-style: italic;
+    color: var(--text-muted);
+    background: linear-gradient(90deg, rgba(255, 87, 34, 0.05), transparent);
+    padding: 20px;
+    border-radius: 0 12px 12px 0;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .article-title {
+        font-size: 2.2rem;
+    }
+
+    .article-content {
+        font-size: 1.05rem;
+    }
+}

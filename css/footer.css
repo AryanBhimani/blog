@@ -1,86 +1,317 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;600&display=swap');
+
+/* =========================================
+   FOOTER CORE STYLES
+   ========================================= */
 .footer {
-  background: #ffffff;
-  border-top: 1px solid #eee;
-  padding: 40px 20px;
-  text-align: center;
-  font-family: "Segoe UI", sans-serif;
+  background-color: var(--bg-card);
+  border-top: 1px solid var(--border-color);
+  padding: 80px 20px 40px;
+  /* More breathing room */
+  font-family: 'Inter', sans-serif;
+  margin-top: 60px;
+  position: relative;
+  overflow: hidden;
 }
 
-.footer-content {
-  max-width: 900px;
+/* Decorative Gradient Line at Top */
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--brand), var(--secondary, #ff8f00));
+}
+
+.footer-container {
+  max-width: 1200px;
   margin: 0 auto;
 }
 
+/* =========================================
+   GRID LAYOUT (Desktop Default)
+   ========================================= */
+.footer-top {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(2, 1fr) 1.5fr;
+  gap: 40px;
+  margin-bottom: 60px;
+}
+
+/* 1. Brand Section */
 .footer-logo {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .footer-logo img {
   height: 50px;
   width: 50px;
   border-radius: 50%;
-  border: 2px solid #ff5722;
-  object-fit: cover;
+  border: 2px solid var(--brand);
+  padding: 2px;
+  background: var(--bg-card);
 }
 
 .footer-logo h2 {
-  font-size: 22px;
-  color: #ff5722;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-main);
   margin: 0;
+  letter-spacing: -0.5px;
 }
 
 .footer-tagline {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 20px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin-bottom: 25px;
+  max-width: 320px;
 }
 
-.footer-menu {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 20px;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.footer-menu li a {
-  text-decoration: none;
-  color: #444;
-  font-weight: 500;
-  transition: color 0.3s;
-}
-
-.footer-menu li a:hover {
-  color: #ff5722;
-}
-
+/* Social Icons */
 .footer-social {
   display: flex;
+  gap: 12px;
+}
+
+.footer-social a {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--bg-body);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 15px;
-  margin-bottom: 20px;
+  font-size: 1.1rem;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 1px solid var(--border-color);
 }
 
-.footer-social a img {
-  height: 22px;
-  width: 22px;
-  filter: grayscale(100%) brightness(0.4);
-  transition: transform 0.3s, filter 0.3s;
+.footer-social a:hover {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 15px rgba(255, 87, 34, 0.25);
 }
 
-.footer-social a:hover img {
-  transform: scale(1.2);
-  filter: none;
+/* 2 & 3. Navigation Columns */
+.footer-column h4 {
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-main);
+  font-size: 1.1rem;
+  margin-bottom: 24px;
+  font-weight: 700;
+  position: relative;
+  display: inline-block;
 }
 
-.footer-copy {
-  font-size: 13px;
-  color: #777;
-  margin-top: 10px;
+.footer-column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-column li {
+  margin-bottom: 14px;
+}
+
+.footer-column a {
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-column a:hover {
+  color: var(--brand);
+  transform: translateX(4px);
+}
+
+/* 4. Newsletter Section */
+.footer-newsletter h4 {
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-main);
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+
+.footer-newsletter p {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* Modern Pill Form */
+.newsletter-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-body);
+  border: 1px solid var(--border-color);
+  border-radius: 50px;
+  /* Pill shape */
+  padding: 6px;
+  transition: all 0.3s ease;
+}
+
+.newsletter-form:focus-within {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px rgba(255, 87, 34, 0.1);
+  background: var(--bg-card);
+}
+
+.newsletter-form input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  outline: none;
+}
+
+.newsletter-form button {
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.1rem;
+}
+
+.newsletter-form button:hover {
+  background: var(--brand-hover);
+  transform: rotate(-10deg) scale(1.05);
+}
+
+/* =========================================
+   FOOTER BOTTOM (Copyright + Legal)
+   ========================================= */
+.footer-bottom {
+  border-top: 1px solid var(--border-color);
+  padding-top: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-bottom p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0;
+  font-weight: 500;
+}
+
+.footer-legal {
+  display: flex;
+  gap: 24px;
+}
+
+.footer-legal a {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+
+.footer-legal a:hover {
+  color: var(--brand);
+}
+
+/* =========================================
+   RESPONSIVE DESIGN (Media Queries)
+   ========================================= */
+
+/* TABLET VIEW (Max-width 968px) */
+@media (max-width: 968px) {
+  .footer {
+    padding: 60px 20px 30px;
+  }
+
+  .footer-top {
+    /* Switch to 2x2 Layout */
+    grid-template-columns: repeat(2, 1fr);
+    gap: 50px 30px;
+  }
+
+  /* Make brand section span both columns if desired, 
+     but 2x2 implies Brand+Nav1, Nav2+Newsletter often.
+     Let's keep order simpler: */
+  .footer-logo {
+    margin-bottom: 15px;
+  }
+}
+
+/* MOBILE VIEW (Max-width 640px) */
+@media (max-width: 640px) {
+  .footer {
+    padding: 50px 20px 30px;
+    text-align: center;
+  }
+
+  .footer-top {
+    /* Single Column Stack */
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  /* Center Align Elements */
+  .footer-logo {
+    justify-content: center;
+  }
+
+  .footer-tagline {
+    margin: 0 auto 25px;
+  }
+
+  .footer-social {
+    justify-content: center;
+  }
+
+  .footer-column a {
+    justify-content: center;
+  }
+
+  .footer-column a:hover {
+    transform: none;
+    /* Disable shift on mobile */
+    color: var(--brand);
+  }
+
+  .newsletter-form {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .footer-bottom {
+    flex-direction: column-reverse;
+    gap: 20px;
+  }
+
+  .footer-legal {
+    justify-content: center;
+    gap: 15px;
+  }
 }

@@ -1,7 +1,7 @@
 import { supabase } from "./supabase/supabaseClient.js";
 
 // Load navbar HTML
-fetch("./components/navbar.html")
+fetch("/components/navbar.html")
   .then(res => res.text())
   .then(data => {
     document.body.insertAdjacentHTML("afterbegin", data);
@@ -9,7 +9,7 @@ fetch("./components/navbar.html")
     const menuToggle = document.querySelector(".menu-toggle");
     const navLinks = document.querySelector(".nav-links");
     const authButton = document.getElementById("auth-btn");
-    const fabButton = document.getElementById("fab-add-post");
+
 
     // --------------------------------------------
     // MOBILE MENU TOGGLE
@@ -63,28 +63,38 @@ fetch("./components/navbar.html")
     }
 
     // --------------------------------------------
-    // FAB BUTTON (ADD POST)
+    // DARK MODE TOGGLE
     // --------------------------------------------
-    let currentUser = null;
+    const themeBtn = document.getElementById("theme-toggle");
+    
+    // Check saved theme
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      updateThemeIcon(true);
+    }
 
-    supabase.auth.getUser().then(({ data }) => {
-      currentUser = data?.user || null;
-    });
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      currentUser = session?.user || null;
-    });
-
-    if (fabButton) {
-      fabButton.style.display = "flex";
-
-      fabButton.onclick = () => {
-        if (!currentUser) {
-          alert("⚠️ Please login first to post a blog!");
-          return;
-        }
-        window.location.href = "../post.html";
+    if (themeBtn) {
+      themeBtn.onclick = () => {
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const newTheme = isDark ? "light" : "dark";
+        
+        document.documentElement.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+        updateThemeIcon(!isDark);
       };
     }
+
+    function updateThemeIcon(isDark) {
+      if (!themeBtn) return;
+      const icon = themeBtn.querySelector("i");
+      if (isDark) {
+        icon.className = "fi fi-rr-sun";
+      } else {
+        icon.className = "fi fi-rr-moon";
+      }
+    }
+
+
   })
   .catch(err => console.error("Navbar load error:", err));

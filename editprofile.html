@@ -5,12 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔥 Edit Profile</title>
-    <link rel="icon" type="image/png" href="./assets/images/blog.in.png">
+    <link rel="icon" type="image/png" href="/assets/images/blog.in.png">
 
-    <link rel="stylesheet" href="./css/editprofile.css">
-    <link rel="stylesheet" href="./css/main.css">
-    <link rel="stylesheet" href="./css/navbar.css">
-    <link rel="stylesheet" href="./css/footer.css">
+    <link rel="stylesheet" href="/css/editprofile.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
 </head>
 
 <body>
@@ -19,6 +19,12 @@
     <div class="edit-profile">
         <h2>Edit Profile</h2>
         <form id="editProfileForm">
+            <div class="avatar-section">
+                <img id="avatar-preview" src="/assets/images/mobintix.png" alt="Avatar Preview">
+                <label for="avatar-upload" class="upload-label">Change Photo</label>
+                <input type="file" id="avatar-upload" accept="image/*" />
+            </div>
+
             <label for="username">Username:</label>
             <input type="text" id="username" placeholder="Enter new username" required />
 
@@ -31,10 +37,10 @@
 
     <div id="footer-placeholder"></div>
 
-    <script type="module" src="./js/supabase/auth.js"></script>
-    <script type="module" src="./js/editprofile.js"></script>
-    <script type="module" src="./js/navbar.js"></script>
-    <script type="module" src="./js/footer.js"></script>
+    <script type="module" src="/js/supabase/auth.js"></script>
+    <script type="module" src="/js/editprofile.js"></script>
+    <script type="module" src="/js/navbar.js"></script>
+    <script type="module" src="/js/footer.js"></script>
 </body>
 
 </html>

@@ -1,3 +1,5 @@
+import { supabase } from "./supabase/supabaseClient.js";
+
 // Forgot password logic (client-side)
 const form = document.getElementById("forgotForm");
 const emailInput = document.getElementById("email");
@@ -31,20 +33,22 @@ form.addEventListener("submit", async (e) => {
   submitBtn.textContent = "Sending...";
 
   try {
-    // adjust API endpoint to your backend
-    const resp = await fetch("/api/forgot-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/reset-password",
     });
 
-    // keep message generic to avoid account enumeration
+    if (error) {
+      throw error;
+    }
+
     setMessage(
-      "If an account exists for that email, reset instructions were sent.",
+      "If an account exists for that email, reset instructions were sent. Check your inbox!",
       "success"
     );
+    form.reset();
   } catch (err) {
-    setMessage("Unable to send request. Please try again later.", "error");
+    console.error(err);
+    setMessage(err.message || "Unable to send request. Please try again later.", "error");
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = "Send Reset Link";

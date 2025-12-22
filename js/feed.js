@@ -16,6 +16,10 @@ supabase.auth.getUser().then(({ data }) => {
   currentUser = data?.user || null;
 });
 
+supabase.auth.onAuthStateChange((_event, session) => {
+  currentUser = session?.user || null;
+});
+
 /* ---------------------------
    LOAD ON PAGE
 ---------------------------- */
@@ -28,6 +32,8 @@ document.addEventListener("DOMContentLoaded", () => {
    LOAD POSTS
 ---------------------------- */
 async function loadAllPosts() {
+  if (!postsList) return;
+
   postsList.innerHTML = `<div class="loading">
     <div class="loading-spinner"></div>
     <p>Loading blogs...</p>
@@ -35,7 +41,7 @@ async function loadAllPosts() {
 
   const { data, error } = await supabase
     .from("posts")
-    .select(`id, title, content, created_at, user_id, users(name)`)
+    .select(`id, title, content, image_url, created_at, user_id, users(name, avatar_url)`)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -47,7 +53,9 @@ async function loadAllPosts() {
     id: p.id,
     title: p.title,
     content: p.content,
+    image: p.image_url,
     author: p.users?.name || "Unknown",
+    authorAvatar: p.users?.avatar_url || "./assets/images/default-avatar.png",
     createdAt: new Date(p.created_at)
   }));
 
@@ -55,13 +63,16 @@ async function loadAllPosts() {
 }
 
 /* ---------------------------
-   SEARCH
+   SEARCH (No changes needed, relying on global allPosts)
 ---------------------------- */
 function setupSearch() {
   if (!searchInput) return;
 
   searchInput.addEventListener("input", () => {
     const term = searchInput.value.toLowerCase().trim();
+    
+    if (!allPosts || allPosts.length === 0) return;
+
     if (!term) {
       renderPosts(allPosts);
       searchResultsInfo.textContent = "";
@@ -98,30 +109,49 @@ function renderPosts(posts) {
     card.className = "post-card";
     card.dataset.postId = post.id;
 
+    const dateStr = post.createdAt.toLocaleDateString(undefined, {month:'short', day:'numeric'});
+
     card.innerHTML = `
-      <h3>${escapeHtml(post.title)}</h3>
+      <!-- Image Section -->
+      <div class="post-card-image-container">
+        ${post.image ? `<img src="${post.image}" class="post-card-img" loading="lazy">` : 
+        `<div class="post-card-img-placeholder"></div>`}
+        
+        <div class="post-card-overlay">
+            <span class="post-date-badge">${dateStr}</span>
+        </div>
+      </div>
 
-      <div class="excerpt">${escapeHtml(post.content.substring(0,150))}...</div>
-      <div class="full-content" style="display:none;">${escapeHtml(post.content)}</div>
+      <!-- Content Section -->
+      <div class="post-card-content">
+        
+        <div class="post-author-row">
+            <img src="${post.authorAvatar}" class="post-author-avatar" onerror="this.src='./assets/images/default-avatar.png'">
+            <div class="post-author-info">
+                <span class="post-author-name">${escapeHtml(post.author)}</span>
+            </div>
+        </div>
 
-      <small>By ${escapeHtml(post.author)} · ${post.createdAt.toLocaleDateString()}</small>
+        <h3 class="post-title" onclick="window.location.href='comment.html?postId=${post.id}'">${escapeHtml(post.title)}</h3>
+        
+        <div class="excerpt">${escapeHtml(post.content.substring(0,100))}...</div>
+        <div class="full-content" style="display:none;">${escapeHtml(post.content)}</div>
 
-      <div class="post-footer-actions">
-        <button class="toggle-btn primary-action-button">Read More</button>
-
-        <div class="post-icons">
-          <button class="icon-btn like-btn" aria-label="Like">
-            <i class="fi fi-rr-heart"></i>
-            <span class="like-count">0</span>
-          </button>
-
-          <button class="icon-btn save-btn" aria-label="Save">
-            <i class="fi fi-rr-bookmark"></i>
-          </button>
-
-          <a href="comment.html?postId=${post.id}" class="icon-btn comment-btn" aria-label="Comment">
-            <i class="fi fi-sr-comment-alt"></i>
-          </a>
+        <div class="post-actions-row">
+           <button class="toggle-read-more">Read More</button>
+           
+           <div class="action-icons">
+               <button class="icon-action-btn like-btn" aria-label="Like">
+                   <i class="fi fi-rr-heart"></i>
+                   <span class="like-count">0</span>
+               </button>
+               <button class="icon-action-btn save-btn" aria-label="Save">
+                   <i class="fi fi-rr-bookmark"></i>
+               </button>
+               <a href="comment.html?postId=${post.id}" class="icon-action-btn comment-btn" aria-label="Comment">
+                   <i class="fi fi-rr-comment-alt"></i>
+               </a>
+           </div>
         </div>
       </div>
     `;
@@ -129,9 +159,14 @@ function renderPosts(posts) {
     postsList.appendChild(card);
 
     // Read More toggle
-    const toggleBtn = card.querySelector(".toggle-btn");
+    const toggleBtn = card.querySelector(".toggle-read-more");
     const excerpt = card.querySelector(".excerpt");
     const full = card.querySelector(".full-content");
+
+    // Hide read more if content is short
+    if (post.content.length <= 100) {
+      toggleBtn.style.display = 'none';
+    }
 
     toggleBtn.onclick = () => {
       const open = full.style.display === "block";
@@ -165,7 +200,7 @@ function renderPosts(posts) {
     let lastTap = 0;
     card.addEventListener("click", (e) => {
       // Don't trigger double-tap like if clicking on buttons or links
-      if (e.target.closest('.icon-btn') || e.target.closest('.toggle-btn')) {
+      if (e.target.closest('.icon-action-btn') || e.target.closest('.toggle-read-more')) {
         return;
       }
       

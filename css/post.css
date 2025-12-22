@@ -1,79 +1,139 @@
+/* Main Wrapper */
 .blog-editor-wrapper {
   max-width: 900px;
-  margin: 3rem auto;
-  padding: 1rem;
+  margin: 40px auto;
+  padding: 0 20px 40px;
 }
 
 .blog-editor {
-  background: #ffffff;
+  background: var(--bg-card);
   border-radius: 20px;
-  padding: 2.5rem;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+  padding: 40px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
 }
 
 .editor-header {
   text-align: center;
+  margin-bottom: 30px;
 }
 
 .editor-header h1 {
-  font-size: 2rem;
-  color: #ff5722;
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.5rem;
+  color: var(--text-main);
+  margin-bottom: 10px;
 }
 
 .editor-header p {
-  color: #666;
+  color: var(--text-muted);
+  font-size: 1.1rem;
 }
 
 .editor-group {
-  margin-bottom: 1.4rem;
+  margin-bottom: 25px;
 }
 
 .editor-group label {
+  font-family: 'Outfit', sans-serif;
   font-weight: 600;
   display: block;
-  margin-bottom: 0.4rem;
+  margin-bottom: 8px;
+  color: var(--text-main);
 }
 
 .editor-group input {
   width: 100%;
-  padding: 0.9rem;
+  padding: 14px 18px;
   border-radius: 12px;
-  border: 2px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s;
+  background: var(--bg-body);
+  color: var(--text-main);
 }
 
 .editor-group input:focus {
-  border-color: #ff5722;
+  border-color: var(--brand);
+  background: var(--bg-card);
   outline: none;
+  box-shadow: 0 0 0 4px rgba(255, 87, 34, 0.1);
 }
 
+/* Quill Editor Customization */
 #editor-container {
-  height: 260px;
-  border-radius: 12px;
+  height: 350px;
+  border-radius: 0 0 12px 12px;
+  border: 1px solid var(--border-color);
+  border-top: none;
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1rem;
+}
+
+.ql-toolbar.ql-snow {
+  border-radius: 12px 12px 0 0;
+  border-color: var(--border-color);
+  background: var(--bg-body);
+}
+
+.ql-container.ql-snow {
+  border-color: var(--border-color);
+  border-radius: 0 0 12px 12px;
+}
+
+/* Fix for Quill svg icons in dark mode */
+.ql-snow .ql-stroke {
+  stroke: var(--text-muted);
+}
+
+.ql-snow .ql-fill {
+  fill: var(--text-muted);
+}
+
+.ql-snow .ql-picker {
+  color: var(--text-muted);
 }
 
 .publish-btn {
   width: 100%;
-  padding: 1rem;
-  background: linear-gradient(135deg, #ff5722, #ff7043);
+  padding: 16px;
+  background: linear-gradient(135deg, #ff5722 0%, #ff7043 100%);
   color: white;
   border: none;
   border-radius: 14px;
   font-size: 1.2rem;
+  font-weight: 700;
   cursor: pointer;
-  margin-top: 1rem;
+  margin-top: 20px;
+  box-shadow: 0 10px 25px rgba(255, 87, 34, 0.3);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .publish-btn:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(255, 87, 34, 0.4);
 }
 
 @media (max-width: 600px) {
   .blog-editor-wrapper {
-    padding: 0.5rem;
+    margin: 20px auto;
+    padding: 0 15px;
   }
 
   .blog-editor {
-    padding: 1.5rem;
+    padding: 25px 20px;
+    border-radius: 16px;
+  }
+
+  .editor-header h1 {
+    font-size: 2rem;
+  }
+
+  #editor-container {
+    height: 300px;
+    font-size: 1rem;
   }
 }

@@ -5,58 +5,152 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* Colors */
+  --brand: #ff5722;
+  --brand-hover: #e64a19;
+  --bg-body: #f8f9fa;
+  --bg-card: #ffffff;
+  --bg-gradient: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  --text-main: #1a1a1a;
+  --text-muted: #666666;
+  --border-color: rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 10px 40px rgba(0, 0, 0, 0.08);
+
+  /* Fonts */
+  --font-heading: "Outfit", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  /* Components */
+  --navbar-bg: rgba(255, 255, 255, 0.85);
+  --input-bg: #fff;
+}
+
+/* Dark Mode Variables */
+[data-theme="dark"] {
+  --bg-body: #121212;
+  --bg-card: #1e1e1e;
+  --bg-gradient: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
+  --text-main: #f0f0f0;
+  --text-muted: #b0b0b0;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 10px 40px rgba(0, 0, 0, 0.5);
+  --navbar-bg: rgba(30, 30, 30, 0.85);
+  --input-bg: #2d2d2d;
+}
+
 /* Body */
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: #f9f9f9;
-  color: #000000;
+  font-family: var(--font-body);
+  background: var(--bg-gradient);
+  background-color: var(--bg-body);
+  /* Fallback */
+  color: var(--text-main);
+  min-height: 100vh;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.hero-title,
+.page-title,
+.section-title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--text-main);
 }
 
 /* Container */
 .container {
   width: 90%;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: auto;
-  padding: 20px;
+  padding: 0 20px 40px;
 }
 
-/* Page Title */
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  margin: 20px 0;
-  color: #ff5722; /* ✅ brand color */
+/* HERO SECTION */
+.hero-section {
   text-align: center;
+  padding: 80px 20px 60px;
+  margin-bottom: 20px;
+  /* Keep the radial gradient but blend it */
+  background: radial-gradient(circle at center, rgba(255, 87, 34, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+}
+
+.hero-title .highlight {
+  background: linear-gradient(120deg, #ff5722 0%, #ff9800 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto 40px;
+  font-weight: 400;
+}
+
+/* Section Title */
+.section-title {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.feed-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 /* Buttons (Global) */
 button {
-  background: #ff5722;
-  color: #000000;
+  background: var(--brand);
+  color: white;
+  /* Always white on brand color */
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 0.7rem 1.2rem;
   font-size: 1rem;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  font-family: var(--font-heading);
 }
 
 button:hover {
-  background: #e64a19;
+  background: var(--brand-hover);
+  transform: translateY(-2px);
 }
-
 
 /* Links */
 a {
-  color: #ff5722;
+  color: var(--brand);
   text-decoration: none;
+  transition: color 0.2s;
 }
 
 a:hover {
-  text-decoration: underline;
+  color: var(--brand-hover);
 }
 
 /* Responsive Layout */
@@ -66,158 +160,7 @@ a:hover {
     padding: 15px;
   }
 
-  .page-title {
-    font-size: 1.6rem;
+  .hero-title {
+    font-size: 2.5rem;
   }
 }
-
-/* Floating Action Button */
-.fab-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 55px;
-  height: 55px;
-  border-radius: 50%;
-  background-color: #ff5722;
-  color: white;
-  border: none;
-  font-size: 34px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0px 4px 15px rgba(0,0,0,0.2);
-  transition: all 0.3s ease;
-  z-index: 999;
-}
-
-.fab-btn:hover {
-  transform: scale(1.1);
-  background-color: #e64a19;
-}
-
-/* Mobile Responsive */
-@media (max-width: 480px) {
-  .fab-btn {
-    width: 50px;
-    height: 50px;
-    bottom: 16px;
-    right: 16px;
-    font-size: 30px;
-  }
-}
-
-
-
-
-
-/*for follower and following list.*/
-.user-list {
-    margin-top: 20px;
-}
-
-.user-list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 15px;
-    font-size: 17px;
-    border-bottom: 1px solid #cfcfcf; /* Divider */
-    cursor: pointer;
-}
-
-.user-list-item span {
-    font-weight: 500;
-}
-
-/* Follow/Unfollow Button */
-.follow-btn-small {
-    padding: 6px 14px;
-    border-radius: 5px;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.follow-btn-small.follow {
-    background-color: #2196f3;
-    color: white;
-}
-
-.follow-btn-small.unfollow {
-    background-color: #e0e0e0;
-    color: black;
-}
-
-/* Remove (Following page) */
-.remove-btn {
-    padding: 6px 14px;
-    border-radius: 5px;
-    background-color: #ff5252;
-    color: white;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-}
-/* User List Container */
-.user-list {
-    margin-top: 20px;
-}
-
-/* Each User Item */
-.user-list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 15px;
-    border-bottom: 1px solid #dcdcdc;  /* divider */
-    font-size: 17px;
-    cursor: pointer;
-}
-
-/* Username */
-.user-list-item span {
-    font-weight: 500;
-}
-
-/* Follow / Unfollow Buttons */
-.follow-btn-small {
-    padding: 6px 14px;
-    border-radius: 5px;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.follow-btn-small.follow {
-    background-color: #1e88e5;
-    color: white;
-}
-
-.follow-btn-small.unfollow {
-    background-color: #e0e0e0;
-    color: #000;
-}
-
-/* Remove Button (Following Page Only) */
-.remove-btn {
-    padding: 6px 14px;
-    border-radius: 5px;
-    background-color: #ff5252;
-    color: white;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-/* Medium-size images inside post cards */
-.post-card img {
-  width: 200px;
-  height: 200px;
-  object-fit: cover;   /* crop to square */
-  border-radius: 12px;
-  display: block;
-  margin: 10px 0;
-}
-

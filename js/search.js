@@ -50,6 +50,7 @@ async function loadData() {
       type: "post",
       id: p.id,
       title: p.title || "",
+      image: p.image_url,
       content: p.content || "",
       excerpt: (p.content || "").substring(0, 180),
       url: `post.html?postId=${p.id}`,
@@ -119,12 +120,20 @@ function search(query) {
 // -------------------------------
 // RENDER RESULTS
 // -------------------------------
+// -------------------------------
+// RENDER RESULTS
+// -------------------------------
 function renderResults({ posts, users }, query) {
   hideLoading();
   resultsEl.innerHTML = "";
 
   if (!query) {
-    resultsEl.innerHTML = `<p class="no-results">Enter a search term</p>`;
+    resultsEl.innerHTML = `
+      <div class="no-results">
+        <i class="fi fi-rr-search"></i>
+        <h3>Start Searching</h3>
+        <p>Enter a keyword to discover amazing posts and people.</p>
+      </div>`;
     return;
   }
 
@@ -139,35 +148,75 @@ function renderResults({ posts, users }, query) {
   }
 
   if (!items.length) {
-    resultsEl.innerHTML = `<p class="no-results">No results found</p>`;
+    resultsEl.innerHTML = `
+      <div class="no-results">
+        <i class="fi fi-rr-sad"></i>
+        <h3>No results found</h3>
+        <p>We couldn't find anything matching "${escapeHtml(query)}". Try different keywords.</p>
+      </div>`;
     return;
   }
 
   items.forEach((item) => {
     if (item.type === "user") {
-      resultsEl.insertAdjacentHTML(
-        "beforeend",
-        `
-        <div class="result-card user-card" onclick="window.location.href='${item.profileUrl}'">
-          <img src="${item.avatar || "./assets/images/default-avatar.png"}" />
-          <div>
-            <strong>${escapeHtml(item.name)}</strong>
-            <small>${item.followersCount} followers · ${item.followingCount} following</small>
+      // USER CARD
+      const avatar = item.avatar || "./assets/images/default-avatar.png";
+      const userCard = document.createElement("div");
+      userCard.className = "result-card user-card";
+      userCard.onclick = () => window.location.href = item.profileUrl;
+      
+      userCard.innerHTML = `
+        <div class="user-card-inner">
+          <img src="${avatar}" class="user-avatar-lg" alt="${escapeHtml(item.name)}" onerror="this.src='./assets/images/default-avatar.png'" />
+          <div class="user-details">
+            <h3>${escapeHtml(item.name)}</h3>
+            <p class="user-bio">${item.email ? escapeHtml(item.email) : 'Community Member'}</p>
+          </div>
+          <div class="user-stats-row">
+            <div class="stat-item">
+              <span class="stat-val">${item.followersCount}</span>
+              <span class="stat-label">Followers</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-val">${item.followingCount}</span>
+              <span class="stat-label">Following</span>
+            </div>
           </div>
         </div>
-        `
-      );
-    } else {
-      resultsEl.insertAdjacentHTML(
-        "beforeend",
-        `
-        <div class="result-card post-card">
-          <h3><a href="${item.url}">${escapeHtml(item.title)}</a></h3>
-         <p class="post-excerpt">${item.excerpt}...</p>
+      `;
+      resultsEl.appendChild(userCard);
 
+    } else {
+      // POST CARD
+      const postCard = document.createElement("a");
+      postCard.className = "result-card post-card";
+      postCard.href = item.url;
+      
+      // Format date if valid
+      let dateStr = "";
+      if (item.createdAt) {
+          dateStr = new Date(item.createdAt).toLocaleDateString("en-US", {
+              month: "short", day: "numeric", year: "numeric"
+          });
+      }
+
+      postCard.innerHTML = `
+        <div class="post-media">
+          ${item.image 
+            ? `<img src="${item.image}" class="post-img" loading="lazy" alt="Post Image" />`
+            : `<div class="no-image-placeholder"><i class="fi fi-rr-picture"></i></div>`
+          }
         </div>
-        `
-      );
+        <div class="post-content">
+          <h3 class="post-title">${escapeHtml(item.title)}</h3>
+          <p class="post-excerpt">${escapeHtml(item.excerpt)}...</p>
+          <div class="post-meta">
+            <span>Read Article</span>
+            ${dateStr ? `<span><i class="fi fi-rr-calendar"></i> ${dateStr}</span>` : ''}
+          </div>
+        </div>
+      `;
+      resultsEl.appendChild(postCard);
     }
   });
 }

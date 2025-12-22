@@ -10,28 +10,55 @@
     crossorigin="anonymous"></script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🔥 Blog.in</title>
+  <title>🔥 Blog.in - Discover Amazing Stories & Ideas</title>
 
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="🔥 Blog.in - Discover Amazing Stories & Ideas">
+  <meta name="description"
+    content="Blog.in is a vibrant community where you can discover the latest thoughts, ideas, and perspectives. Join us to read, share, and connect with authors worldwide.">
+  <meta name="keywords" content="blog, stories, writing, community, articles, technology, lifestyle, ideas">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="English">
+  <meta name="author" content="Blog.in Team">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://blog.in/">
+  <meta property="og:title" content="🔥 Blog.in - Discover Amazing Stories & Ideas">
+  <meta property="og:description"
+    content="Blog.in is a vibrant community where you can discover the latest thoughts, ideas, and perspectives. Join us to read, share, and connect with authors worldwide.">
+  <meta property="og:image" content="/assets/images/blog.in.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://blog.in/">
+  <meta property="twitter:title" content="🔥 Blog.in - Discover Amazing Stories & Ideas">
+  <meta property="twitter:description"
+    content="Blog.in is a vibrant community where you can discover the latest thoughts, ideas, and perspectives. Join us to read, share, and connect with authors worldwide.">
+  <meta property="twitter:image" content="/assets/images/blog.in.png">
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="./assets/images/blog.in.png" />
+  <link rel="icon" type="image/png" href="/assets/images/blog.in.png" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
 
   <!-- Main Styles -->
-  <link rel="stylesheet" href="./css/main.css" />
-  <link rel="stylesheet" href="./css/navbar.css" />
-  <link rel="stylesheet" href="./css/footer.css" />
-  <link rel="stylesheet" href="./css/feed.css" />
+  <link rel="stylesheet" href="/css/main.css?v=2" />
+  <link rel="stylesheet" href="/css/navbar.css?v=2" />
+  <link rel="stylesheet" href="/css/footer.css?v=2" />
+  <link rel="stylesheet" href="/css/feed.css?v=2" />
 
   <!-- ✅ FLATICON ICONS (LIKE & SAVE) -->
   <!-- Regular (unliked / unsaved) -->
-  <link
-    rel="stylesheet"
-    href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css"
-  />
+  <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css" />
   <!-- Solid (liked / saved) -->
-  <link
-    rel="stylesheet"
-    href="https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css"
-  />
+  <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css" />
+  <!-- Brands (footer) -->
+  <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-brands/css/uicons-brands.css" />
 </head>
 
 <body>
@@ -39,36 +66,35 @@
   <!-- Navbar -->
   <div id="navbar-placeholder"></div>
 
+  <!-- Hero Section -->
+  <header class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Discover <span class="highlight">Stories</span></h1>
+      <p class="hero-subtitle">Explore the latest thoughts, ideas, and perspectives from our community.</p>
+
+      <!-- Search Box (Moved into Hero) -->
+      <div class="search-container">
+        <div class="search-box">
+          <input type="text" id="search-input" class="search-input"
+            placeholder="Search for articles, topics, or authors..." />
+          <button class="search-icon" id="search-button" aria-label="Search">
+            <i class="fi fi-rr-search"></i>
+          </button>
+        </div>
+      </div>
+      <!-- Search Result Info -->
+      <div id="search-results-info" class="search-results-info"></div>
+    </div>
+  </header>
+
   <!-- Main Content -->
   <main class="container">
-    <h1 class="page-title">Latest Blogs</h1>
-
-    <!-- Search Box -->
-    <div class="search-container">
-      <div class="search-box">
-        <input
-          type="text"
-          id="search-input"
-          class="search-input"
-          placeholder="Search blogs...."
-        />
-        <button class="search-icon" id="search-button">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-            xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z"
-              stroke="white"
-              stroke-width="3"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </button>
+    <div class="feed-header">
+      <h2 class="section-title">Latest Blogs</h2>
+      <div class="feed-filters">
+        <!-- Optional: Add category buttons here later -->
       </div>
     </div>
-
-    <!-- Search Result Info -->
-    <div id="search-results-info" class="search-results-info"></div>
 
     <!-- Posts Feed -->
     <div id="all-posts-list" class="feed-grid">
@@ -79,16 +105,14 @@
     </div>
   </main>
 
-  <!-- Floating Add Button -->
-  <button id="fab-add-post" class="fab-btn" style="display: none;">+</button>
-
   <!-- Footer -->
   <div id="footer-placeholder"></div>
 
   <!-- Scripts -->
-  <script type="module" src="./js/navbar.js"></script>
-  <script type="module" src="./js/footer.js"></script>
-  <script type="module" src="./js/feed.js"></script>
+  <script type="module" src="/js/navbar.js"></script>
+  <script type="module" src="/js/footer.js"></script>
+  <script type="module" src="/js/feed.js"></script>
 
 </body>
+
 </html>

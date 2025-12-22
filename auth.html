@@ -4,12 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🔥 Authentication</title>
-  
-  <link rel="stylesheet" href="./css/main.css">
-  <link rel="stylesheet" href="./css/auth.css">
-  <link rel="stylesheet" href="css/navbar.css">
-  <link rel="stylesheet" href="css/footer.css">
+  <title>🔥 Authentication - Blog.in</title>
+  <meta name="description"
+    content="Login or Sign Up to Blog.in to start writing and sharing your stories with the world.">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/auth.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <link rel="stylesheet" href="/css/footer.css">
 </head>
 
 <body class="auth-page">
@@ -17,13 +19,13 @@
 
   <main class="auth-container">
     <section class="auth-illustration">
-      <img src="./assets/images/blog.in.png" alt="Auth Illustration">
+      <img src="/assets/images/blog.in.png" alt="Auth Illustration">
       <h2>Welcome to <span class="brand">BlogPlatform</span> ✨</h2>
       <p>Login or create an account to share your stories with the world.</p>
     </section>
 
     <section class="auth-form-card">
-      
+
       <div class="auth-toggle">
         <button id="login-tab" class="active">Login</button>
         <button id="signup-tab">Signup</button>
@@ -33,16 +35,16 @@
         <h2>Login</h2>
         <input type="email" id="login-email" placeholder="Email" required>
         <input type="password" id="login-pass" placeholder="Password" required>
-        
+
         <button type="button" id="login-btn">Login</button>
-        
+
         <button type="button" class="google-auth-btn">
-          <img src="./assets/images/google.png" alt="Google Logo">
+          <img src="/assets/images/google.png" alt="Google Logo">
           Continue with Google
         </button>
-        
+
         <p class="auth-links">
-          <a href="./forgot.html">Forgot password?</a>
+          <a href="/forgot.html">Forgot password?</a>
         </p>
       </form>
 
@@ -51,11 +53,11 @@
         <input type="text" id="signup-name" placeholder="Full Name" required>
         <input type="email" id="signup-email" placeholder="Email" required>
         <input type="password" id="signup-pass" placeholder="Password" required>
-        
+
         <button type="button" id="signup-btn">Signup</button>
-        
+
         <button type="button" class="google-auth-btn">
-          <img src="./assets/images/google.png" alt="Google Logo">
+          <img src="/assets/images/google.png" alt="Google Logo">
           Continue with Google
         </button>
       </form>
@@ -64,11 +66,11 @@
 
   <div id="footer-placeholder"></div>
 
-  <script type="module" src="./js/navbar.js"></script>
-  <script type="module" src="./js/footer.js"></script>
+  <script type="module" src="/js/navbar.js"></script>
+  <script type="module" src="/js/footer.js"></script>
 
   <script type="module">
-    import { login, signup, loginWithGoogle } from "./js/supabase/auth.js";
+    import { login, signup, loginWithGoogle } from "/js/supabase/auth.js";
 
     // --- UI TABS ---
     const loginTab = document.getElementById("login-tab");
@@ -100,7 +102,7 @@
       const btn = document.getElementById("login-btn");
       const email = document.getElementById("login-email").value.trim();
       const pass = document.getElementById("login-pass").value.trim();
-      
+
       // Disable Button
       btn.disabled = true;
       btn.innerText = "Logging in...";
@@ -144,4 +146,5 @@
     });
   </script>
 </body>
+
 </html>
