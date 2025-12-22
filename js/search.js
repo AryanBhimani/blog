@@ -12,7 +12,7 @@ const resultsEl = document.getElementById("results");
 const clearBtn = document.getElementById("clearBtn");
 const searchBtn = document.getElementById("searchBtn");
 const filterBtns = document.querySelectorAll(".filter-btn");
-const loadingEl = document.getElementById("firebaseStatus");
+const loadingEl = document.getElementById("search-loading");
 
 // -------------------------------
 // STATE

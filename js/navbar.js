@@ -4,7 +4,13 @@ import { supabase } from "./supabase/supabaseClient.js";
 fetch("/components/navbar.html")
   .then(res => res.text())
   .then(data => {
-    document.body.insertAdjacentHTML("afterbegin", data);
+    const navbarPlaceholder = document.getElementById("navbar-placeholder");
+    if (navbarPlaceholder) {
+      navbarPlaceholder.innerHTML = data;
+    } else {
+      console.warn("Navbar placeholder not found, prepending to body as fallback");
+      document.body.insertAdjacentHTML("afterbegin", data);
+    }
 
     const menuToggle = document.querySelector(".menu-toggle");
     const navLinks = document.querySelector(".nav-links");
