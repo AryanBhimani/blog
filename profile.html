@@ -34,16 +34,23 @@
     <!-- PROFILE HEADER -->
     <section class="profile-header" id="profile-info">
 
-      <!-- Settings button -->
-      <button id="settings-btn" class="settings-btn" style="display:none;">
-        <i class="fi fi-sr-settings"></i>
-      </button>
+      <!-- Top Right Actions -->
+      <div class="profile-header-actions">
+        <!-- Theme Toggle (Always visible) -->
+        <button id="theme-toggle" class="settings-btn" aria-label="Toggle Theme">
+          <i class="fi fi-rr-moon"></i>
+        </button>
 
-      <br>
+        <!-- Saved Posts (Owner only) -->
+        <button id="saved-posts-btn" class="settings-btn" style="display:none;" aria-label="Saved Posts">
+          <i class="fi fi-sr-bookmark"></i>
+        </button>
 
-      <button id="saved-posts-btn" class="settings-btn" style="right:70px;">
-        <i class="fi fi-sr-bookmark"></i>
-      </button>
+        <!-- Settings (Owner only) -->
+        <button id="settings-btn" class="settings-btn" style="display:none;" aria-label="Settings">
+          <i class="fi fi-sr-settings"></i>
+        </button>
+      </div>
 
 
 
