@@ -41,7 +41,7 @@ async function loadAllPosts() {
 
   const { data, error } = await supabase
     .from("posts")
-    .select(`id, title, content, image_url, created_at, user_id, users(name, avatar_url)`)
+    .select(`id, title, content, image_url, tags, created_at, user_id, users(name, avatar_url)`)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -54,6 +54,7 @@ async function loadAllPosts() {
     title: p.title,
     content: p.content,
     image: p.image_url,
+    tags: p.tags || [],
     author: p.users?.name || "Unknown",
     authorAvatar: p.users?.avatar_url || "./assets/images/default-avatar.png",
     createdAt: new Date(p.created_at)
@@ -137,6 +138,12 @@ function renderPosts(posts) {
 
         <h3 class="post-title" onclick="window.location.href='comment.html?postId=${post.id}'">${escapeHtml(post.title)}</h3>
         
+        <div class="post-tags">
+            ${post.tags && post.tags.length > 0 
+                ? post.tags.map(tag => `<span class="post-tag">#${escapeHtml(tag)}</span>`).join('') 
+                : ''}
+        </div>
+
         <div class="excerpt">${escapeHtml(post.content.substring(0,100))}...</div>
         <div class="full-content" style="display:none;">${escapeHtml(post.content)}</div>
 

@@ -51,6 +51,7 @@ async function loadData() {
       title: p.title || "",
       image: p.image_url,
       content: p.content || "",
+      tags: p.tags || [],
       excerpt: (p.content || "").substring(0, 180),
       url: `comment.html?postId=${p.id}`,
       createdAt: p.created_at,
@@ -75,7 +76,7 @@ async function loadData() {
           id: u.id,
           name: u.name || "",
           email: u.email || "",
-          avatar: u.avatar_url || "",
+          avatar: u.avatar_url,
           followersCount: followers || 0,
           followingCount: following || 0,
           profileUrl: `profile.html?userId=${u.id}`,
@@ -101,7 +102,8 @@ function search(query) {
     terms.some(
       (t) =>
         p.title.toLowerCase().includes(t) ||
-        p.content.toLowerCase().includes(t)
+        p.content.toLowerCase().includes(t) ||
+        (p.tags && p.tags.some(tag => tag.toLowerCase().includes(t)))
     )
   );
 
@@ -211,6 +213,13 @@ function renderResults({ posts, users }, query) {
         </div>
         <div class="post-content">
           <h3 class="post-title">${escapeHtml(item.title)}</h3>
+          
+          <div class="post-tags" style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+            ${item.tags && item.tags.length > 0
+                ? item.tags.map(tag => `<span class="post-tag" style="font-size:0.75rem; color:#ff5722; background:rgba(255,87,34,0.1); padding:4px 10px; border-radius:20px; font-weight:600;">#${escapeHtml(tag)}</span>`).join('') 
+                : ''}
+          </div>
+
           <p class="post-excerpt">${escapeHtml(item.excerpt)}...</p>
           <div class="post-meta">
             <span>Read Article</span>

@@ -241,6 +241,13 @@ async function loadPosts(uid) {
           <span class="post-date"><i class="fi fi-rr-calendar"></i> ${dateStr}</span>
         </div>
         <h3><a href="comment.html?postId=${post.id}">${escapeHtml(post.title)}</a></h3>
+        
+        <div class="post-tags" style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+            ${post.tags && post.tags.length > 0
+                ? post.tags.map(tag => `<span class="post-tag" style="font-size:0.75rem; color:#ff5722; background:rgba(255,87,34,0.1); padding:4px 10px; border-radius:20px; font-weight:600;">#${escapeHtml(tag)}</span>`).join('') 
+                : ''}
+        </div>
+
         <p>${escapeHtml(post.content).substring(0, 100)}...</p>
         <div class="post-footer">
           <a href="comment.html?postId=${post.id}" class="read-more">Read Article <i class="fi fi-rr-arrow-small-right"></i></a>
@@ -317,6 +324,13 @@ async function loadSavedPosts() {
           <span class="post-date"><i class="fi fi-rr-calendar"></i> ${dateStr}</span>
         </div>
         <h3><a href="comment.html?postId=${posts.id}">${escapeHtml(posts.title)}</a></h3>
+        
+        <div class="post-tags" style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+            ${posts.tags && posts.tags.length > 0
+                ? posts.tags.map(tag => `<span class="post-tag" style="font-size:0.75rem; color:#ff5722; background:rgba(255,87,34,0.1); padding:4px 10px; border-radius:20px; font-weight:600;">#${escapeHtml(tag)}</span>`).join('') 
+                : ''}
+        </div>
+
         <p>${escapeHtml(posts.content).substring(0, 100)}...</p>
         <div class="post-footer">
            <a href="comment.html?postId=${posts.id}" class="read-more">Read Article <i class="fi fi-rr-arrow-small-right"></i></a>

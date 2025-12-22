@@ -375,3 +375,26 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     text-transform: uppercase;
 }
+
+/* Post Tags */
+.post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.post-tag {
+    font-size: 0.75rem;
+    color: var(--brand);
+    background: rgba(255, 87, 34, 0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.post-tag:hover {
+    background: rgba(255, 87, 34, 0.2);
+    transform: translateY(-1px);
+}

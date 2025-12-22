@@ -64,6 +64,25 @@ async function loadPost() {
 
   // Populate Header
   document.getElementById("post-title").textContent = post.title;
+
+  // Header Tags Injection
+  if(post.tags && post.tags.length > 0) {
+      const tagsContainer = document.createElement("div");
+      tagsContainer.className = "post-tags";
+      tagsContainer.style.justifyContent = "center";
+      tagsContainer.style.marginTop = "10px";
+      
+      post.tags.forEach(tag => {
+          const span = document.createElement("span");
+          span.className = "post-tag";
+          span.style.fontSize = "0.9rem"; // slightly larger for article view
+          span.textContent = `#${tag}`;
+          tagsContainer.appendChild(span);
+      });
+      
+      // Insert after title
+      document.getElementById("post-title").insertAdjacentElement('afterend', tagsContainer);
+  }
   document.getElementById("post-author-name").textContent = post.users?.name || "Unknown";
   document.getElementById("post-date").textContent = new Date(post.created_at).toLocaleDateString(undefined, {
       year: 'numeric', month: 'long', day: 'numeric'
