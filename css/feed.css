@@ -295,6 +295,8 @@
     background: rgba(255, 255, 255, 0.85);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
     border-color: #fff;
+    gap: 8px;
+    /* Add gap between input and button */
 }
 
 .search-input {
@@ -308,6 +310,8 @@
     font-weight: 500;
     font-family: 'Inter', sans-serif;
     border-radius: 16px;
+    min-width: 0;
+    /* Allow input to shrink if needed */
 }
 
 .search-input::placeholder {
@@ -324,7 +328,6 @@
     /* Rounded square, slightly different shape */
     width: 48px;
     height: 48px;
-    margin-right: 4px;
     padding: 0;
     display: flex;
     align-items: center;
@@ -333,6 +336,8 @@
     transition: all 0.2s ease;
     font-size: 1.2rem;
     box-shadow: 0 4px 12px rgba(255, 87, 34, 0.25);
+    flex-shrink: 0;
+    /* Prevent shrinking */
 }
 
 .search-icon:hover {
