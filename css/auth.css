@@ -226,3 +226,29 @@ body.auth-page {
     margin: 20px;
   }
 }
+
+/* Messages (Added for Forgot/Reset pages) */
+.msg {
+  display: none;
+  text-align: center;
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 500;
+  animation: fadeIn 0.4s ease;
+}
+
+.msg.success {
+  display: block;
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.msg.error {
+  display: block;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}

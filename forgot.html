@@ -2,51 +2,53 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>🔥 Forgot Password</title>
-    <link rel="icon" type="image/png" href="/assets/images/blog.in.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Forgot Password - Blog.in</title>
+    <meta name="description" content="Reset your password for Blog.in">
 
-    <link rel="stylesheet" href="/css/main.css?v=2">
-    <link rel="stylesheet" href="/css/forgot.css?v=2">
-    <link rel="stylesheet" href="/css/navbar.css?v=2">
-    <link rel="stylesheet" href="/css/footer.css?v=2">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/footer.css">
 </head>
 
-<body>
+<body class="auth-page">
     <div id="navbar-placeholder"></div>
 
-    <main class="page-wrapper">
-        <section class="auth-layout">
-            <div class="auth-center">
-                <div class="auth-card">
-                    <h1 class="auth-title">Forgot Password</h1>
-                    <p class="auth-sub">Enter the email linked to your account and we’ll send you a reset link.</p>
+    <main class="auth-container">
+        <section class="auth-illustration">
+            <img src="/assets/images/blog.in.png" alt="Auth Illustration">
+            <h2>Welcome to <span class="brand">BlogPlatform</span> ✨</h2>
+            <p>Login or create an account to share your stories with the world.</p>
+        </section>
 
-                    <form id="forgotForm" novalidate>
-                        <div class="input-group">
-                            <label for="email">Email address</label>
-                            <input id="email" name="email" type="email" placeholder="you@example.com" required
-                                autocomplete="email" />
-                        </div>
+        <section class="auth-form-card">
+            <form id="forgotForm" class="auth-form" novalidate>
+                <h2>Forgot Password</h2>
+                <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.5;">
+                    Enter the email address associated with your account and we'll send you a link to reset your
+                    password.
+                </p>
 
-                        <button type="submit" id="submitBtn" class="primary-btn">Send Reset Link</button>
+                <input type="email" id="email" placeholder="Email Address" required>
 
-                        <p class="back-link"><a href="/auth.html">← Back to Sign In</a></p>
+                <button type="submit" id="submitBtn">Send Reset Link</button>
 
-                        <div id="message" class="msg" role="status" aria-live="polite"></div>
-                    </form>
-                </div>
-            </div>
+                <p class="auth-links">
+                    <a href="/auth.html">← Back to Login</a>
+                </p>
+
+                <div id="message" class="msg" role="status" aria-live="polite"></div>
+            </form>
         </section>
     </main>
 
-    <!-- Footer placeholder -->
     <div id="footer-placeholder"></div>
 
     <script type="module" src="/js/navbar.js"></script>
     <script type="module" src="/js/footer.js"></script>
-    <script type="module" src="/js/forgot.js?v=2"></script>
+    <script type="module" src="/js/forgot.js"></script>
 </body>
 
 </html>
