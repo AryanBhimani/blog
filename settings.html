@@ -4,7 +4,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Settings</title>
+  <title>Settings | Blog.in</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap"
+    rel="stylesheet">
 
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/navbar.css" />
@@ -16,78 +22,276 @@
 
   <div id="navbar-placeholder"></div>
 
-  <main class="settings-container">
+  <div class="container settings-page-wrapper">
 
-    <!-- MAIN SETTINGS MENU (VERTICAL) -->
-    <section id="settings-main">
-      <h2>Settings</h2>
+    <div class="settings-layout">
 
-      <div class="settings-list">
-        <div class="settings-item" onclick="openScreen('password-screen')">Change Password</div>
-        <div class="settings-item" onclick="openScreen('delete-screen')">Delete Account</div>
-        <div class="settings-item" onclick="openScreen('privacy-screen')">Privacy Policy</div>
-        <div class="settings-item" onclick="window.location.href='about.html'">
-          About Us
+      <!-- SIDEBAR -->
+      <aside class="settings-sidebar">
+        <div class="sidebar-title">Settings</div>
+
+        <ul class="settings-nav">
+          <li class="nav-item active" onclick="switchTab('password-screen', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            Security
+          </li>
+
+          <li class="nav-item" onclick="switchTab('privacy-screen', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            Privacy
+          </li>
+
+          <li class="nav-item" onclick="switchTab('delete-screen', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+            Danger Zone
+          </li>
+
+          <li class="nav-item" onclick="switchTab('about-screen', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            About Us
+          </li>
+
+          <li class="nav-item" onclick="switchTab('help-screen', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12" y2="17"></line>
+            </svg>
+            Help Center
+          </li>
+        </ul>
+      </aside>
+
+      <!-- CONTENT AREA -->
+      <section class="settings-content" id="settings-content-area">
+
+        <button class="mobile-back-btn" onclick="closeMobileTab()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Back to Settings
+        </button>
+
+        <!-- SUB SCREEN: PASSWORD -->
+        <div id="password-screen" class="tab-pane active">
+          <div class="section-header">
+            <h2>Change Password</h2>
+            <p>Ensure your account is secure by using a strong password.</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="currentPass">Current Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="currentPass" class="form-input" placeholder="Enter current password">
+              <button class="toggle-password" onclick="togglePassword('currentPass', this)">👁️</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newPass">New Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="newPass" class="form-input" placeholder="Enter new password">
+              <button class="toggle-password" onclick="togglePassword('newPass', this)">👁️</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="confirmPass">Confirm Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="confirmPass" class="form-input" placeholder="Confirm new password">
+              <button class="toggle-password" onclick="togglePassword('confirmPass', this)">👁️</button>
+            </div>
+          </div>
+
+          <button onclick="changePassword()" class="btn-primary">Update Password</button>
         </div>
-      </div>
-    </section>
 
-    <!-- CHANGE PASSWORD SCREEN -->
-    <section id="password-screen" class="sub-screen">
-      <h3>Change Password</h3>
+        <!-- SUB SCREEN: PRIVACY -->
+        <div id="privacy-screen" class="tab-pane">
+          <div class="section-header">
+            <h2>Privacy Policy</h2>
+            <p>How we handle your data.</p>
+          </div>
 
-      <div class="password-group">
-        <input type="password" id="currentPass" placeholder="Current Password">
-        <span class="toggle-eye" onclick="togglePassword('currentPass', this)">👁️</span>
-      </div>
+          <div class="policy-content">
+            <p><strong>1. Data Collection:</strong> We only collect minimal data required to provide our services. This
+              includes your email and username.</p>
+            <p><strong>2. Data Usage:</strong> Your data is used strictly for authentication and displaying your profile
+              to other users.</p>
+            <p><strong>3. Third Parties:</strong> We do not sell your personal data to third parties.</p>
+            <p><strong>4. Deletion:</strong> You have the right to request deletion of your account at any time via the
+              "Danger Zone" tab.</p>
+          </div>
+        </div>
 
-      <div class="password-group">
-        <input type="password" id="newPass" placeholder="New Password">
-        <span class="toggle-eye" onclick="togglePassword('newPass', this)">👁️</span>
-      </div>
+        <!-- SUB SCREEN: ABOUT US -->
+        <div id="about-screen" class="tab-pane">
+          <div class="section-header">
+            <h2>About Blog.in</h2>
+            <p>Sharing knowledge, insights, and stories with the world.</p>
+          </div>
 
-      <div class="password-group">
-        <input type="password" id="confirmPass" placeholder="Confirm New Password">
-        <span class="toggle-eye" onclick="togglePassword('confirmPass', this)">👁️</span>
-      </div>
+          <div class="policy-content">
+            <h3>Our Mission</h3>
+            <p>We built this platform to give everyone a voice. Whether you want to share personal stories, tutorials,
+              or industry insights, our goal is to create a modern, user-friendly blogging space.</p>
 
-      <button onclick="changePassword()" class="submit-btn-ui">Update Password</button>
-      <button onclick="goBack()" class="back-btn-ui">Back</button>
-    </section>
+            <h3>Why Choose Us?</h3>
+            <ul style="list-style: disc; margin-left: 20px; color: var(--text-muted); margin-bottom: 20px;">
+              <li>Fully responsive on all devices</li>
+              <li>Powered by Supabase real-time updates</li>
+              <li>Secure login & profile management</li>
+              <li>Easy-to-use blogging experience</li>
+            </ul>
 
-    <!-- DELETE ACCOUNT SCREEN -->
-    <section id="delete-screen" class="sub-screen">
-      <h3>Delete Account</h3>
+            <h3>Meet Our Team</h3>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
 
-      <p>Enter your password to confirm deletion.</p>
+              <div
+                style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); width: 150px; text-align: center;">
+                <div
+                  style="width: 60px; height: 60px; background: #ddd; border-radius: 50%; margin: 0 auto 10px; overflow: hidden;">
+                  <img src="/assets/images/aryan.png" style="width: 100%; height: 100%; object-fit: cover;" alt="Aryan">
+                </div>
+                <h4 style="font-size: 0.9rem; margin-bottom: 4px;">Aryan Bhimani</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Founder & CEO</p>
+              </div>
 
-      <div class="password-group">
-        <input type="password" id="deletePass" placeholder="Current Password">
-        <span class="toggle-eye" onclick="togglePassword('deletePass', this)">👁️</span>
-      </div>
+              <div
+                style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); width: 150px; text-align: center;">
+                <div
+                  style="width: 60px; height: 60px; background: #ddd; border-radius: 50%; margin: 0 auto 10px; overflow: hidden;">
+                  <img src="/assets/images/developer1.jpg" style="width: 100%; height: 100%; object-fit: cover;"
+                    alt="Jay">
+                </div>
+                <h4 style="font-size: 0.9rem; margin-bottom: 4px;">Jay Ranipa</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Developer</p>
+              </div>
 
-      <button onclick="deleteAccount()" class="delete-btn-ui">Delete Account</button>
-      <button onclick="goBack()" class="back-btn-ui">Back</button>
-    </section>
+              <div
+                style="background: var(--bg-body); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); width: 150px; text-align: center;">
+                <div
+                  style="width: 60px; height: 60px; background: #ddd; border-radius: 50%; margin: 0 auto 10px; overflow: hidden;">
+                  <img src="/assets/images/developer2.jpg" style="width: 100%; height: 100%; object-fit: cover;"
+                    alt="Bhumi">
+                </div>
+                <h4 style="font-size: 0.9rem; margin-bottom: 4px;">Bhumi Ranipa</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Developer</p>
+              </div>
 
-    <!-- PRIVACY POLICY SCREEN -->
-    <section id="privacy-screen" class="sub-screen">
-      <h3>Privacy Policy</h3>
+            </div>
+          </div>
+        </div>
 
-      <p>
-        Your privacy is important to us. We securely store your data and never share it without your consent.
-      </p>
+        <!-- SUB SCREEN: HELP CENTER -->
+        <div id="help-screen" class="tab-pane">
+          <div class="section-header">
+            <h2>Help Center</h2>
+            <p>Common questions and support.</p>
+          </div>
 
-      <p>
-        You may delete your account at any time, which permanently removes your profile, posts, and all associated data.
-      </p>
+          <!-- Search (Light Version) -->
+          <div style="margin-bottom: 30px; position: relative;">
+            <input type="text" id="helpSearchSettings" placeholder="Search for answers..."
+              style="width: 100%; padding: 12px 16px; padding-left: 45px; border-radius: 50px; border: 1px solid var(--border-color); background: var(--bg-body); color: var(--text-main);">
+            <svg
+              style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted);"
+              xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
 
-      <button onclick="goBack()" class="back-btn-ui">Back</button>
-    </section>
+          <div id="faq-list">
+            <!-- FAQ 1 -->
+            <div class="faq-simple-item" style="border-bottom: 1px solid var(--border-color); padding: 15px 0;">
+              <h4 style="margin-bottom: 8px; font-weight: 600; cursor: pointer;" onclick="toggleFaq(this)">How do I
+                change my password?</h4>
+              <p style="display: none; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+                Navigate to the <strong>Security</strong> tab in the sidebar. Enter your current password and your new
+                password to update it securely.
+              </p>
+            </div>
 
-    <!-- ABOUT US SCREEN -->
+            <!-- FAQ 2 -->
+            <div class="faq-simple-item" style="border-bottom: 1px solid var(--border-color); padding: 15px 0;">
+              <h4 style="margin-bottom: 8px; font-weight: 600; cursor: pointer;" onclick="toggleFaq(this)">Can I delete
+                my account?</h4>
+              <p style="display: none; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+                Yes. Go to the <strong>Danger Zone</strong> tab. This action is permanent and cannot be undone.
+              </p>
+            </div>
 
-  </main>
+            <!-- FAQ 3 -->
+            <div class="faq-simple-item" style="border-bottom: 1px solid var(--border-color); padding: 15px 0;">
+              <h4 style="margin-bottom: 8px; font-weight: 600; cursor: pointer;" onclick="toggleFaq(this)">Is Blog.in
+                free?</h4>
+              <p style="display: none; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+                Yes, it is completely free to read and write articles on our platform.
+              </p>
+            </div>
+          </div>
+
+          <div
+            style="margin-top: 30px; padding: 20px; background: rgba(255, 87, 34, 0.05); border-radius: 12px; text-align: center;">
+            <h4 style="margin-bottom: 8px; font-size: 1rem;">Still need help?</h4>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Our support team is available
+              24/7.</p>
+            <a href="mailto:support@blog.in"
+              style="display: inline-block; background: var(--brand); color: white; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9rem;">Contact
+              Support</a>
+          </div>
+
+        </div>
+
+        <!-- SUB SCREEN: DELETE -->
+        <div id="delete-screen" class="tab-pane">
+          <div class="section-header">
+            <h2 style="color: #dc2626;">Danger Zone</h2>
+            <p>Permanently delete your account and all associated data.</p>
+          </div>
+
+          <p style="margin-bottom: 20px; color: var(--text-muted);">
+            Once you delete your account, there is no going back. Please be certain.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Confirm Password to Delete</label>
+            <div class="input-wrapper">
+              <input type="password" id="deletePass" class="form-input" placeholder="Enter your password">
+              <button class="toggle-password" onclick="togglePassword('deletePass', this)">👁️</button>
+            </div>
+          </div>
+
+          <button onclick="deleteAccount()" class="btn-danger btn-danger-confirm">Delete Account</button>
+        </div>
+
+      </section>
+
+    </div>
+  </div>
 
   <div id="footer-placeholder"></div>
 
