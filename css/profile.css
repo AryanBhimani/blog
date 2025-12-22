@@ -489,13 +489,29 @@
    ========================================= */
 @media (max-width: 768px) {
   .profile-stats {
-    gap: 30px;
-    padding: 20px;
+    gap: 5px;
+    padding: 15px 10px;
+    justify-content: space-between;
+    display: flex;
+    flex-wrap: nowrap;
+    /* Force single row */
   }
 
-  .profile-avatar img {
-    width: 120px;
-    height: 120px;
+  .profile-stats .stat-clickable {
+    padding: 5px 2px;
+    flex: 1;
+    min-width: 0;
+    /* Allow shrinking */
+  }
+
+  .profile-stats h3 {
+    font-size: 1.4rem;
+  }
+
+  .profile-stats p {
+    font-size: 0.75rem;
+    letter-spacing: 0;
+    /* Save space */
   }
 
   .profile-avatar img {
