@@ -38,8 +38,18 @@
       </div>
 
       <div class="editor-group">
-        <label>Main Image</label>
-        <input id="main-image" type="file" accept="image/*">
+        <label>Cover Image</label>
+        <div class="image-upload-wrapper">
+          <label for="main-image" class="image-upload-label">
+            <i class="fi fi-rr-picture"></i>
+            <span>Click to upload cover image</span>
+          </label>
+          <input id="main-image" type="file" accept="image/*" hidden>
+        </div>
+        <div id="image-preview-container" style="display:none;">
+          <img id="image-preview" src="" alt="Cover Preview">
+          <button id="remove-image-btn" aria-label="Remove Image"><i class="fi fi-rr-cross-small"></i></button>
+        </div>
       </div>
 
       <div class="editor-group">

@@ -51,19 +51,66 @@ supabase.auth.getUser().then(async ({ data }) => {
     quill.setText(post.content);
     tagsInput.value = post.tags?.join(", ") || "";
     mainImageUrl = post.image_url;
+    
+    if(mainImageUrl) {
+        imagePreview.src = mainImageUrl;
+        imageUploadWrapper.style.display = "none";
+        imagePreviewContainer.style.display = "block";
+    }
   }
 });
 
-// Image Upload
+// Image Elements
+const imageUploadWrapper = document.querySelector(".image-upload-wrapper");
+const imagePreviewContainer = document.getElementById("image-preview-container");
+const imagePreview = document.getElementById("image-preview");
+const removeImageBtn = document.getElementById("remove-image-btn");
+
+// Image Upload Change
 imageInput.addEventListener("change", async () => {
   const file = imageInput.files[0];
   if (!file) return;
 
-  const name = `${Date.now()}_${file.name}`;
-  await supabase.storage.from("blog-images").upload(name, file);
-  const { data } = supabase.storage.from("blog-images").getPublicUrl(name);
-  mainImageUrl = data.publicUrl;
+  // Show Preview immediately
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    imagePreview.src = e.target.result;
+    imageUploadWrapper.style.display = "none";
+    imagePreviewContainer.style.display = "block";
+  };
+  reader.readAsDataURL(file);
+
+  // Upload in background
+  try {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Uploading Image...";
+      
+      const name = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+      await supabase.storage.from("blog-images").upload(name, file);
+      const { data } = supabase.storage.from("blog-images").getPublicUrl(name);
+      
+      mainImageUrl = data.publicUrl;
+      submitBtn.textContent = isEdit ? "Update Blog" : "Publish Blog";
+      submitBtn.disabled = false;
+  } catch(err) {
+      console.error("Upload failed", err);
+      alert("Image upload failed. Please try again.");
+      removeImage();
+      submitBtn.disabled = false;
+      submitBtn.textContent = isEdit ? "Update Blog" : "Publish Blog";
+  }
 });
+
+// Remove Image
+removeImageBtn.addEventListener("click", removeImage);
+
+function removeImage() {
+    imageInput.value = "";
+    mainImageUrl = null;
+    imagePreview.src = "";
+    imagePreviewContainer.style.display = "none";
+    imageUploadWrapper.style.display = "block";
+}
 
 // Save
 submitBtn.onclick = async () => {
