@@ -235,6 +235,16 @@ function bindEvents() {
 
 
 
+  const searchForm = document.getElementById("searchForm");
+  if (searchForm) {
+    searchForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      // Optional: Force immediate search on Enter
+      lastQuery = queryInput.value.trim();
+      showLoading();
+      renderResults(search(lastQuery), lastQuery);
+    });
+  }
   filterBtns.forEach((btn) => {
     btn.onclick = () => {
       filterBtns.forEach((b) => b.classList.remove("active"));
