@@ -9,8 +9,7 @@ import { supabase } from "./supabase/supabaseClient.js";
 // -------------------------------
 const queryInput = document.getElementById("query");
 const resultsEl = document.getElementById("results");
-const clearBtn = document.getElementById("clearBtn");
-const searchBtn = document.getElementById("searchBtn");
+
 const filterBtns = document.querySelectorAll(".filter-btn");
 const loadingEl = document.getElementById("search-loading");
 
@@ -234,17 +233,7 @@ function bindEvents() {
     }, 300)
   );
 
-  clearBtn.onclick = () => {
-    queryInput.value = "";
-    resultsEl.innerHTML = "";
-    hideLoading();
-  };
 
-  searchBtn.onclick = () => {
-    lastQuery = queryInput.value.trim();
-    showLoading();
-    renderResults(search(lastQuery), lastQuery);
-  };
 
   filterBtns.forEach((btn) => {
     btn.onclick = () => {
