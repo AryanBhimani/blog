@@ -356,3 +356,22 @@
     background: rgba(30, 30, 30, 0.8);
     border-color: rgba(255, 255, 255, 0.15);
 }
+
+/* Author Avatar Placeholder for Cards */
+.post-author-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff5722, #ff9800);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    margin-right: 10px;
+    border: 1px solid white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+}

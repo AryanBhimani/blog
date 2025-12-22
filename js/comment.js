@@ -70,8 +70,24 @@ async function loadPost() {
   });
   
   // Avatar
-  const authorAvatar = post.users?.avatar_url || "./assets/images/default-avatar.png";
-  document.getElementById("post-author-avatar").src = authorAvatar;
+  const authorAvatar = post.users?.avatar_url;
+  const avatarImg = document.getElementById("post-author-avatar");
+  
+  if (authorAvatar) {
+     avatarImg.src = authorAvatar;
+     avatarImg.style.display = 'block';
+  } else {
+     avatarImg.style.display = 'none';
+     // Create placeholder
+     const ph = document.createElement("div");
+     ph.className = "article-author-placeholder";
+     ph.textContent = (post.users?.name || "U").charAt(0);
+     ph.onclick = (e) => {
+         // Forward click to profile
+         avatarImg.onclick(e);
+     }
+     avatarImg.parentNode.insertBefore(ph, avatarImg);
+  }
   
   // Link to profile
   const profileLinkClickHandler = () => window.location.href = `profile.html?userId=${post.user_id}`;
@@ -118,12 +134,15 @@ async function loadComments() {
 
 function renderSingleComment(c) {
   const userName = c.users?.name || "User";
-  const avatar = c.users?.avatar_url || "./assets/images/default-avatar.png";
+  const avatar = c.users?.avatar_url; // null if default logic not needed here directly
   const dateStr = new Date(c.created_at).toLocaleDateString(undefined, {month:'short', day:'numeric'});
 
   const html = `
     <div class="comment-item">
-      <img src="${avatar}" class="comment-avatar-img" onclick="window.location.href='profile.html?userId=${c.user_id}'">
+      ${avatar 
+        ? `<img src="${avatar}" class="comment-avatar-img" onclick="window.location.href='profile.html?userId=${c.user_id}'">`
+        : `<div class="comment-author-placeholder" onclick="window.location.href='profile.html?userId=${c.user_id}'">${userName.charAt(0)}</div>`
+      }
       <div class="comment-content-box">
         <div class="comment-meta-header">
            <a class="comment-author-link" onclick="window.location.href='profile.html?userId=${c.user_id}'">${userName}</a>

@@ -52,7 +52,7 @@ async function loadData() {
       image: p.image_url,
       content: p.content || "",
       excerpt: (p.content || "").substring(0, 180),
-      url: `post.html?postId=${p.id}`,
+      url: `comment.html?postId=${p.id}`,
       createdAt: p.created_at,
     }));
 
@@ -159,14 +159,17 @@ function renderResults({ posts, users }, query) {
   items.forEach((item) => {
     if (item.type === "user") {
       // USER CARD
-      const avatar = item.avatar || "./assets/images/default-avatar.png";
+      const avatar = item.avatar;
       const userCard = document.createElement("div");
       userCard.className = "result-card user-card";
       userCard.onclick = () => window.location.href = item.profileUrl;
       
       userCard.innerHTML = `
         <div class="user-card-inner">
-          <img src="${avatar}" class="user-avatar-lg" alt="${escapeHtml(item.name)}" onerror="this.src='./assets/images/default-avatar.png'" />
+          ${avatar && !avatar.includes("default-avatar.png")
+             ? `<img src="${avatar}" class="user-avatar-lg" alt="${escapeHtml(item.name)}" onerror="this.src='./assets/images/default-avatar.png'" />`
+             : `<div class="user-avatar-placeholder">${escapeHtml(item.name).charAt(0)}</div>`
+          }
           <div class="user-details">
             <h3>${escapeHtml(item.name)}</h3>
             <p class="user-bio">${item.email ? escapeHtml(item.email) : 'Community Member'}</p>

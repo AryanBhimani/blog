@@ -126,7 +126,10 @@ function renderPosts(posts) {
       <div class="post-card-content">
         
         <div class="post-author-row">
-            <img src="${post.authorAvatar}" class="post-author-avatar" onerror="this.src='./assets/images/default-avatar.png'">
+            ${post.authorAvatar && !post.authorAvatar.includes("default-avatar.png")
+              ? `<img src="${post.authorAvatar}" class="post-author-avatar" onerror="this.src='./assets/images/default-avatar.png'">`
+              : `<div class="post-author-placeholder">${escapeHtml(post.author).charAt(0)}</div>`
+            }
             <div class="post-author-info">
                 <span class="post-author-name">${escapeHtml(post.author)}</span>
             </div>

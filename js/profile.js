@@ -114,9 +114,26 @@ async function loadProfile(uid) {
   bioEl.textContent = data.bio || "No bio yet.";
 
   // Avatar
+  // Avatar
+  const avatarContainer = document.querySelector(".profile-avatar");
   const avatarEl = document.getElementById("profile-avatar");
-  if (data.avatar_url && avatarEl) {
+  
+  // Remove any existing placeholder if re-rendering
+  const existingPlaceholder = avatarContainer.querySelector(".avatar-placeholder");
+  if(existingPlaceholder) existingPlaceholder.remove();
+
+  if (data.avatar_url) {
     avatarEl.src = data.avatar_url;
+    avatarEl.style.display = "block";
+  } else {
+    avatarEl.style.display = "none";
+    
+    // Create Placeholder
+    const letter = (data.name || "U").charAt(0).toUpperCase();
+    const placeholder = document.createElement("div");
+    placeholder.className = "avatar-placeholder";
+    placeholder.textContent = letter;
+    avatarContainer.appendChild(placeholder);
   }
 }
 
@@ -406,7 +423,10 @@ function renderUserCard(user, container) {
   const avatarUrl = user.avatar_url || "./assets/images/default-avatar.png";
   
   card.innerHTML = `
-    <img src="${avatarUrl}" class="user-avatar" onerror="this.src='./assets/images/default-avatar.png'">
+    ${avatarUrl !== "./assets/images/default-avatar.png" 
+      ? `<img src="${avatarUrl}" class="user-avatar">`
+      : `<div class="avatar-placeholder-sm">${escapeHtml(user.name).charAt(0).toUpperCase()}</div>`
+    }
     <span>${escapeHtml(user.name)}</span>
   `;
   container.appendChild(card);
