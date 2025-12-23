@@ -354,7 +354,7 @@ async function deletePost(postId) {
 // Edit Post (UNCHANGED)
 // ---------------------------
 function editPost(postId) {
-  window.location.href = `post.html?edit=${postId}`;
+  window.location.href = `edit-blog.html?edit=${postId}`;
 }
 
 // ---------------------------
