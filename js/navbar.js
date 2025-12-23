@@ -15,6 +15,7 @@ fetch("/components/navbar.html")
     const menuToggle = document.querySelector(".menu-toggle");
     const navLinks = document.querySelector(".nav-links");
     const authButton = document.getElementById("auth-btn");
+    const profileLink = document.getElementById("nav-profile-link");
 
 
     // --------------------------------------------
@@ -53,6 +54,9 @@ fetch("/components/navbar.html")
       if (!authButton) return;
 
       if (user) {
+        // User logged in: Show Profile link
+        if (profileLink) profileLink.style.display = "";
+        
         authButton.textContent = "Logout";
         authButton.classList.add("logout-button");
         authButton.onclick = async () => {
@@ -60,6 +64,9 @@ fetch("/components/navbar.html")
           window.location.href = "auth.html";
         };
       } else {
+        // User logged out: Hide Profile link
+        if (profileLink) profileLink.style.display = "none";
+
         authButton.textContent = "Login";
         authButton.classList.remove("logout-button");
         authButton.onclick = () => {
