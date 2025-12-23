@@ -7,7 +7,6 @@ create table if not exists public.users (
   email text,
   name text,
   avatar_url text,
-  username text,
   bio text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -139,3 +138,111 @@ with check (auth.uid() = follower);
 create policy "User can unfollow"
 on public.followers for delete
 using (auth.uid() = follower);
+
+
+
+-- ============================
+-- NOTIFICATIONS TABLE
+-- ============================
+create table if not exists public.notifications (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.users(id) on delete cascade not null,
+  actor_id uuid references public.users(id) on delete cascade,
+  type text not null, -- 'follow' | 'post'
+  message text not null,
+  is_read boolean default false,
+  created_at timestamp with time zone default timezone('utc', now()) not null
+);
+
+alter table public.notifications enable row level security;
+
+-- User can read own notifications
+create policy "Users can read own notifications"
+on public.notifications
+for select
+using (auth.uid() = user_id);
+
+-- System can insert notifications
+create policy "System can insert notifications"
+on public.notifications
+for insert
+with check (true);
+
+-- User can update own notifications (mark read)
+create policy "Users can update own notifications"
+on public.notifications
+for update
+using (auth.uid() = user_id);
+
+
+
+
+
+
+
+-- Create likes table
+create table if not exists public.likes (
+  id uuid default gen_random_uuid() primary key,
+  post_id uuid not null references public.posts(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamp with time zone default now(),
+  unique (post_id, user_id)
+);
+
+-- Enable Row Level Security
+alter table public.likes enable row level security;
+
+-- Allow logged-in users to like posts
+create policy "Users can like posts"
+on public.likes
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+-- Allow users to remove their own like
+create policy "Users can unlike posts"
+on public.likes
+for delete
+to authenticated
+using (auth.uid() = user_id);
+
+-- Allow anyone to read likes (for like count)
+create policy "Anyone can read likes"
+on public.likes
+for select
+using (true);
+
+
+-- Create saved_posts table
+create table if not exists public.saved_posts (
+  id uuid default gen_random_uuid() primary key,
+  post_id uuid not null references public.posts(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamp with time zone default now(),
+  unique (post_id, user_id)
+);
+
+-- Enable Row Level Security
+alter table public.saved_posts enable row level security;
+
+-- Allow logged-in users to save posts
+create policy "Users can save posts"
+on public.saved_posts
+for insert
+to authenticated
+with check (auth.uid() = user_id);
+
+-- Allow users to remove their saved post
+create policy "Users can unsave posts"
+on public.saved_posts
+for delete
+to authenticated
+using (auth.uid() = user_id);
+
+-- 🔒 VERY IMPORTANT:
+-- Only allow users to see THEIR OWN saved posts
+create policy "Users can view their own saved posts"
+on public.saved_posts
+for select
+to authenticated
+using (auth.uid() = user_id);
