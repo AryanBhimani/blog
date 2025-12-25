@@ -253,6 +253,9 @@ function bindEvents() {
       e.preventDefault();
       // Optional: Force immediate search on Enter
       lastQuery = queryInput.value.trim();
+      if (typeof queryInput.blur === 'function') {
+        queryInput.blur(); // Dismiss keyboard
+      }
       showLoading();
       renderResults(search(lastQuery), lastQuery);
     });
