@@ -15,7 +15,7 @@ const commentsListEl = document.getElementById("comments-list");
 let currentUser = null;
 
 // ----------------------------------------------------
-// 1. CHECK USER
+// 1. CHECK USER & INIT
 // ----------------------------------------------------
 supabase.auth.getUser().then(({ data }) => {
   currentUser = data?.user;
@@ -28,7 +28,6 @@ supabase.auth.getUser().then(({ data }) => {
     loginPrompt.style.display = "none";
     
     // Set current user avatar in the input box
-    // Fetch profile to get avatar
     supabase.from("users").select("avatar_url").eq("id", currentUser.id).single()
       .then(({data: uData}) => {
          if(uData?.avatar_url) {
@@ -40,11 +39,11 @@ supabase.auth.getUser().then(({ data }) => {
     formWrapper.style.display = "none";
     loginPrompt.style.display = "block";
   }
+
+  // Load comments AFTER we check the user, so we know who owns which comment
+  loadComments();
 });
 
-// ----------------------------------------------------
-// 2. LOAD BLOG POST
-// ----------------------------------------------------
 // ----------------------------------------------------
 // 2. LOAD BLOG POST
 // ----------------------------------------------------
@@ -65,7 +64,6 @@ async function loadPost() {
   // Populate Header
   document.getElementById("post-title").textContent = post.title;
 
-  // Header Tags Injection
   // Header Tags Injection
   let tags = post.tags;
   // Parse tags if string
@@ -164,28 +162,144 @@ async function loadComments() {
 
 function renderSingleComment(c) {
   const userName = c.users?.name || "User";
-  const avatar = c.users?.avatar_url; // null if default logic not needed here directly
+  const avatar = c.users?.avatar_url; 
   const dateStr = new Date(c.created_at).toLocaleDateString(undefined, {month:'short', day:'numeric'});
+  const isOwner = currentUser && (currentUser.id === c.user_id);
 
-  const html = `
-    <div class="comment-item">
-      ${avatar 
-        ? `<img src="${avatar}" class="comment-avatar-img" onclick="window.location.href='profile.html?userId=${c.user_id}'">`
-        : `<div class="comment-author-placeholder" onclick="window.location.href='profile.html?userId=${c.user_id}'">${userName.charAt(0)}</div>`
-      }
+  // Create Container
+  const item = document.createElement("div");
+  item.className = "comment-item";
+  item.dataset.id = c.id;
+
+  // Avatar HTML
+  const avatarHTML = avatar 
+    ? `<img src="${avatar}" class="comment-avatar-img" onclick="window.location.href='profile.html?userId=${c.user_id}'">`
+    : `<div class="comment-author-placeholder" onclick="window.location.href='profile.html?userId=${c.user_id}'">${userName.charAt(0)}</div>`;
+
+  // Content Box HTML
+  item.innerHTML = `
+      ${avatarHTML}
       <div class="comment-content-box">
-        <div class="comment-meta-header">
-           <a class="comment-author-link" onclick="window.location.href='profile.html?userId=${c.user_id}'">${userName}</a>
-           <span class="comment-date-display">${dateStr}</span>
-        </div>
-        <div class="comment-body-text">${c.content}</div>
+          <div class="comment-meta-header">
+             <a class="comment-author-link" onclick="window.location.href='profile.html?userId=${c.user_id}'">${escapeHtml(userName)}</a>
+             
+             <div class="comment-right-meta">
+                 <span class="comment-date-display">${dateStr}</span>
+                 ${isOwner ? `
+                 <div class="comment-actions">
+                     <button class="comment-action-btn edit-btn" title="Edit"><i class="fi fi-rr-edit"></i></button>
+                     <button class="comment-action-btn delete-btn" title="Delete"><i class="fi fi-rr-trash"></i></button>
+                 </div>
+                 ` : ''}
+             </div>
+          </div>
+          <div class="comment-body-text">${escapeHtml(c.content)}</div>
       </div>
-    </div>
   `;
 
-  document.getElementById("comments-list").insertAdjacentHTML("beforeend", html);
+  document.getElementById("comments-list").appendChild(item);
+
+  // Attach Listeners if Owner
+  if (isOwner) {
+    const editBtn = item.querySelector(".edit-btn");
+    const deleteBtn = item.querySelector(".delete-btn");
+
+    editBtn.onclick = () => enableEditMode(item, c);
+    deleteBtn.onclick = () => deleteComment(c.id, item);
+  }
 }
-loadComments();
+
+// ----------------------------------------------------
+// EDIT FUNCTIONALITY
+// ----------------------------------------------------
+function enableEditMode(item, commentData) {
+  const contentBox = item.querySelector(".comment-body-text");
+  const currentText = commentData.content; // Use data to avoid parsing HTML
+
+  // Replace content with form
+  contentBox.style.display = "none";
+  
+  const formHtml = `
+    <div class="comment-edit-form">
+        <textarea class="comment-edit-textarea">${escapeHtml(currentText)}</textarea>
+        <div class="comment-edit-actions">
+            <button class="btn-sm btn-cancel">Cancel</button>
+            <button class="btn-sm comment-save-btn">Save</button>
+        </div>
+    </div>
+  `;
+  
+  contentBox.insertAdjacentHTML('afterend', formHtml);
+  
+  const editForm = item.querySelector(".comment-edit-form");
+  const textarea = editForm.querySelector("textarea");
+  const saveBtn = editForm.querySelector(".comment-save-btn");
+  const cancelBtn = editForm.querySelector(".btn-cancel");
+  
+  textarea.focus();
+
+  // Cancel
+  cancelBtn.onclick = () => {
+    editForm.remove();
+    contentBox.style.display = "block";
+  };
+
+  // Save
+  saveBtn.onclick = async () => {
+    const newContent = textarea.value.trim();
+    if (!newContent) return alert("Content cannot be empty");
+    
+    saveBtn.textContent = "Saving...";
+    saveBtn.disabled = true;
+
+    const { error } = await supabase
+        .from("comments")
+        .update({ content: newContent })
+        .eq("id", commentData.id);
+
+    if (error) {
+        alert("Failed to update comment");
+        saveBtn.textContent = "Save";
+        saveBtn.disabled = false;
+        return;
+    }
+
+    // Update Local Data (Optional: Realtime will handle it, but for instant UI feedback)
+    commentData.content = newContent;
+    contentBox.textContent = newContent; // Update visible text
+    contentBox.style.display = "block";
+    editForm.remove();
+  };
+}
+
+// ----------------------------------------------------
+// DELETE FUNCTIONALITY
+// ----------------------------------------------------
+async function deleteComment(id, item) {
+    if(!confirm("Delete this comment?")) return;
+
+    // Optimistic UI Removal
+    item.style.opacity = "0.5";
+
+    const { error } = await supabase
+        .from("comments")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        alert("Failed to delete comment");
+        item.style.opacity = "1";
+        return;
+    }
+
+    item.remove();
+    
+    // Check if list empty
+    const list = document.getElementById("comments-list");
+    if(list.children.length === 0) {
+        list.innerHTML = `<p style="text-align:center; color:var(--text-muted); margin-top:20px;">No comments yet. Be the first!</p>`;
+    }
+}
 
 // ----------------------------------------------------
 // 4. REAL-TIME COMMENT UPDATES
@@ -194,23 +308,42 @@ supabase
   .channel("comments-realtime")
   .on(
     "postgres_changes",
-    { event: "INSERT", schema: "public", table: "comments" },
+    { event: "*", schema: "public", table: "comments" },
     async (payload) => {
-      const newComment = payload.new;
-      if (String(newComment.post_id) !== String(postId)) return;
+      // HANDLE INSERT
+      if (payload.eventType === 'INSERT') {
+          if (String(payload.new.post_id) !== String(postId)) return;
+          // Check if already exists (optimistic update might have added it? No, ours is simple)
+          if(document.querySelector(`[data-id="${payload.new.id}"]`)) return;
 
-      const { data: userData } = await supabase
-        .from("users")
-        .select("name, avatar_url")
-        .eq("id", newComment.user_id)
-        .single();
+          const { data: userData } = await supabase
+            .from("users")
+            .select("name, avatar_url")
+            .eq("id", payload.new.user_id)
+            .single();
 
-      newComment.users = { 
-          name: userData?.name, 
-          avatar_url: userData?.avatar_url 
-      };
+          const newComment = payload.new;
+          newComment.users = { 
+              name: userData?.name, 
+              avatar_url: userData?.avatar_url 
+          };
+          renderSingleComment(newComment);
+      }
+      
+      // HANDLE DELETE
+      if (payload.eventType === 'DELETE') {
+           const item = document.querySelector(`[data-id="${payload.old.id}"]`);
+           if(item) item.remove();
+      }
 
-      renderSingleComment(newComment);
+      // HANDLE UPDATE
+      if(payload.eventType === 'UPDATE') {
+           const item = document.querySelector(`[data-id="${payload.new.id}"]`);
+           if(item) {
+               const contentEl = item.querySelector(".comment-body-text");
+               if(contentEl) contentEl.textContent = payload.new.content;
+           }
+      }
     }
   )
   .subscribe();
@@ -223,6 +356,9 @@ submitCommentBtn.onclick = async () => {
 
   const text = commentInput.value.trim();
   if (!text) return alert("Comment cannot be empty!");
+  
+  submitCommentBtn.disabled = true;
+  submitCommentBtn.textContent = "Posting...";
 
   const { data: inserted, error } = await supabase
     .from("comments")
@@ -231,14 +367,61 @@ submitCommentBtn.onclick = async () => {
       user_id: currentUser.id,
       content: text,
     })
-    .select()
+    .select(`*, users(name, avatar_url)`) // Try fetch user right away
     .single();
+
+  submitCommentBtn.disabled = false;
+  submitCommentBtn.textContent = "Post";
 
   if (error) {
     alert("Failed to post comment");
     return;
   }
 
-  // Real-time subscription will handle rendering the new comment
+  // Clear Input
   commentInput.value = "";
+  
+  // Clean empty message if first comment
+  const listEl = document.getElementById("comments-list");
+  if(listEl.querySelector("p")) listEl.innerHTML = "";
+
+  // Render immediately (Realtime will also trigger, so check ID duplicates in renderSingleComment or handle gracefully)
+  // Actually, realtime is robust. But for instant feel:
+  // If we fetch user data in local insert return, use it.
+  
+  // We need user name/avatar for renderSingleComment
+  // We can use currentUser for optimistic render
+  const optimisticComment = {
+      ...inserted,
+      users: {
+          name: currentUser.user_metadata?.name || "Me", // Fallback
+          avatar_url: currentUser.user_metadata?.avatar_url
+      }
+  };
+  
+  // Wait, Supabase insert selection with relation might require proper foreign key setup which we have.
+  // If 'inserted.users' is null (Supabase weirdness sometimes on insert select), fetch it or use currentUser
+  if(!inserted.users) {
+       // We can just rely on realtime, OR manually construct
+       optimisticComment.users = {
+           name: "Me", // Pending refresh
+           avatar_url: null
+       }
+  }
+  
+  // Check if realtime already added it (rare race)
+  if(!document.querySelector(`[data-id="${inserted.id}"]`)) {
+      renderSingleComment(optimisticComment);
+  }
 };
+
+// UTIL
+function escapeHtml(str) {
+  if (!str) return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}

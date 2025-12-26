@@ -201,3 +201,88 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     text-transform: uppercase;
 }
+
+/* --- Comment Actions (Edit/Delete) --- */
+.comment-right-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.comment-item:hover .comment-actions {
+    opacity: 1;
+}
+
+.comment-action-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.comment-action-btn:hover {
+    background: rgba(0,0,0,0.05);
+    color: var(--text-main);
+}
+
+.comment-action-btn.delete-btn:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Edit Mode styling */
+.comment-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.comment-edit-textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-body);
+    font-family: inherit;
+    resize: vertical;
+    min-height: 60px;
+    color: var(--text-main);
+}
+
+.comment-edit-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    border-radius: 6px;
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+}
+
+.btn-cancel:hover {
+    background: rgba(0,0,0,0.05);
+    color: var(--text-main);
+}
