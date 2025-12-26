@@ -152,13 +152,15 @@
   color: #ffffff;
 }
 
-[data-theme="dark"] .nav-links {
-  background: #1e1e1e;
-  border-bottom-color: rgba(255, 255, 255, 0.1);
-}
+@media (max-width: 850px) {
+  [data-theme="dark"] .nav-links {
+    background: #1e1e1e;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
 
-[data-theme="dark"] .nav-links li a {
-  border-bottom-color: rgba(255, 255, 255, 0.05);
+  [data-theme="dark"] .nav-links li a {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+  }
 }
 
 /* Responsive Design */
