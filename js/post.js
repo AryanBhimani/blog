@@ -49,7 +49,20 @@ supabase.auth.getUser().then(async ({ data }) => {
 
     titleInput.value = post.title;
     quill.setText(post.content);
-    tagsInput.value = post.tags?.join(", ") || "";
+    
+    let tags = post.tags;
+    if (typeof tags === 'string') {
+        try {
+            tags = JSON.parse(tags);
+        } catch {
+             if (tags.startsWith('{') && tags.endsWith('}')) {
+                tags = tags.slice(1, -1).split(',').map(t => t.replace(/"/g, ''));
+            } else {
+                tags = tags.split(',').map(t => t.trim());
+            }
+        }
+    }
+    tagsInput.value = Array.isArray(tags) ? tags.join(", ") : (tags || "");
     mainImageUrl = post.image_url;
     
     if(mainImageUrl) {

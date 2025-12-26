@@ -243,9 +243,12 @@ async function loadPosts(uid) {
         <h3><a href="comment.html?postId=${post.id}">${escapeHtml(post.title)}</a></h3>
         
         <div class="post-tags" style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
-            ${post.tags && post.tags.length > 0
-                ? post.tags.map(tag => `<span class="post-tag" style="font-size:0.75rem; color:#ff5722; background:rgba(255,87,34,0.1); padding:4px 10px; border-radius:20px; font-weight:600;">#${escapeHtml(tag)}</span>`).join('') 
-                : ''}
+             ${(() => {
+                const tags = parseTags(post.tags);
+                return tags.length > 0
+                ? tags.map(tag => `<span class="post-tag" style="font-size:0.75rem; color:#ff5722; background:rgba(255,87,34,0.1); padding:4px 10px; border-radius:20px; font-weight:600;">#${escapeHtml(tag)}</span>`).join('') 
+                : '';
+            })()}
         </div>
 
         <p>${escapeHtml(post.content).substring(0, 100)}...</p>
@@ -326,9 +329,12 @@ async function loadSavedPosts() {
         <h3><a href="comment.html?postId=${posts.id}">${escapeHtml(posts.title)}</a></h3>
         
         <div class="post-tags" style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
-            ${posts.tags && posts.tags.length > 0
-                ? posts.tags.map(tag => `<span class="post-tag" style="font-size:0.75rem; color:#ff5722; background:rgba(255,87,34,0.1); padding:4px 10px; border-radius:20px; font-weight:600;">#${escapeHtml(tag)}</span>`).join('') 
-                : ''}
+            ${(() => {
+                const tags = parseTags(posts.tags);
+                return tags.length > 0
+                ? tags.map(tag => `<span class="post-tag" style="font-size:0.75rem; color:#ff5722; background:rgba(255,87,34,0.1); padding:4px 10px; border-radius:20px; font-weight:600;">#${escapeHtml(tag)}</span>`).join('') 
+                : '';
+            })()}
         </div>
 
         <p>${escapeHtml(posts.content).substring(0, 100)}...</p>
@@ -457,4 +463,21 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function parseTags(tags) {
+  if (Array.isArray(tags)) return tags;
+  if (!tags) return [];
+  if (typeof tags === 'string') {
+    try {
+      const parsed = JSON.parse(tags);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {
+      if (tags.startsWith('{') && tags.endsWith('}')) {
+          return tags.slice(1, -1).split(',').map(t => t.replace(/"/g, ''));
+      }
+      return tags.split(',').map(t => t.trim());
+    }
+  }
+  return [];
 }

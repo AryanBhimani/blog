@@ -54,13 +54,33 @@ async function loadAllPosts() {
     title: p.title,
     content: p.content,
     image: p.image_url,
-    tags: p.tags || [],
+    tags: parseTags(p.tags),
     author: p.users?.name || "Unknown",
     authorAvatar: p.users?.avatar_url || "./assets/images/default-avatar.png",
     createdAt: new Date(p.created_at)
   }));
 
   renderPosts(allPosts);
+}
+
+function parseTags(tags) {
+  if (Array.isArray(tags)) return tags;
+  if (!tags) return [];
+  if (typeof tags === 'string') {
+    // Try JSON parse
+    try {
+      const parsed = JSON.parse(tags);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {
+      // If not JSON, maybe comma separated or Postgres array format?
+      // Handle Postgres {a,b,c}
+      if (tags.startsWith('{') && tags.endsWith('}')) {
+          return tags.slice(1, -1).split(',').map(t => t.replace(/"/g, ''));
+      }
+      return tags.split(',').map(t => t.trim());
+    }
+  }
+  return [];
 }
 
 /* ---------------------------

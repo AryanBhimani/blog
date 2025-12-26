@@ -51,7 +51,7 @@ async function loadData() {
       title: p.title || "",
       image: p.image_url,
       content: p.content || "",
-      tags: p.tags || [],
+      tags: parseTags(p.tags),
       excerpt: (p.content || "").substring(0, 180),
       url: `comment.html?postId=${p.id}`,
       createdAt: p.created_at,
@@ -301,4 +301,21 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function parseTags(tags) {
+  if (Array.isArray(tags)) return tags;
+  if (!tags) return [];
+  if (typeof tags === 'string') {
+    try {
+      const parsed = JSON.parse(tags);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {
+      if (tags.startsWith('{') && tags.endsWith('}')) {
+          return tags.slice(1, -1).split(',').map(t => t.replace(/"/g, ''));
+      }
+      return tags.split(',').map(t => t.trim());
+    }
+  }
+  return [];
 }

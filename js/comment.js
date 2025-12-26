@@ -66,13 +66,24 @@ async function loadPost() {
   document.getElementById("post-title").textContent = post.title;
 
   // Header Tags Injection
-  if(post.tags && post.tags.length > 0) {
+  // Header Tags Injection
+  let tags = post.tags;
+  // Parse tags if string
+  if (typeof tags === 'string') {
+      try { tags = JSON.parse(tags); } 
+      catch { 
+          if(tags.startsWith('{')) tags = tags.slice(1,-1).split(',').map(t => t.replace(/"/g,''));
+          else tags = tags.split(',').map(t=>t.trim()); 
+      }
+  }
+
+  if(Array.isArray(tags) && tags.length > 0) {
       const tagsContainer = document.createElement("div");
       tagsContainer.className = "post-tags";
       tagsContainer.style.justifyContent = "center";
       tagsContainer.style.marginTop = "10px";
       
-      post.tags.forEach(tag => {
+      tags.forEach(tag => {
           const span = document.createElement("span");
           span.className = "post-tag";
           span.style.fontSize = "0.9rem"; // slightly larger for article view
