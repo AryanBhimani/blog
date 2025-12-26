@@ -1,6 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;600&display=swap');
 
 /* Navbar Container */
+/* Navbar Placeholder (Container) - Handles Sticky Positioning */
+#navbar-placeholder {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
 /* Navbar Container */
 .navbar {
   display: flex;
@@ -12,9 +19,11 @@
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+  /* position: sticky;  <-- REMOVED (Moved to placeholder) */
+  /* top: 0; */
+  /* z-index: 1000; */
+  position: relative;
+  /* Ensure it stays a positioning context for children if needed */
   transition: all 0.3s ease;
   height: 70px;
 }
