@@ -16,6 +16,7 @@ fetch("/components/navbar.html")
     const navLinks = document.querySelector(".nav-links");
     const authButton = document.getElementById("auth-btn");
     const profileLink = document.getElementById("nav-profile-link");
+    const notificationsLink = document.getElementById("nav-notifications-link");
 
 
     // --------------------------------------------
@@ -54,8 +55,9 @@ fetch("/components/navbar.html")
       if (!authButton) return;
 
       if (user) {
-        // User logged in: Show Profile link
+        // User logged in: Show Profile & Notifications link
         if (profileLink) profileLink.style.display = "";
+        if (notificationsLink) notificationsLink.style.display = "";
         
         authButton.textContent = "Logout";
         authButton.classList.add("logout-button");
@@ -64,8 +66,9 @@ fetch("/components/navbar.html")
           window.location.href = "auth.html";
         };
       } else {
-        // User logged out: Hide Profile link
+        // User logged out: Hide Profile & Notifications link
         if (profileLink) profileLink.style.display = "none";
+        if (notificationsLink) notificationsLink.style.display = "none";
 
         authButton.textContent = "Login";
         authButton.classList.remove("logout-button");

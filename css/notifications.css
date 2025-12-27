@@ -1,0 +1,140 @@
+/* Notifications Page Styles */
+
+.notifications-container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    min-height: 60vh;
+}
+
+.notification-header {
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.notification-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.notification-item {
+    background: var(--bg-card);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.notification-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+    background: var(--bg-body);
+    /* Subtle hover effect */
+}
+
+[data-theme="dark"] .notification-item:hover {
+    background: #252525;
+}
+
+.notification-item.unread {
+    border-left: 4px solid var(--brand);
+    background: var(--bg-body);
+    /* Highlight unread */
+}
+
+[data-theme="dark"] .notification-item.unread {
+    background: #1a1a1a;
+}
+
+.notif-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
+.notif-content {
+    flex: 1;
+}
+
+.notif-message {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    line-height: 1.4;
+}
+
+.notif-message strong {
+    font-weight: 600;
+}
+
+.notif-time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    display: block;
+}
+
+.notif-icon {
+    font-size: 1.2rem;
+    color: var(--brand);
+    background: rgba(255, 87, 34, 0.1);
+    /* Brand color with opacity */
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Empty State */
+.empty-notif {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.empty-notif i {
+    font-size: 3rem;
+    opacity: 0.5;
+}
+
+.loading-spinner {
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 3px solid var(--brand);
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
