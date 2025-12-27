@@ -29,7 +29,7 @@ async function loadFollowing() {
 
     const { data: userData } = await supabase
       .from("users")
-      .select("username, avatar_url")
+      .select("name, avatar_url")
       .eq("id", fid)
       .single();
 
@@ -40,7 +40,7 @@ async function loadFollowing() {
         <img src="${userData?.avatar_url || './assets/images/default-avatar.png'}" 
              class="user-avatar" />
 
-        <span>${userData?.username || "Unknown User"}</span>
+        <span>${userData?.name || "Unknown User"}</span>
       </div>
     `;
   }

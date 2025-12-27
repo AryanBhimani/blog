@@ -240,3 +240,109 @@ on public.saved_posts
 for select
 to authenticated
 using (auth.uid() = user_id);
+
+
+
+
+
+-- ============================================================
+-- AUTOMATED NOTIFICATIONS TRIGGERS
+-- Use this SQL to automatically generate notifications when
+-- events (Follow, Like) happen.
+-- ============================================================
+
+-- ------------------------------------------------------------
+-- 1. Trigger for NEW FOLLOWERS
+-- ------------------------------------------------------------
+
+create or replace function public.handle_new_follower()
+returns trigger as $$
+begin
+  -- Insert a notification for the user being followed
+  insert into public.notifications (user_id, actor_id, type, message)
+  values (
+    new.following, -- user_id (receiver)
+    new.follower,  -- actor_id (sender)
+    'follow',
+    'started following you'
+  );
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Remove existing trigger if exists to avoid errors on re-run
+drop trigger if exists on_new_follower on public.followers;
+
+create trigger on_new_follower
+after insert on public.followers
+for each row execute procedure public.handle_new_follower();
+
+
+-- ------------------------------------------------------------
+-- 2. Trigger for POST LIKES
+-- ------------------------------------------------------------
+
+create or replace function public.handle_new_like()
+returns trigger as $$
+declare
+  post_author_id uuid;
+begin
+  -- Get the author of the post
+  select user_id into post_author_id
+  from public.posts
+  where id = new.post_id;
+
+  -- Only create notification if the liker is NOT the author
+  if post_author_id is not null and post_author_id <> new.user_id then
+    insert into public.notifications (user_id, actor_id, type, message)
+    values (
+      post_author_id, -- Receiver
+      new.user_id,    -- Sender (Liker)
+      'post',
+      'liked your post'
+    );
+  end if;
+
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Remove existing trigger
+drop trigger if exists on_new_like on public.likes;
+
+create trigger on_new_like
+after insert on public.likes
+for each row execute procedure public.handle_new_like();
+
+-- ------------------------------------------------------------
+-- 3. (Optional) Trigger for COMMENTS
+-- ------------------------------------------------------------
+
+create or replace function public.handle_new_comment()
+returns trigger as $$
+declare
+  post_author_id uuid;
+begin
+  select user_id into post_author_id
+  from public.posts
+  where id = new.post_id;
+
+  if post_author_id is not null and post_author_id <> new.user_id then
+    insert into public.notifications (user_id, actor_id, type, message)
+    values (
+      post_author_id,
+      new.user_id,
+      'post', -- Using 'post' type or could add 'comment' type
+      'commented on your post'
+    );
+  end if;
+
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists on_new_comment on public.comments;
+
+create trigger on_new_comment
+after insert on public.comments
+for each row execute procedure public.handle_new_comment();

@@ -384,10 +384,10 @@ async function switchTab(tabName) {
   if (tabName === 'posts') {
     document.getElementById("user-posts").style.display = "block";
   } else if (tabName === 'followers') {
-    document.getElementById("followers-list-section").style.display = "flex";
+    document.getElementById("followers-list-section").style.display = "block";
     await loadFollowersList();
   } else if (tabName === 'following') {
-    document.getElementById("following-list-section").style.display = "flex";
+    document.getElementById("following-list-section").style.display = "block";
     await loadFollowingList();
   }
 };
@@ -398,7 +398,7 @@ async function loadFollowersList() {
   
   const { data: followers, error } = await supabase
     .from("followers")
-    .select("follower, users:follower(*)") // Join with users table
+    .select("follower, users!follower(*)") // Join with users table
     .eq("following", viewingUserId);
 
   listEl.innerHTML = "";
@@ -419,7 +419,7 @@ async function loadFollowingList() {
 
   const { data: following, error } = await supabase
     .from("followers")
-    .select("following, users:following(*)") // Join with users table
+    .select("following, users!following(*)") // Join with users table
     .eq("follower", viewingUserId);
 
   listEl.innerHTML = "";
@@ -448,6 +448,7 @@ function renderUserCard(user, container) {
       : `<div class="avatar-placeholder-sm">${escapeHtml(user.name).charAt(0).toUpperCase()}</div>`
     }
     <span>${escapeHtml(user.name)}</span>
+    <div class="user-card-btn">View Profile</div>
   `;
   container.appendChild(card);
 }

@@ -454,34 +454,107 @@
 }
 
 .user-list h2 {
+  font-family: 'Outfit', sans-serif;
   font-size: 1.5rem;
-  margin-bottom: 20px;
-}
-
-.user-list-item {
+  margin-bottom: 25px;
+  color: var(--text-main);
   display: flex;
   align-items: center;
-  padding: 15px;
+  gap: 10px;
+}
+
+/* Container for the Grid */
+#followers-users,
+#following-users,
+.user-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+/* Individual User Card */
+.user-list-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 25px 20px;
   background: var(--bg-card);
-  border-radius: 16px;
-  margin-bottom: 15px;
+  border-radius: 24px;
   text-decoration: none;
   color: var(--text-main);
   border: 1px solid var(--border-color);
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
 }
 
 .user-list-item:hover {
-  transform: translateX(5px);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
   border-color: var(--brand);
 }
 
+/* Avatar in Grid */
 .user-avatar {
-  width: 50px;
-  height: 50px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
-  margin-right: 15px;
-  border: 2px solid var(--border-color);
+  margin-right: 0;
+  margin-bottom: 15px;
+  border: 3px solid var(--bg-body);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.user-list-item:hover .user-avatar {
+  transform: scale(1.1);
+}
+
+/* User Name */
+.user-list-item span {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+  color: var(--text-main);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* View Profile Button (Visual cue) */
+.user-card-btn {
+  margin-top: 15px;
+  padding: 8px 20px;
+  border-radius: 20px;
+  background: rgba(255, 87, 34, 0.1);
+  color: #ff5722;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.user-list-item:hover .user-card-btn {
+  background: #ff5722;
+  color: #fff;
+}
+
+/* Avatar Placeholder specific to this card size */
+.user-list-item .avatar-placeholder-sm {
+  width: 80px;
+  height: 80px;
+  font-size: 2.2rem;
+  margin-right: 0;
+  margin-bottom: 15px;
+  border: 3px solid var(--bg-body);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 /* =========================================
