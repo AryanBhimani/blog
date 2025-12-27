@@ -19,7 +19,7 @@ create policy "Users can view own profile"
 on public.users for select
 using (auth.uid() = id);
 
--- Public can view basic profile info (name, username, avatar, bio)
+-- Public can view basic profile info
 create policy "Public can view basics of users"
 on public.users for select
 using (true);
@@ -39,12 +39,11 @@ begin
 end;
 $$ language plpgsql security definer;
 
+-- Trigger for new user creation
 drop trigger if exists on_auth_user_created on auth.users;
-
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute procedure public.handle_new_user();
-
 
 
 -- ============================================================
@@ -57,7 +56,7 @@ create table if not exists public.posts (
   title text not null,
   content text not null,
   image_url text,
-  tags text[],
+  tags text[], -- Array of strings
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -73,11 +72,15 @@ create policy "Users can create their own posts"
 on public.posts for insert
 with check (auth.uid() = user_id);
 
+-- Only the author can update their post (ADDED THIS)
+create policy "Users can update own posts"
+on public.posts for update
+using (auth.uid() = user_id);
+
 -- Only the author can delete their post
 create policy "Users can delete own posts"
 on public.posts for delete
 using (auth.uid() = user_id);
-
 
 
 -- ============================================================
@@ -109,10 +112,14 @@ create policy "Users can delete own comments"
 on public.comments for delete
 using (auth.uid() = user_id);
 
+-- Only comment author can update comment (Optional but good to have)
+create policy "Users can update own comments"
+on public.comments for update
+using (auth.uid() = user_id);
 
 
 -- ============================================================
--- 4. FOLLOWERS TABLE (FOLLOW + UNFOLLOW SYSTEM)
+-- 4. FOLLOWERS TABLE
 -- ============================================================
 
 create table if not exists public.followers (
@@ -140,15 +147,15 @@ on public.followers for delete
 using (auth.uid() = follower);
 
 
+-- ============================================================
+-- 5. NOTIFICATIONS TABLE
+-- ============================================================
 
--- ============================
--- NOTIFICATIONS TABLE
--- ============================
 create table if not exists public.notifications (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references public.users(id) on delete cascade not null,
   actor_id uuid references public.users(id) on delete cascade,
-  type text not null, -- 'follow' | 'post'
+  type text not null, 
   message text not null,
   is_read boolean default false,
   created_at timestamp with time zone default timezone('utc', now()) not null
@@ -162,19 +169,24 @@ on public.notifications
 for select
 using (auth.uid() = user_id);
 
--- System can insert notifications
+-- System can insert notifications (via triggers with security definer)
+-- OR users trigger it indirectly. RLS check for insert:
 create policy "System can insert notifications"
 on public.notifications
 for insert
-with check (true);
+with check (true); 
 
 -- User can update own notifications (mark read)
 create policy "Users can update own notifications"
 on public.notifications
 for update
-using (auth.uid() = user_id);   
+using (auth.uid() = user_id);
 
--- Create likes table
+
+-- ============================================================
+-- 6. LIKES TABLE
+-- ============================================================
+
 create table if not exists public.likes (
   id uuid default gen_random_uuid() primary key,
   post_id uuid not null references public.posts(id) on delete cascade,
@@ -183,31 +195,27 @@ create table if not exists public.likes (
   unique (post_id, user_id)
 );
 
--- Enable Row Level Security
 alter table public.likes enable row level security;
 
--- Allow logged-in users to like posts
 create policy "Users can like posts"
-on public.likes
-for insert
+on public.likes for insert
 to authenticated
 with check (auth.uid() = user_id);
 
--- Allow users to remove their own like
 create policy "Users can unlike posts"
-on public.likes
-for delete
+on public.likes for delete
 to authenticated
 using (auth.uid() = user_id);
 
--- Allow anyone to read likes (for like count)
 create policy "Anyone can read likes"
-on public.likes
-for select
+on public.likes for select
 using (true);
 
 
--- Create saved_posts table
+-- ============================================================
+-- 7. SAVED POSTS TABLE
+-- ============================================================
+
 create table if not exists public.saved_posts (
   id uuid default gen_random_uuid() primary key,
   post_id uuid not null references public.posts(id) on delete cascade,
@@ -216,133 +224,79 @@ create table if not exists public.saved_posts (
   unique (post_id, user_id)
 );
 
--- Enable Row Level Security
 alter table public.saved_posts enable row level security;
 
--- Allow logged-in users to save posts
 create policy "Users can save posts"
-on public.saved_posts
-for insert
+on public.saved_posts for insert
 to authenticated
 with check (auth.uid() = user_id);
 
--- Allow users to remove their saved post
 create policy "Users can unsave posts"
-on public.saved_posts
-for delete
+on public.saved_posts for delete
 to authenticated
 using (auth.uid() = user_id);
 
--- 🔒 VERY IMPORTANT:
--- Only allow users to see THEIR OWN saved posts
 create policy "Users can view their own saved posts"
-on public.saved_posts
-for select
+on public.saved_posts for select
 to authenticated
 using (auth.uid() = user_id);
 
 
-
-
-
 -- ============================================================
--- AUTOMATED NOTIFICATIONS TRIGGERS
--- Use this SQL to automatically generate notifications when
--- events (Follow, Like) happen.
+-- TRIGGERS (NOTIFICATIONS)
 -- ============================================================
 
--- ------------------------------------------------------------
--- 1. Trigger for NEW FOLLOWERS
--- ------------------------------------------------------------
-
+-- 1. NEW FOLLOWERS
 create or replace function public.handle_new_follower()
 returns trigger as $$
 begin
-  -- Insert a notification for the user being followed
   insert into public.notifications (user_id, actor_id, type, message)
-  values (
-    new.following, -- user_id (receiver)
-    new.follower,  -- actor_id (sender)
-    'follow',
-    'started following you'
-  );
+  values (new.following, new.follower, 'follow', 'started following you');
   return new;
 end;
 $$ language plpgsql security definer;
 
--- Remove existing trigger if exists to avoid errors on re-run
 drop trigger if exists on_new_follower on public.followers;
-
 create trigger on_new_follower
 after insert on public.followers
 for each row execute procedure public.handle_new_follower();
 
-
--- ------------------------------------------------------------
--- 2. Trigger for POST LIKES
--- ------------------------------------------------------------
-
+-- 2. POST LIKES
 create or replace function public.handle_new_like()
 returns trigger as $$
 declare
   post_author_id uuid;
 begin
-  -- Get the author of the post
-  select user_id into post_author_id
-  from public.posts
-  where id = new.post_id;
-
-  -- Only create notification if the liker is NOT the author
+  select user_id into post_author_id from public.posts where id = new.post_id;
   if post_author_id is not null and post_author_id <> new.user_id then
     insert into public.notifications (user_id, actor_id, type, message)
-    values (
-      post_author_id, -- Receiver
-      new.user_id,    -- Sender (Liker)
-      'post',
-      'liked your post'
-    );
+    values (post_author_id, new.user_id, 'post', 'liked your post');
   end if;
-
   return new;
 end;
 $$ language plpgsql security definer;
 
--- Remove existing trigger
 drop trigger if exists on_new_like on public.likes;
-
 create trigger on_new_like
 after insert on public.likes
 for each row execute procedure public.handle_new_like();
 
--- ------------------------------------------------------------
--- 3. (Optional) Trigger for COMMENTS
--- ------------------------------------------------------------
-
+-- 3. COMMENTS
 create or replace function public.handle_new_comment()
 returns trigger as $$
 declare
   post_author_id uuid;
 begin
-  select user_id into post_author_id
-  from public.posts
-  where id = new.post_id;
-
+  select user_id into post_author_id from public.posts where id = new.post_id;
   if post_author_id is not null and post_author_id <> new.user_id then
     insert into public.notifications (user_id, actor_id, type, message)
-    values (
-      post_author_id,
-      new.user_id,
-      'post', -- Using 'post' type or could add 'comment' type
-      'commented on your post'
-    );
+    values (post_author_id, new.user_id, 'post', 'commented on your post');
   end if;
-
   return new;
 end;
 $$ language plpgsql security definer;
 
 drop trigger if exists on_new_comment on public.comments;
-
 create trigger on_new_comment
 after insert on public.comments
 for each row execute procedure public.handle_new_comment();
