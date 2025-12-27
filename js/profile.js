@@ -110,7 +110,10 @@ async function loadProfile(uid) {
   const { data } = await supabase.from("users").select("*").eq("id", uid).single();
   if (!data) return;
 
+  const emailEl = document.getElementById("profile-email");
+
   nameEl.textContent = data.name || "Unnamed User";
+  if (emailEl) emailEl.textContent = data.email || "";
   bioEl.textContent = data.bio || "No bio yet.";
 
   // Avatar

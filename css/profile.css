@@ -59,6 +59,15 @@
   letter-spacing: -0.5px;
 }
 
+.profile-email {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
 .profile-details p {
   margin: 10px auto 25px;
   font-size: 1.1rem;
