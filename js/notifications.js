@@ -46,7 +46,7 @@ async function loadNotifications() {
     .from('notifications')
     .select(`
       *,
-      actor:actor_id ( id, name, avatar_url )
+      actor:users!actor_id ( id, name, avatar_url )
     `)
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });

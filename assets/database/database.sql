@@ -150,8 +150,6 @@ create table if not exists public.notifications (
   actor_id uuid references public.users(id) on delete cascade,
   type text not null, -- 'follow' | 'post'
   message text not null,
-  resource_id uuid, -- Optional: ID of the post or related item
-  resource_url text, -- Optional: Direct URL to the resource
   is_read boolean default false,
   created_at timestamp with time zone default timezone('utc', now()) not null
 );
@@ -174,49 +172,7 @@ with check (true);
 create policy "Users can update own notifications"
 on public.notifications
 for update
-using (auth.uid() = user_id);
-
-
--- ============================================================
--- 5. NOTIFICATION TRIGGERS
--- ============================================================
-
--- Function to handle new follow notifications
-create or replace function public.handle_new_follow()
-returns trigger as $$
-begin
-  insert into public.notifications (user_id, actor_id, type, message, resource_url)
-  values (new.following, new.follower, 'follow', 'started following you.', '/profile.html?id=' || new.follower);
-  return new;
-end;
-$$ language plpgsql security definer;
-
--- Trigger for new follow
-drop trigger if exists on_follow_created on public.followers;
-create trigger on_follow_created
-after insert on public.followers
-for each row execute procedure public.handle_new_follow();
-
-
--- Function to handle new post notifications for followers
-create or replace function public.handle_new_post_notification()
-returns trigger as $$
-begin
-  insert into public.notifications (user_id, actor_id, type, message, resource_id, resource_url)
-  select follower, new.user_id, 'post', 'posted a new story: ' || new.title, new.id, '/post.html?id=' || new.id
-  from public.followers
-  where following = new.user_id;
-  return new;
-end;
-$$ language plpgsql security definer;
-
--- Trigger for new post
-drop trigger if exists on_post_created_notification on public.posts;
-create trigger on_post_created_notification
-after insert on public.posts
-for each row execute procedure public.handle_new_post_notification();
-
-
+using (auth.uid() = user_id);   
 
 -- Create likes table
 create table if not exists public.likes (
