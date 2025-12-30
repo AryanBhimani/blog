@@ -210,7 +210,7 @@ async function loadPosts(uid) {
 
   const { data: posts, error } = await supabase
     .from("posts")
-    .select("*")
+    .select("*, likes(count)")
     .eq("user_id", uid)
     .order("created_at", { ascending: false });
 
@@ -233,10 +233,10 @@ async function loadPosts(uid) {
     });
 
     postCard.innerHTML = `
-      <div class="post-media">
+      <div class="post-media" ${!post.image_url ? 'style="display:none;"' : ''}>
         ${post.image_url 
           ? `<img src="${post.image_url}" loading="lazy" alt="Post Image" />` 
-          : `<div class="no-image-placeholder"><i class="fi fi-rr-picture"></i></div>`
+          : ''
         }
       </div>
       <div class="post-content">
@@ -254,8 +254,11 @@ async function loadPosts(uid) {
             })()}
         </div>
 
-        <p>${escapeHtml(post.content).substring(0, 100)}...</p>
+        <p>${escapeHtml(stripHtml(post.content).substring(0, 100))}...</p>
         <div class="post-footer">
+          <div class="like-stat" style="display: flex; align-items: center; gap: 5px; color: var(--text-muted); font-size: 0.9rem;">
+             <i class="fi fi-rr-heart" style="color: var(--brand);"></i> ${post.likes && post.likes[0] ? post.likes[0].count : 0}
+          </div>
           <a href="comment.html?postId=${post.id}" class="read-more">Read Article <i class="fi fi-rr-arrow-small-right"></i></a>
         </div>
       </div>
@@ -298,7 +301,7 @@ async function loadSavedPosts() {
 
   const { data } = await supabase
     .from("saved_posts")
-    .select("posts(*)")
+    .select("posts(*, likes(count))")
     .eq("user_id", user.id);
 
   postsList.innerHTML = "";
@@ -319,10 +322,10 @@ async function loadSavedPosts() {
     });
 
     card.innerHTML = `
-      <div class="post-media">
+      <div class="post-media" ${!posts.image_url ? 'style="display:none;"' : ''}>
         ${posts.image_url 
           ? `<img src="${posts.image_url}" loading="lazy" alt="Post Image" />`
-          : `<div class="no-image-placeholder"><i class="fi fi-rr-picture"></i></div>`
+          : ''
         }
       </div>
       <div class="post-content">
@@ -340,8 +343,11 @@ async function loadSavedPosts() {
             })()}
         </div>
 
-        <p>${escapeHtml(posts.content).substring(0, 100)}...</p>
+        <p>${escapeHtml(stripHtml(posts.content).substring(0, 100))}...</p>
         <div class="post-footer">
+          <div class="like-stat" style="display: flex; align-items: center; gap: 5px; color: var(--text-muted); font-size: 0.9rem;">
+             <i class="fi fi-rr-heart" style="color: var(--brand);"></i> ${posts.likes && posts.likes[0] ? posts.likes[0].count : 0}
+          </div>
            <a href="comment.html?postId=${posts.id}" class="read-more">Read Article <i class="fi fi-rr-arrow-small-right"></i></a>
         </div>
       </div>
@@ -355,15 +361,23 @@ async function loadSavedPosts() {
 // ---------------------------
 async function deletePost(postId) {
   if (!confirm("Are you sure you want to delete this post?")) return;
-  await supabase.from("posts").delete().eq("id", postId);
-  loadPosts(viewingUserId);
+  
+  const { error } = await supabase.from("posts").delete().eq("id", postId);
+  
+  if (error) {
+      console.error("Delete error:", error);
+      showToast("Failed to delete: " + error.message);
+  } else {
+      showToast("Post deleted successfully");
+      loadPosts(viewingUserId);
+  }
 }
 
 // ---------------------------
 // Edit Post (UNCHANGED)
 // ---------------------------
 function editPost(postId) {
-  window.location.href = `edit-blog.html?edit=${postId}`;
+  window.location.href = `post.html?edit=${postId}`;
 }
 
 // ---------------------------
@@ -484,4 +498,18 @@ function parseTags(tags) {
     }
   }
   return [];
+}
+
+function stripHtml(html) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || "";
+}
+
+function showToast(msg) {
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.innerHTML = `<i class="fi fi-rr-info"></i> ${escapeHtml(msg)}`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
 }

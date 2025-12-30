@@ -25,8 +25,55 @@ supabase.auth.onAuthStateChange((_event, session) => {
 ---------------------------- */
 document.addEventListener("DOMContentLoaded", () => {
   loadAllPosts();
+  setupFilters();
   setupSearch();
 });
+
+/* ---------------------------
+   FILTERS & STATE
+---------------------------- */
+let currentFilter = 'all'; // 'all' or 'stories'
+
+function setupFilters() {
+    const btns = document.querySelectorAll('.filter-btn');
+    btns.forEach(btn => {
+        btn.onclick = () => {
+            // Update active state
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Set filter
+            currentFilter = btn.dataset.filter;
+            applyFilters();
+        };
+    });
+}
+
+function applyFilters() {
+    const term = searchInput ? searchInput.value.toLowerCase().trim() : "";
+    
+    // 1. Filter by Category
+    let filtered = allPosts;
+    if (currentFilter === 'stories') {
+        filtered = filtered.filter(p => !p.image); // No image = Story
+    }
+
+    // 2. Filter by Search
+    if (term) {
+        filtered = filtered.filter(p =>
+          p.title.toLowerCase().includes(term) ||
+          p.content.toLowerCase().includes(term) ||
+          p.author.toLowerCase().includes(term)
+        );
+        if (searchResultsInfo) {
+            searchResultsInfo.textContent = `Showing ${filtered.length} result${filtered.length === 1 ? '' : 's'}`;
+        }
+    } else {
+        if (searchResultsInfo) searchResultsInfo.textContent = "";
+    }
+
+    renderPosts(filtered);
+}
 
 /* ---------------------------
    LOAD POSTS
@@ -60,7 +107,8 @@ async function loadAllPosts() {
     createdAt: new Date(p.created_at)
   }));
 
-  renderPosts(allPosts);
+  // Initial render (filters default to 'all')
+  applyFilters();
 }
 
 function parseTags(tags) {
@@ -84,30 +132,13 @@ function parseTags(tags) {
 }
 
 /* ---------------------------
-   SEARCH (No changes needed, relying on global allPosts)
+   SEARCH
 ---------------------------- */
 function setupSearch() {
   if (!searchInput) return;
 
   searchInput.addEventListener("input", () => {
-    const term = searchInput.value.toLowerCase().trim();
-    
-    if (!allPosts || allPosts.length === 0) return;
-
-    if (!term) {
-      renderPosts(allPosts);
-      searchResultsInfo.textContent = "";
-      return;
-    }
-
-    const filtered = allPosts.filter(p =>
-      p.title.toLowerCase().includes(term) ||
-      p.content.toLowerCase().includes(term) ||
-      p.author.toLowerCase().includes(term)
-    );
-
-    renderPosts(filtered);
-    searchResultsInfo.textContent = `Showing ${filtered.length} result${filtered.length === 1 ? '' : 's'}`;
+    applyFilters();
   });
 }
 
@@ -133,15 +164,14 @@ function renderPosts(posts) {
     const dateStr = post.createdAt.toLocaleDateString(undefined, {month:'short', day:'numeric'});
 
     card.innerHTML = `
-      <!-- Image Section -->
+      <!-- Date Badge (Always visible, positioned absolute relative to card) -->
+      <span class="post-date-badge">${dateStr}</span>
+
+      <!-- Image Section (Only if image exists) -->
+      ${post.image ? `
       <div class="post-card-image-container">
-        ${post.image ? `<img src="${post.image}" class="post-card-img" loading="lazy">` : 
-        `<div class="post-card-img-placeholder"></div>`}
-        
-        <div class="post-card-overlay">
-            <span class="post-date-badge">${dateStr}</span>
-        </div>
-      </div>
+        <img src="${post.image}" class="post-card-img" loading="lazy">
+      </div>` : ''}
 
       <!-- Content Section -->
       <div class="post-card-content">
@@ -164,7 +194,7 @@ function renderPosts(posts) {
                 : ''}
         </div>
 
-        <div class="excerpt">${escapeHtml(post.content.substring(0,100))}...</div>
+        <div class="excerpt">${escapeHtml(stripHtml(post.content).substring(0,100))}...</div>
         <div class="full-content" style="display:none;">${escapeHtml(post.content)}</div>
 
         <div class="post-actions-row">
@@ -415,7 +445,7 @@ async function handleSave(postId) {
       user_id: currentUser.id
     });
 
-    icon.classList.replace("fi-rr-bookmark", "fi-sr-bookmark");
+    icon.classList.replace("fi-sr-bookmark", "fi-sr-bookmark");
     saveBtn.classList.add("saved");
     
     // Add bounce animation
@@ -462,4 +492,10 @@ function escapeHtml(str) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function stripHtml(html) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || "";
 }

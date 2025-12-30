@@ -11,6 +11,48 @@
     padding-bottom: 80px;
 }
 
+/* Header & Filters */
+.feed-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    /* responsive */
+    gap: 20px;
+}
+
+.feed-filters {
+    display: flex;
+    gap: 12px;
+}
+
+.filter-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-main);
+    transform: translateY(-2px);
+}
+
+.filter-btn.active {
+    background: var(--brand);
+    color: white;
+    border-color: var(--brand);
+    box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+}
+
 /* --- Card Container --- */
 .post-card {
     background: var(--bg-card);
@@ -221,6 +263,11 @@
 
 [data-theme="dark"] .post-card-img-placeholder {
     background: linear-gradient(135deg, #1e1e1e, #2d2d2d);
+}
+
+[data-theme="dark"] .filter-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
 }
 
 /* Responsive */

@@ -27,42 +27,43 @@
   <main class="blog-editor-wrapper">
     <section id="create-post" class="blog-editor" style="display:none;">
 
-      <header class="editor-header">
-        <h1 id="page-title">Create New Blog</h1>
-        <p>Share your thoughts with the world.</p>
-      </header>
+      <!-- New Clean Editor Layout -->
 
-      <div class="editor-group">
-        <label>Title</label>
-        <input id="post-title" type="text" placeholder="Enter blog title">
+      <!-- 1. Image Cover (Top) -->
+      <div class="image-upload-wrapper" id="image-upload-area">
+        <label for="main-image" class="image-upload-label">
+          <i class="fi fi-rr-picture"></i>
+          <span>Add Cover Image</span>
+        </label>
+        <input id="main-image" type="file" accept="image/*" hidden>
       </div>
 
-      <div class="editor-group">
-        <label>Tags</label>
-        <input id="post-tags" type="text" placeholder="flutter, supabase, javascript">
+      <div id="image-preview-container">
+        <img id="image-preview" src="" alt="Cover Preview">
+        <button id="remove-image-btn"><i class="fi fi-rr-trash"></i> Remove Cover</button>
       </div>
 
-      <div class="editor-group">
-        <label>Cover Image</label>
-        <div class="image-upload-wrapper">
-          <label for="main-image" class="image-upload-label">
-            <i class="fi fi-rr-picture"></i>
-            <span>Click to upload cover image</span>
-          </label>
-          <input id="main-image" type="file" accept="image/*" hidden>
-        </div>
-        <div id="image-preview-container" style="display:none;">
-          <img id="image-preview" src="" alt="Cover Preview">
-          <button id="remove-image-btn" aria-label="Remove Image"><i class="fi fi-rr-cross-small"></i></button>
-        </div>
+      <!-- 2. Title (Huge) -->
+      <div class="editor-group" style="margin-bottom: 20px;">
+        <input id="post-title" type="text" placeholder="Post Title..." autocomplete="off">
       </div>
 
+      <!-- 3. Tags (Chips) -->
+      <div class="tags-container" id="tags-container">
+        <!-- Tags injected here -->
+        <input id="tag-input-real" type="text" placeholder="Add a tag... (Press Enter)">
+      </div>
+
+      <!-- 4. Editor -->
       <div class="editor-group">
-        <label>Content</label>
         <div id="editor-container"></div>
       </div>
 
-      <button id="submit-post" class="publish-btn">Publish Blog</button>
+      <!-- 5. Floating Action Bar -->
+      <div class="publish-bar">
+        <span id="save-status" class="status-text">Draft</span>
+        <button id="submit-post" class="publish-btn">Publish</button>
+      </div>
 
     </section>
   </main>

@@ -227,6 +227,9 @@ function renderSingleComment(c) {
 // EDIT FUNCTIONALITY
 // ----------------------------------------------------
 function enableEditMode(item, commentData) {
+  // Prevent multiple forms
+  if (item.querySelector(".comment-edit-form")) return;
+
   const contentBox = item.querySelector(".comment-body-text");
   const currentText = commentData.content; // Use data to avoid parsing HTML
 

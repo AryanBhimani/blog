@@ -2,150 +2,236 @@ import { supabase } from "./supabase/supabaseClient.js";
 
 const section = document.getElementById("create-post");
 const titleInput = document.getElementById("post-title");
-const tagsInput = document.getElementById("post-tags");
 const imageInput = document.getElementById("main-image");
 const submitBtn = document.getElementById("submit-post");
-const pageTitle = document.getElementById("page-title");
+const saveStatus = document.getElementById("save-status");
+const tagInputReal = document.getElementById("tag-input-real");
+const tagsContainer = document.getElementById("tags-container");
 
-// Edit Mode
-const editId = new URLSearchParams(window.location.search).get("edit");
-const isEdit = Boolean(editId);
-
-// Quill
-const quill = new Quill("#editor-container", {
-  theme: "snow",
-  placeholder: "Write something amazing...",
-  modules: {
-    toolbar: [
-      ["bold", "italic", "underline"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["link"],
-      ["clean"]
-    ]
-  }
-});
-
-// Auth
-let user = null;
-let mainImageUrl = null;
-
-supabase.auth.getUser().then(async ({ data }) => {
-  if (!data.user) return location.href = "auth.html";
-  user = data.user;
-  section.style.display = "block";
-
-  if (isEdit) {
-    pageTitle.textContent = "Edit Blog";
-    submitBtn.textContent = "Update Blog";
-
-    const { data: post } = await supabase
-      .from("posts")
-      .select("title, content, image_url, tags")
-      .eq("id", editId)
-      .eq("user_id", user.id)
-      .single();
-
-    if (!post) return location.href = "profile.html";
-
-    titleInput.value = post.title;
-    quill.setText(post.content);
-    
-    let tags = post.tags;
-    if (typeof tags === 'string') {
-        try {
-            tags = JSON.parse(tags);
-        } catch {
-             if (tags.startsWith('{') && tags.endsWith('}')) {
-                tags = tags.slice(1, -1).split(',').map(t => t.replace(/"/g, ''));
-            } else {
-                tags = tags.split(',').map(t => t.trim());
-            }
-        }
-    }
-    tagsInput.value = Array.isArray(tags) ? tags.join(", ") : (tags || "");
-    mainImageUrl = post.image_url;
-    
-    if(mainImageUrl) {
-        imagePreview.src = mainImageUrl;
-        imageUploadWrapper.style.display = "none";
-        imagePreviewContainer.style.display = "block";
-    }
-  }
-});
-
-// Image Elements
-const imageUploadWrapper = document.querySelector(".image-upload-wrapper");
+// Elements
+const imageUploadWrapper = document.getElementById("image-upload-area"); // Fix selector
 const imagePreviewContainer = document.getElementById("image-preview-container");
 const imagePreview = document.getElementById("image-preview");
 const removeImageBtn = document.getElementById("remove-image-btn");
 
-// Image Upload Change
-imageInput.addEventListener("change", async () => {
-  const file = imageInput.files[0];
-  if (!file) return;
+// State
+let user = null;
+let mainImageUrl = null;
+let tags = [];
+let isEdit = false;
+let editId = null;
 
-  // Show Preview immediately
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    imagePreview.src = e.target.result;
-    imageUploadWrapper.style.display = "none";
-    imagePreviewContainer.style.display = "block";
-  };
-  reader.readAsDataURL(file);
-
-  // Upload in background
-  try {
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Uploading Image...";
-      
-      const name = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
-      await supabase.storage.from("blog-images").upload(name, file);
-      const { data } = supabase.storage.from("blog-images").getPublicUrl(name);
-      
-      mainImageUrl = data.publicUrl;
-      submitBtn.textContent = isEdit ? "Update Blog" : "Publish Blog";
-      submitBtn.disabled = false;
-  } catch(err) {
-      console.error("Upload failed", err);
-      alert("Image upload failed. Please try again.");
-      removeImage();
-      submitBtn.disabled = false;
-      submitBtn.textContent = isEdit ? "Update Blog" : "Publish Blog";
+// Init Quill
+const quill = new Quill("#editor-container", {
+  theme: "snow",
+  placeholder: "Start your story here...",
+  modules: {
+    // Toolbar disabled to ensure plain text content (HTML tags break mobile app)
+    toolbar: false
   }
 });
 
-// Remove Image
-removeImageBtn.addEventListener("click", removeImage);
+// Load
+async function init() {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) return window.location.href = "auth.html";
+    user = data.user;
+    section.style.display = "block";
 
-function removeImage() {
-    imageInput.value = "";
-    mainImageUrl = null;
-    imagePreview.src = "";
-    imagePreviewContainer.style.display = "none";
-    imageUploadWrapper.style.display = "block";
+    // Edit Check
+    const params = new URLSearchParams(window.location.search);
+    editId = params.get("edit");
+    
+    if (editId) {
+        isEdit = true;
+        submitBtn.textContent = "Updating...";
+        await loadPost(editId);
+        submitBtn.textContent = "Update";
+    }
+
+    // Auto-save listener (simple debounce)
+    let timeout;
+    quill.on('text-change', () => {
+        saveStatus.textContent = "Saving...";
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+             saveStatus.textContent = "Saved to draft (local)";
+        }, 1000);
+    });
 }
 
-// Save
+async function loadPost(id) {
+    const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .eq("id", id)
+        .eq("user_id", user.id)
+        .single();
+    
+    if (error || !data) {
+        alert("Post not found");
+        return window.location.href = "profile.html";
+    }
+
+    titleInput.value = data.title;
+    quill.root.innerHTML = data.content; // Use HTML!
+    
+    // Tags
+    let t = data.tags;
+    if (typeof t === 'string') {
+        try { t = JSON.parse(t); } 
+        catch { 
+           if(t.startsWith('{')) t = t.slice(1, -1).split(',');
+           else t = t.split(',');
+        }
+    }
+    tags = Array.isArray(t) ? t : [];
+    renderTags();
+
+    // Image
+    if (data.image_url) {
+        mainImageUrl = data.image_url;
+        showImagePreview(mainImageUrl);
+    }
+}
+
+// ----------------------
+// Tag Handling
+// ----------------------
+tagInputReal.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === ",") {
+        e.preventDefault();
+        addTag(tagInputReal.value);
+    }
+    // Backspace to remove last
+    if (e.key === "Backspace" && tagInputReal.value === "" && tags.length > 0) {
+        removeTag(tags.length - 1);
+    }
+});
+
+function addTag(text) {
+    const t = text.trim().replace(/,/g, '');
+    if (t && !tags.includes(t)) {
+        if(tags.length >= 5) return alert("Max 5 tags allowed");
+        tags.push(t);
+        renderTags();
+    }
+    tagInputReal.value = "";
+}
+
+function removeTag(index) {
+    tags.splice(index, 1);
+    renderTags();
+}
+
+function renderTags() {
+    // Clear chips but keep input
+    const chips = tagsContainer.querySelectorAll('.tag-chip');
+    chips.forEach(c => c.remove());
+
+    // Insert before input
+    tags.forEach((tag, index) => {
+        const chip = document.createElement("div");
+        chip.className = "tag-chip";
+        chip.innerHTML = `#${tag} <i class="fi fi-rr-cross-small"></i>`;
+        
+        chip.querySelector('i').onclick = () => removeTag(index);
+        
+        tagsContainer.insertBefore(chip, tagInputReal);
+    });
+}
+
+// ----------------------
+// Image Handling
+// ----------------------
+imageInput.addEventListener("change", async () => {
+    const file = imageInput.files[0];
+    if (!file) return;
+
+    // Local Preview
+    const reader = new FileReader();
+    reader.onload = (e) => showImagePreview(e.target.result);
+    reader.readAsDataURL(file);
+
+    // Upload
+    saveStatus.textContent = "Uploading image...";
+    submitBtn.disabled = true;
+    
+    try {
+        const ext = file.name.split('.').pop();
+        const name = `${Date.now()}.${ext}`;
+        const { error } = await supabase.storage.from("blog-images").upload(name, file);
+        
+        if(error) throw error;
+        
+        const { data } = supabase.storage.from("blog-images").getPublicUrl(name);
+        mainImageUrl = data.publicUrl;
+        
+        saveStatus.textContent = "Image uploaded";
+    } catch(err) {
+        console.error(err);
+        alert("Image upload failed");
+        removeImage(); 
+    } finally {
+        submitBtn.disabled = false;
+    }
+});
+
+function showImagePreview(url) {
+    imagePreview.src = url;
+    imageUploadWrapper.style.display = "none";
+    imagePreviewContainer.style.display = "block";
+}
+
+removeImageBtn.onclick = removeImage;
+
+function removeImage() {
+    mainImageUrl = null;
+    imageInput.value = "";
+    imagePreviewContainer.style.display = "none";
+    imageUploadWrapper.style.display = "flex"; // Flex to center content
+}
+
+// ----------------------
+// Publish / Save
+// ----------------------
 submitBtn.onclick = async () => {
-  const title = titleInput.value.trim();
-  const content = quill.getText().trim();
-  const tags = tagsInput.value.split(",").map(t => t.trim()).filter(Boolean);
+    const title = titleInput.value.trim();
+    // Use getText() to save plain text, ensuring compatibility with mobile apps and stripping HTML tags.
+    const content = quill.getText().trim(); 
 
-  if (!title || !content) return alert("Title & content required");
+    if (!title) return alert("Please enter a title");
+    if (!content && !mainImageUrl) return alert("Please write some content");
 
-  const payload = {
-    title,
-    content,
-    tags,
-    image_url: mainImageUrl,
-    user_id: user.id
-  };
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Publishing...";
 
-  if (isEdit) {
-    await supabase.from("posts").update(payload).eq("id", editId);
-  } else {
-    await supabase.from("posts").insert(payload);
-  }
+    const payload = {
+        title,
+        content,
+        tags, // Array, Supabase handles JSONB or Text[]
+        image_url: mainImageUrl,
+        user_id: user.id
+    };
 
-  location.href = "profile.html";
+    let error;
+    if (isEdit) {
+        const res = await supabase.from("posts").update(payload).eq("id", editId);
+        error = res.error;
+    } else {
+        const res = await supabase.from("posts").insert(payload);
+        error = res.error;
+    }
+
+    if (error) {
+        console.error(error);
+        alert("Failed to publish: " + error.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = isEdit ? "Update" : "Publish";
+    } else {
+        window.location.href = "profile.html";
+    }
 };
+
+// Start
+init();

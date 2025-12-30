@@ -235,7 +235,7 @@
 }
 
 .comment-action-btn:hover {
-    background: rgba(0,0,0,0.05);
+    background: rgba(0, 0, 0, 0.05);
     color: var(--text-main);
 }
 
@@ -283,6 +283,6 @@
 }
 
 .btn-cancel:hover {
-    background: rgba(0,0,0,0.05);
+    background: rgba(0, 0, 0, 0.05);
     color: var(--text-main);
 }
