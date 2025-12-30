@@ -324,3 +324,8 @@ using ( auth.uid() = user_id );
 create policy "Users can insert own login history"
 on public.user_logins for insert
 with check ( auth.uid() = user_id );
+
+-- Policy: Users can delete their own login history (Added for 'Logout' button)
+create policy "Users can delete own login history"
+on public.user_logins for delete
+using ( auth.uid() = user_id );

@@ -138,6 +138,24 @@ window.changePassword = async () => {
   }
 };
 
+// Remote Logout (Remove specific entry)
+window.removeLoginEntry = async (id) => {
+    if (!confirm("Remove this login session?")) return;
+
+    const { error } = await supabase
+        .from('user_logins')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error(error);
+        alert("Failed to remove login entry.");
+    } else {
+        // Refresh list
+        fetchLoginActivity();
+    }
+};
+
 // Fetch Login Activity
 async function fetchLoginActivity() {
     const list = document.getElementById('activity-list');
@@ -153,7 +171,7 @@ async function fetchLoginActivity() {
         .order('last_login', { ascending: false });
 
     if (error) {
-        // Graceful fallback if table doesn't exist
+        // Graceful fallback
         console.warn('Activity log error:', error);
         list.innerHTML = `
             <div style="padding: 20px; text-align: center; color: var(--text-muted); background: var(--bg-body); border-radius: 8px;">
@@ -190,14 +208,20 @@ async function fetchLoginActivity() {
         const date = new Date(log.last_login).toLocaleString();
 
         return `
-            <div style="display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid var(--border-color);">
-                <div style="width: 40px; height: 40px; background: var(--bg-body); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--text-main);">
-                    <i class="fi ${icon}"></i>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="width: 40px; height: 40px; background: var(--bg-body); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--text-main);">
+                        <i class="fi ${icon}"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600;">${deviceName} • ${browser}</h4>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">${date}</span>
+                    </div>
                 </div>
-                <div>
-                    <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600;">${deviceName} • ${browser}</h4>
-                    <span style="font-size: 0.8rem; color: var(--text-muted);">${date}</span>
-                </div>
+                
+                <button onclick="removeLoginEntry('${log.id}')" style="padding: 6px 12px; border: 1px solid var(--border-color); background: transparent; border-radius: 6px; cursor: pointer; color: #dc2626; font-size: 0.85rem; font-weight: 600; transition: all 0.2s;">
+                    Log Out
+                </button>
             </div>
         `;
     }).join("");
