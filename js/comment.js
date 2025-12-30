@@ -129,7 +129,21 @@ async function loadPost() {
   }
 
   // Content
-  document.getElementById("post-content").innerHTML = post.content;
+  let contentHtml = post.content;
+
+  // 1. Convert Markdown links: [text](url) -> <a href="url">text</a>
+  // We use a regex that looks for [text](url) pattern
+  contentHtml = contentHtml.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+      return `<a href="${url}" target="_blank" style="color: var(--brand); text-decoration: underline;">${text}</a>`;
+  });
+
+  // 2. Convert raw newlines to <br> if the content doesn't appear to be rich HTML
+  // (Simple check: if it lacks <p>, <div>, or <br> tags, assume it needs line breaks)
+  if (!contentHtml.includes('<p>') && !contentHtml.includes('<div>') && !contentHtml.includes('<br>')) {
+      contentHtml = contentHtml.replace(/\n/g, '<br>');
+  }
+
+  document.getElementById("post-content").innerHTML = contentHtml;
 }
 
 loadPost();
