@@ -1,6 +1,7 @@
 import { supabase } from "./supabase/supabaseClient.js";
 
 const notificationsList = document.getElementById("notifications-list");
+const clearAllBtn = document.getElementById("clear-all-btn");
 
 // Date formatter
 function timeAgo(dateString) {
@@ -53,6 +54,7 @@ async function loadNotifications() {
 
   if (error) {
     console.error("Error fetching notifications:", error);
+    if (clearAllBtn) clearAllBtn.style.display = 'none';
     notificationsList.innerHTML = `<p style="padding: 20px; text-align: center; color: var(--text-color);">Unable to load notifications at this time.</p>`;
     return;
   }
@@ -61,6 +63,10 @@ async function loadNotifications() {
 }
 
 function renderNotifications(notifications) {
+  if (clearAllBtn) {
+    clearAllBtn.style.display = (notifications && notifications.length > 0) ? 'block' : 'none';
+  }
+
   if (!notifications || notifications.length === 0) {
     notificationsList.innerHTML = `
       <div class="empty-notif">
@@ -72,27 +78,43 @@ function renderNotifications(notifications) {
   }
 
   notificationsList.innerHTML = notifications.map(notif => {
-    // Fallback for missing actor (e.g. deleted user)
+    // Fallback for missing actor
     const actorName = notif.actor?.name || "Someone";
     const actorAvatar = notif.actor?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(actorName)}&background=random`;
     
     const isUnread = !notif.is_read ? "unread" : "";
     
-    // Choose Icon
-    let icon = "fi-rr-bell"; // default
-    if (notif.type === 'follow') icon = "fi-rr-user-add";
-    if (notif.type === 'post') icon = "fi-rr-document";
+    // Choose Icon and Type Class
+    let icon = "fi-rr-bell";
+    let typeClass = "";
+    
+    if (notif.type === 'follow') {
+        icon = "fi-rr-user-add";
+        typeClass = "follow";
+    } else if (notif.type === 'post') {
+        // Disambiguate 'post' type based on message content
+        if (notif.message && notif.message.toLowerCase().includes('liked')) {
+            icon = "fi-rr-heart";
+            typeClass = "like";
+        } else if (notif.message && notif.message.toLowerCase().includes('comment')) {
+            icon = "fi-rr-comment";
+            typeClass = "comment";
+        } else {
+            icon = "fi-rr-document"; // Generic post notification
+        }
+    }
 
     // Construct URL
-    // Use resource_url if available
     const linkUrl = notif.resource_url || "#";
 
     return `
       <a href="${linkUrl}" class="notification-item ${isUnread}" data-id="${notif.id}">
-        <div class="notif-icon">
-          <i class="fi ${icon}"></i>
+        <div class="notif-avatar-wrapper">
+            <img src="${actorAvatar}" alt="${actorName}" class="notif-avatar">
+            <div class="notif-badge ${typeClass}">
+                <i class="fi ${icon}"></i>
+            </div>
         </div>
-        <img src="${actorAvatar}" alt="${actorName}" class="notif-avatar">
         <div class="notif-content">
           <p class="notif-message">
             <strong>${actorName}</strong> ${notif.message}
@@ -117,6 +139,54 @@ function renderNotifications(notifications) {
         await supabase.from('notifications').update({ is_read: true }).eq('id', id);
       }
     });
+  });
+}
+
+// Clear All Event Listener
+if (clearAllBtn) {
+  clearAllBtn.addEventListener("click", async () => {
+    if (!confirm("Are you sure you want to clear all notifications?")) return;
+
+    const originalText = clearAllBtn.innerText;
+    clearAllBtn.innerText = "Clearing...";
+    clearAllBtn.disabled = true;
+
+    try {
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
+      
+      if (authError || !session) {
+        throw new Error("No active session");
+      }
+
+      const { error } = await supabase
+          .from('notifications')
+          .delete()
+          .eq('user_id', session.user.id);
+
+      if (error) throw error;
+      
+      // Success feedback
+      notificationsList.innerHTML = `
+        <div class="empty-notif">
+          <i class="fi fi-rr-check-circle" style="color: var(--brand);"></i>
+          <p>All notifications cleared!</p>
+        </div>
+      `;
+      clearAllBtn.style.display = 'none';
+      
+    } catch (err) {
+      console.error("Error clearing notifications:", err);
+      if (err.message === "No active session") {
+          window.location.href = "auth.html";
+      } else {
+          alert("Failed to clear notifications. Please try again.");
+      }
+    } finally {
+      if (clearAllBtn) {
+          clearAllBtn.innerText = originalText;
+          clearAllBtn.disabled = false;
+      }
+    }
   });
 }
 
