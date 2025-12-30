@@ -105,7 +105,18 @@ function renderNotifications(notifications) {
     }
 
     // Construct URL
-    const linkUrl = notif.resource_url || "#";
+    let linkUrl = notif.resource_url;
+
+    if (!linkUrl) {
+        if (notif.type === 'follow') {
+            const actorId = notif.actor?.id || notif.actor_id;
+            if (actorId) linkUrl = `profile.html?userId=${actorId}`;
+        } else if ((notif.type === 'post' || notif.type === 'like' || notif.type === 'comment') && notif.post_id) {
+            linkUrl = `comment.html?postId=${notif.post_id}`;
+        }
+    }
+
+    if (!linkUrl) linkUrl = "#";
 
     return `
       <a href="${linkUrl}" class="notification-item ${isUnread}" data-id="${notif.id}">
