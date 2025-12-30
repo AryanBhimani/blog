@@ -102,8 +102,17 @@ window.changePassword = async () => {
   const newPass = document.getElementById("newPass").value;
   const confirmPass = document.getElementById("confirmPass").value;
 
-  if (!currentPass || !newPass || !confirmPass) {
-    return alert("All fields are required.");
+  // Check if user has a password provider
+  // Typically Supabase stores providers in app_metadata.providers array (e.g. ['email', 'google'])
+  const hasPasswordProvider = user.app_metadata?.providers?.includes('email');
+
+  // If user has a password, we require the old one. If not (OAuth only), we skip old password.
+  if (hasPasswordProvider && !currentPass) {
+      return alert("Please enter your current password.");
+  }
+
+  if (!newPass || !confirmPass) {
+    return alert("Please enter a new password.");
   }
 
   if (newPass !== confirmPass) {
@@ -114,10 +123,12 @@ window.changePassword = async () => {
     return alert("Password must be at least 6 characters long.");
   }
 
-  // Verify old password
-  const isValid = await verifyPassword(user.email, currentPass);
-  if (!isValid) {
-    return alert("Incorrect current password.");
+  // Verify old password ONLY if they have one
+  if (hasPasswordProvider) {
+      const isValid = await verifyPassword(user.email, currentPass);
+      if (!isValid) {
+        return alert("Incorrect current password.");
+      }
   }
 
   // Update
