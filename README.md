@@ -97,7 +97,14 @@ Blog.in/
      - `profiles` (id, username, full_name, avatar_url, bio, website)
      - `posts` (id, user_id, title, content, created_at)
      - `comments` (id, post_id, user_id, content, created_at)
+     - `comments` (id, post_id, user_id, content, created_at)
      - `followers` (follower_id, following_id)
+     - `notifications` (id, user_id, actor_id, type, message, is_read, resource_url, created_at)
+
+     > **Important**: Enable RLS on the `notifications` table and add these policies:
+     > 1. **SELECT**: `auth.uid() = user_id`
+     > 2. **UPDATE**: `auth.uid() = user_id` (with check: `auth.uid() = user_id`)
+     > 3. **DELETE**: `auth.uid() = user_id`
 
 3. **Connect to Supabase**
    - Rename `js/supabase/supabaseClient.example.js` to `js/supabase/supabaseClient.js` (if strictly following a template, otherwise just edit the existing file).

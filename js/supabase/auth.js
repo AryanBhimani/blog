@@ -58,6 +58,22 @@ export async function login(email, password) {
   }
 
   alert("Welcome back! 🎉");
+
+  // Track Login Device
+  try {
+    const ua = navigator.userAgent;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+        await supabase.from('user_logins').insert({
+            user_id: user.id,
+            device_info: ua,
+            last_login: new Date().toISOString()
+        });
+    }
+  } catch (err) {
+    console.warn("Could not log device activity", err);
+  }
+
   window.location.href = "index.html";
   return true;
 }

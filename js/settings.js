@@ -138,6 +138,80 @@ window.changePassword = async () => {
   }
 };
 
+// Fetch Login Activity
+async function fetchLoginActivity() {
+    const list = document.getElementById('activity-list');
+    list.innerHTML = `<div class="loading">Loading...</div>`;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+        .from('user_logins')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('last_login', { ascending: false });
+
+    if (error) {
+        // Graceful fallback if table doesn't exist
+        console.warn('Activity log error:', error);
+        list.innerHTML = `
+            <div style="padding: 20px; text-align: center; color: var(--text-muted); background: var(--bg-body); border-radius: 8px;">
+                <p>No activity history available yet.</p>
+                <small>(The tracking database might not be configured)</small>
+            </div>
+        `;
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        list.innerHTML = `<p style="color: var(--text-muted);">No recorded logins found.</p>`;
+        return;
+    }
+
+    list.innerHTML = data.map(log => {
+        // Parse simple UA
+        let deviceName = "Unknown Device";
+        let icon = "fi-rr-globe"; // Default web
+
+        if (log.device_info.includes('Windows')) { deviceName = "Windows PC"; icon="fi-rr-computer"; }
+        else if (log.device_info.includes('Macintosh')) { deviceName = "Mac"; icon="fi-rr-laptop"; }
+        else if (log.device_info.includes('Linux')) { deviceName = "Linux System"; icon="fi-rr-terminal"; }
+        else if (log.device_info.includes('Android')) { deviceName = "Android Device"; icon="fi-rr-smartphone"; }
+        else if (log.device_info.includes('iPhone')) { deviceName = "iPhone"; icon="fi-rr-mobile-button"; }
+
+        // Browser check
+        let browser = "Browser";
+        if (log.device_info.includes('Chrome')) browser = "Chrome";
+        else if (log.device_info.includes('Firefox')) browser = "Firefox";
+        else if (log.device_info.includes('Safari')) browser = "Safari";
+        else if (log.device_info.includes('Edge')) browser = "Edge";
+
+        const date = new Date(log.last_login).toLocaleString();
+
+        return `
+            <div style="display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid var(--border-color);">
+                <div style="width: 40px; height: 40px; background: var(--bg-body); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--text-main);">
+                    <i class="fi ${icon}"></i>
+                </div>
+                <div>
+                    <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600;">${deviceName} • ${browser}</h4>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">${date}</span>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+// Hook into switchTab to load data when Activity tab is shown
+const originalSwitchTab = window.switchTab;
+window.switchTab = (tabId, navItem) => {
+    originalSwitchTab(tabId, navItem);
+    if (tabId === 'activity-screen') {
+        fetchLoginActivity();
+    }
+};
+
 // Delete Account
 window.deleteAccount = async () => {
   const { data } = await supabase.auth.getUser();
