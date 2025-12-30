@@ -76,39 +76,116 @@ function applyFilters() {
 }
 
 /* ---------------------------
-   LOAD POSTS
+   LOAD POSTS (FEED ALGORITHM)
 ---------------------------- */
 async function loadAllPosts() {
   if (!postsList) return;
 
   postsList.innerHTML = `<div class="loading">
     <div class="loading-spinner"></div>
-    <p>Loading blogs...</p>
+    <p>Curating your feed...</p>
   </div>`;
 
-  const { data, error } = await supabase
-    .from("posts")
-    .select(`id, title, content, image_url, tags, created_at, user_id, users(name, avatar_url)`)
-    .order("created_at", { ascending: false });
+  try {
+      // 1. Fetch Followed User IDs (Affinity)
+      let followedIds = new Set();
+      if (currentUser) {
+          const { data: follows } = await supabase
+              .from("followers")
+              .select("following")
+              .eq("follower", currentUser.id);
+          
+          if (follows) {
+              follows.forEach(f => followedIds.add(f.following));
+          }
+      }
 
-  if (error) {
-    postsList.innerHTML = `<p class="no-results">Failed to load blogs</p>`;
-    return;
+      // 2. Fetch Posts with Engagement Counts
+      // select(count) is efficiently supported for getting the number of related rows
+      const { data, error } = await supabase
+        .from("posts")
+        .select(`
+            id, title, content, image_url, tags, created_at, user_id,
+            users (name, avatar_url),
+            likes (count),
+            comments (count)
+        `)
+        .order("created_at", { ascending: false })
+        .limit(100); // Limit efficient initial load
+
+      if (error) {
+        console.error("Feed Error:", error);
+        postsList.innerHTML = `<p class="no-results">Failed to load feed</p>`;
+        return;
+      }
+
+      // 3. Process & Rank Algorithm
+      const processedPosts = data.map(p => {
+          const likesCount = p.likes ? p.likes[0]?.count || 0 : 0; // .select('likes(count)') returns array 
+          // Actually supabase .select('likes(count)') usually returns [{count: N}] or similar depending on version.
+          // Wait, 'likes(count)' results in p.likes having {count: N} if using head? 
+          // In JS client V2: select('*, likes(count)') -> p.likes = [{count: 5}]
+          
+          let lCount = 0;
+          let cCount = 0;
+          
+          if(p.likes && p.likes.length > 0) lCount = p.likes[0].count;
+          if(p.comments && p.comments.length > 0) cCount = p.comments[0].count;
+
+          // Safe fallback if the count syntax returned weird structure
+          // If the count query didn't work as expected, we default to 0 to avoid NaN
+          
+          return {
+            id: p.id,
+            title: p.title,
+            content: p.content,
+            image: p.image_url,
+            tags: parseTags(p.tags),
+            author: p.users?.name || "Unknown",
+            authorAvatar: p.users?.avatar_url || "./assets/images/default-avatar.png",
+            userId: p.users?.id || p.user_id, // Store author ID for affinity check
+            createdAt: new Date(p.created_at),
+            likesCount: lCount,
+            commentsCount: cCount
+          };
+      });
+
+      // 4. Algorithm Scoring
+      // Score = (Affinity * W1) + (Freshness * W2) + (Popularity * W3)
+      const rankedPosts = processedPosts.map(post => {
+          // A. Affinity (Is Followed?)
+          const isFollowed = followedIds.has(post.userId);
+          const affinityScore = isFollowed ? 50 : 0; 
+          // (Self is also high affinity intuitively, but let's keep it standard)
+          // If it's me, maybe neutral?
+          
+          // B. Freshness (Time Decay)
+          // Hours since posted
+          const now = new Date();
+          const hoursAgo = (now - post.createdAt) / (1000 * 60 * 60);
+          // Decay function: 100 / (hours + 2)^1.5 
+          // Recent posts (0h) = 35 pts. 24h ago = ~0.7 pts.
+          const freshnessScore = 150 / Math.pow(hoursAgo + 1, 1.2); 
+
+          // C. Popularity (Engagement)
+          // Comments are worth more than likes
+          const popularityScore = (post.likesCount * 1) + (post.commentsCount * 3);
+
+          const totalScore = affinityScore + freshnessScore + popularityScore;
+
+          return { ...post, score: totalScore, debugScore: { affinityScore, freshnessScore, popularityScore } };
+      });
+
+      // 5. Sort
+      rankedPosts.sort((a, b) => b.score - a.score);
+
+      allPosts = rankedPosts;
+      applyFilters(); // Render
+
+  } catch (err) {
+      console.error("Algo Error:", err);
+      postsList.innerHTML = `<p class="no-results">Error calculating feed</p>`;
   }
-
-  allPosts = data.map(p => ({
-    id: p.id,
-    title: p.title,
-    content: p.content,
-    image: p.image_url,
-    tags: parseTags(p.tags),
-    author: p.users?.name || "Unknown",
-    authorAvatar: p.users?.avatar_url || "./assets/images/default-avatar.png",
-    createdAt: new Date(p.created_at)
-  }));
-
-  // Initial render (filters default to 'all')
-  applyFilters();
 }
 
 function parseTags(tags) {
