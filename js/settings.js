@@ -139,20 +139,41 @@ window.changePassword = async () => {
 };
 
 // Remote Logout (Remove specific entry)
-window.removeLoginEntry = async (id) => {
-    if (!confirm("Remove this login session?")) return;
+// Remote Logout (Remove specific entry)
+window.removeLoginEntry = async (id, btn) => {
+    if (!confirm("Are you sure you want to log out this device?")) return;
 
-    const { error } = await supabase
-        .from('user_logins')
-        .delete()
-        .eq('id', id);
+    if(btn) {
+        btn.innerText = "Processing...";
+        btn.disabled = true;
+    }
 
-    if (error) {
-        console.error(error);
-        alert("Failed to remove login entry.");
-    } else {
-        // Refresh list
-        fetchLoginActivity();
+    try {
+        const { error } = await supabase
+            .from('user_logins')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error("Logout Error:", error);
+            // Check for RLS policy violation
+            if (error.code === "42501") {
+                alert("Permission denied. Please run the SQL command to enable delete permissions.");
+            } else {
+                alert("Failed to remove login entry: " + error.message);
+            }
+        } else {
+            // Refresh list
+            fetchLoginActivity();
+        }
+    } catch (err) {
+        console.error("Unexpected error:", err);
+        alert("An unexpected error occurred.");
+    } finally {
+        if(btn && !btn.closest('div')) { // If row is gone, no need to reset
+            btn.innerText = "Log Out";
+            btn.disabled = false;
+        }
     }
 };
 
@@ -188,22 +209,36 @@ async function fetchLoginActivity() {
     }
 
     list.innerHTML = data.map(log => {
-        // Parse simple UA
+        // Parse User Agent
+        const ua = log.device_info || "";
         let deviceName = "Unknown Device";
-        let icon = "fi-rr-globe"; // Default web
+        let icon = "fi-rr-globe"; 
+        let browser = "Unknown Browser";
 
-        if (log.device_info.includes('Windows')) { deviceName = "Windows PC"; icon="fi-rr-computer"; }
-        else if (log.device_info.includes('Macintosh')) { deviceName = "Mac"; icon="fi-rr-laptop"; }
-        else if (log.device_info.includes('Linux')) { deviceName = "Linux System"; icon="fi-rr-terminal"; }
-        else if (log.device_info.includes('Android')) { deviceName = "Android Device"; icon="fi-rr-smartphone"; }
-        else if (log.device_info.includes('iPhone')) { deviceName = "iPhone"; icon="fi-rr-mobile-button"; }
+        // OS Detection
+        if (/windows/i.test(ua)) { deviceName = "Windows PC"; icon="fi-rr-computer"; }
+        else if (/macintosh|mac os x/i.test(ua)) { deviceName = "Mac"; icon="fi-rr-laptop"; }
+        else if (/android/i.test(ua)) { deviceName = "Android Device"; icon="fi-rr-smartphone"; }
+        else if (/iphone|ipad|ipod/i.test(ua)) { deviceName = "iOS Device"; icon="fi-rr-mobile-button"; }
+        else if (/linux/i.test(ua)) { deviceName = "Linux System"; icon="fi-rr-terminal"; }
 
-        // Browser check
-        let browser = "Browser";
-        if (log.device_info.includes('Chrome')) browser = "Chrome";
-        else if (log.device_info.includes('Firefox')) browser = "Firefox";
-        else if (log.device_info.includes('Safari')) browser = "Safari";
-        else if (log.device_info.includes('Edge')) browser = "Edge";
+        // Mobile App Check (if UA contains 'wv' or is inside an app wrapper)
+        if (/wv/i.test(ua) || /mobile/i.test(ua) && !/safari/i.test(ua)) {
+             // Heuristic for webview/app
+        }
+
+        // Browser Detection
+        if (/chrome|crios|crmo/i.test(ua)) browser = "Chrome";
+        else if (/firefox|fxios/i.test(ua)) browser = "Firefox";
+        else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = "Safari";
+        else if (/edg/i.test(ua)) browser = "Edge";
+        else if (/opera|opr/i.test(ua)) browser = "Opera";
+        
+        // Refine Name if detailed
+        if (deviceName === "Android Device" && /build\/([a-zA-Z0-9]+)/i.test(ua)) {
+             const match = ua.match(/;\s([a-zA-Z0-9\s]+)\sbuild/i);
+             if (match && match[1]) deviceName = match[1]; // e.g. "Pixel 6"
+        }
 
         const date = new Date(log.last_login).toLocaleString();
 
@@ -219,7 +254,7 @@ async function fetchLoginActivity() {
                     </div>
                 </div>
                 
-                <button onclick="removeLoginEntry('${log.id}')" style="padding: 6px 12px; border: 1px solid var(--border-color); background: transparent; border-radius: 6px; cursor: pointer; color: #dc2626; font-size: 0.85rem; font-weight: 600; transition: all 0.2s;">
+                <button onclick="removeLoginEntry('${log.id}', this)" style="padding: 6px 12px; border: 1px solid var(--border-color); background: transparent; border-radius: 6px; cursor: pointer; color: #dc2626; font-size: 0.85rem; font-weight: 600; transition: all 0.2s;">
                     Log Out
                 </button>
             </div>
