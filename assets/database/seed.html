@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seeder - Add 100 Posts</title>
+    <link rel="stylesheet" href="/css/main.css">
+
+    <style>
+        body {
+            padding: 40px;
+        }
+
+        .log-box {
+            background: #111;
+            color: #0f0;
+            padding: 20px;
+            font-family: monospace;
+            height: 400px;
+            overflow-y: auto;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #f50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>TechCrunch Post Seeder 🚀</h1>
+    <p>This tool will insert 100 high-quality tech blog posts into your Supabase database.</p>
+
+    <div id="status">Checking auth...</div>
+    <br>
+    <button id="startBtn" class="btn" style="display:none;">Start Seeding 100 Posts</button>
+
+    <div class="log-box" id="logs"></div>
+
+    <script type="module">
+        import { supabase } from "./js/supabase/supabaseClient.js";
+
+        const startBtn = document.getElementById('startBtn');
+        const status = document.getElementById('status');
+        const logs = document.getElementById('logs');
+        let currentUser = null;
+
+        function log(msg) {
+            const div = document.createElement('div');
+            div.textContent = `> ${msg}`;
+            logs.appendChild(div);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        // Check Auth
+        async function checkAuth() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                currentUser = user;
+                status.innerHTML = `Logged in as: <strong>${user.email}</strong>`;
+                startBtn.style.display = 'inline-block';
+            } else {
+                status.innerHTML = `⚠️ You are not logged in. <a href="/auth.html">Go to Login</a> and come back.`;
+            }
+        }
+        checkAuth();
+
+        // Data Generators
+        const topics = ["AI", "Crypto", "Startups", "Venture", "Security", "Gadgets", "Apps", "Enterprise", "Fintech", "Space"];
+        const companies = ["OpenAI", "Google", "SpaceX", "Apple", "Microsoft", "Meta", "NVIDIA", "Stripe", "Coinbase", "Tesla"];
+        const actions = ["launches", "acquires", "reveals", "updates", "disrupts", "invests in", "partners with", "sues", "hires"];
+        const nouns = ["new AI model", "quantum computer", "social app", "privacy feature", "crypto wallet", "Series A funding", "autonomous robot", "smart glasses"];
+
+        function generatePost(index) {
+            const topic = topics[Math.floor(Math.random() * topics.length)];
+            const company = companies[Math.floor(Math.random() * companies.length)];
+            const action = actions[Math.floor(Math.random() * actions.length)];
+            const noun = nouns[Math.floor(Math.random() * nouns.length)];
+
+            const title = `${company} ${action} ${noun} to revolutionize ${topic}`;
+
+            const content = `
+                In a groundbreaking move for the ${topic} industry, ${company} has officially announced its latest initiative: a ${noun}. 
+                This development comes after months of speculation and is expected to shake up the market significantly.
+                <br><br>
+                "We believe this is the future of ${topic}," said the CEO in a press conference today. 
+                Early analysts suggest that this could capture a significant market share within the next quarter.
+                <br><br>
+                The technology behind this involves advanced machine learning algorithms and a proprietary stack that has been in development for over two years. 
+                Competitors are scrambling to respond, but ${company} seems to have a clear head start.
+                <br><br>
+                Stay tuned to Blog.in for more updates on this developing story.
+            `;
+
+            // Random varied image (using Unsplash source randomly to get different tech images)
+            const imageUrl = `https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80&sig=${Math.floor(Math.random() * 1000)}`;
+
+            return {
+                title: title,
+                content: content.trim(),
+                image_url: imageUrl,
+                tags: [topic, "Technology", "News"], // Send native array, let Supabase handle type
+                user_id: currentUser.id,
+                created_at: new Date(Date.now() - Math.floor(Math.random() * 1000000000)).toISOString()
+            };
+        }
+
+        // Seeder Logic
+        startBtn.addEventListener('click', async () => {
+            if (!currentUser) return;
+            startBtn.disabled = true;
+            log("Starting seed process...");
+
+            let successCount = 0;
+
+            for (let i = 1; i <= 100; i++) {
+                const post = generatePost(i);
+
+                const { error } = await supabase
+                    .from('posts')
+                    .insert(post);
+
+                if (error) {
+                    log(`Error inserting post ${i}: ${error.message}`);
+                    if (i === 1) {
+                        alert(`Failed to insert first post. Error: ${error.message}\n\nMake sure your Supabase RLS policies allow INSERTs.`);
+                    }
+                } else {
+                    log(`✅ Inserted post ${i}/100: ${post.title}`);
+                    successCount++;
+                }
+
+                // Small delay to prevent rate limiting
+                await new Promise(r => setTimeout(r, 100));
+            }
+
+            log(`Done! Automatically inserted ${successCount} posts.`);
+            alert(`Successfully added ${successCount} posts!`);
+        });
+
+    </script>
+</body>
+
+</html>
