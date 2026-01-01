@@ -99,7 +99,7 @@ async function loadPost(id) {
 // Tag Handling
 // ----------------------
 tagInputReal.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === ",") {
+    if (e.key === "Enter" || e.code === "Enter" || e.keyCode === 13 || e.key === ",") {
         e.preventDefault();
         addTag(tagInputReal.value);
     }
