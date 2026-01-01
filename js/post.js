@@ -98,6 +98,7 @@ async function loadPost(id) {
 // ----------------------
 // Tag Handling
 // ----------------------
+// Keydown for Desktop/Standard behavior
 tagInputReal.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.code === "Enter" || e.keyCode === 13 || e.key === ",") {
         e.preventDefault();
@@ -106,6 +107,20 @@ tagInputReal.addEventListener("keydown", (e) => {
     // Backspace to remove last
     if (e.key === "Backspace" && tagInputReal.value === "" && tags.length > 0) {
         removeTag(tags.length - 1);
+    }
+});
+
+// Input event to catch comma or potential Android "Enter" handling via text composition
+tagInputReal.addEventListener("input", (e) => {
+    if (e.data === ',' || tagInputReal.value.endsWith(',')) {
+        addTag(tagInputReal.value);
+    }
+});
+
+// Blur event to save tag when user leaves the field or hits "Done" on mobile
+tagInputReal.addEventListener("blur", () => {
+    if (tagInputReal.value.trim()) {
+        addTag(tagInputReal.value);
     }
 });
 
