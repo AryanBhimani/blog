@@ -64,6 +64,39 @@ async function loadPost() {
   // Populate Header
   document.getElementById("post-title").textContent = post.title;
 
+  // -------------------------
+  // SEO OPTIMIZATION
+  // -------------------------
+  document.title = `${post.title} | Blog.in`;
+  
+  // Strip HTML for description
+  const cleanContent = post.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + "...";
+  
+  const updateMeta = (key, value, isProp = false) => {
+      let el = isProp 
+        ? document.querySelector(`meta[property="${key}"]`) 
+        : document.querySelector(`meta[name="${key}"]`);
+      if (el) el.setAttribute("content", value);
+  };
+
+  updateMeta("description", `Read ${post.title} on Blog.in. ${cleanContent}`);
+  
+  // Open Graph
+  updateMeta("og:title", post.title, true);
+  updateMeta("og:description", cleanContent, true);
+  updateMeta("og:url", window.location.href, true);
+  
+  // Twitter
+  updateMeta("twitter:title", post.title, true);
+  updateMeta("twitter:description", cleanContent, true);
+  updateMeta("twitter:url", window.location.href, true);
+
+  if (post.image_url) {
+      updateMeta("og:image", post.image_url, true);
+      updateMeta("twitter:image", post.image_url, true);
+  }
+  // -------------------------
+
   // Header Tags Injection
   let tags = post.tags;
   // Parse tags if string
