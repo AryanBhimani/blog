@@ -185,6 +185,9 @@
 
 .faq-question:hover {
     color: var(--brand);
+    background: transparent;
+    transform: none;
+    box-shadow: none;
 }
 
 .faq-toggle-icon {
