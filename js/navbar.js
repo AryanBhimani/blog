@@ -1,7 +1,7 @@
 import { supabase } from "./supabase/supabaseClient.js";
 
 // Load navbar HTML
-fetch("/components/navbar.html")
+fetch("./components/navbar.html")
   .then(res => res.text())
   .then(data => {
     const navbarPlaceholder = document.getElementById("navbar-placeholder");

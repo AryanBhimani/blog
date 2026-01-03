@@ -8,17 +8,17 @@
   <meta name="description"
     content="Login or Sign Up to Blog.in to start writing and sharing your stories with the world.">
   <link rel="canonical" href="https://blog--in.vercel.app/auth" />
-  <link rel="icon" type="image/png" href="/assets/images/blog.in.png">
+  <link rel="icon" type="image/png" href="./assets/images/blog.in.png">
 
   <!-- Flaticon/Icons -->
   <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css" />
   <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css" />
   <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-brands/css/uicons-brands.css" />
 
-  <link rel="stylesheet" href="/css/main.css">
-  <link rel="stylesheet" href="/css/auth.css">
-  <link rel="stylesheet" href="/css/navbar.css">
-  <link rel="stylesheet" href="/css/footer.css">
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/auth.css">
+  <link rel="stylesheet" href="./css/navbar.css">
+  <link rel="stylesheet" href="./css/footer.css">
 </head>
 
 <body class="auth-page">
@@ -26,7 +26,7 @@
 
   <main class="auth-container">
     <section class="auth-illustration">
-      <img src="/assets/images/blog.in.png" alt="Auth Illustration">
+      <img src="./assets/images/blog.in.png" alt="Auth Illustration">
       <h2>Welcome to <span class="brand">BlogPlatform</span> ✨</h2>
       <p>Login or create an account to share your stories with the world.</p>
     </section>
@@ -46,12 +46,12 @@
         <button type="button" id="login-btn">Login</button>
 
         <button type="button" class="google-auth-btn">
-          <img src="/assets/images/google.png" alt="Google Logo">
+          <img src="./assets/images/google.png" alt="Google Logo">
           Continue with Google
         </button>
 
         <p class="auth-links">
-          <a href="/forgot.html">Forgot password?</a>
+          <a href="./forgot.html">Forgot password?</a>
         </p>
       </form>
 
@@ -64,7 +64,7 @@
         <button type="button" id="signup-btn">Signup</button>
 
         <button type="button" class="google-auth-btn">
-          <img src="/assets/images/google.png" alt="Google Logo">
+          <img src="./assets/images/google.png" alt="Google Logo">
           Continue with Google
         </button>
       </form>
@@ -73,8 +73,8 @@
 
   <div id="footer-placeholder"></div>
 
-  <script type="module" src="/js/navbar.js"></script>
-  <script type="module" src="/js/footer.js"></script>
+  <script type="module" src="./js/navbar.js"></script>
+  <script type="module" src="./js/footer.js"></script>
 
   <script type="module">
     import { login, signup, loginWithGoogle } from "/js/supabase/auth.js";
