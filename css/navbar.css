@@ -9,23 +9,42 @@
 }
 
 /* Navbar Container */
+/* Navbar Container - Floating Glass Design */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 5%;
+  padding: 12px 30px;
   background: var(--navbar-bg);
-  /* Glassmorphism */
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border-color);
-  /* position: sticky;  <-- REMOVED (Moved to placeholder) */
-  /* top: 0; */
-  /* z-index: 1000; */
-  position: relative;
-  /* Ensure it stays a positioning context for children if needed */
-  transition: all 0.3s ease;
-  height: 70px;
+  /* Use semi-transparent var if available, else override below */
+  background: rgba(255, 255, 255, 0.7);
+
+  /* Floating Positioning */
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1280px;
+  border-radius: 20px;
+
+  /* Premium Glassmorphism */
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+
+  z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scrolled state (optional - Javascript would toggle this class, keeping it simple for now as always floating) */
+
+/* Adjusted Spacer for Fixed Nav */
+#navbar-placeholder {
+  height: 100px;
+  /* Push content down since nav is fixed */
+  background: transparent;
 }
 
 /* Logo */
@@ -127,7 +146,7 @@
   border: 1px solid var(--border-color);
   width: 40px;
   height: 40px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
@@ -144,8 +163,9 @@
 
 /* Dark mode overrides */
 [data-theme="dark"] .navbar {
-  background: var(--navbar-bg);
-  border-bottom-color: var(--border-color);
+  background: rgba(18, 18, 18, 0.75);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
 
 [data-theme="dark"] .theme-btn {
@@ -168,6 +188,12 @@
   }
 
   [data-theme="dark"] .nav-links li a {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Utility Icons Border Fix */
+  [data-theme="dark"] #nav-notifications-link,
+  [data-theme="dark"] #nav-theme-item {
     border-bottom-color: rgba(255, 255, 255, 0.05);
   }
 }
@@ -199,26 +225,72 @@
 
   .nav-links {
     position: absolute;
-    top: 100%;
-    /* Directly below navbar */
+    top: calc(100% + 15px);
+    /* Gap between navbar and menu */
     left: 0;
     width: 100%;
-    background: #ffffff;
-    flex-direction: column;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    /* Rounded card */
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     padding: 0;
-    /* Reset padding */
     z-index: 1000;
   }
 
+  /* Dark mode mobile menu */
+  [data-theme="dark"] .nav-links {
+    background: rgba(20, 20, 20, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Utility Icons Row (Notifications & Theme) */
+  #nav-notifications-link,
+  #nav-theme-item {
+    width: 50%;
+    /* Share row */
+    display: flex;
+    justify-content: center;
+    border-bottom: none;
+    /* No border for cleaner separation */
+    padding: 15px 0 5px;
+    /* Slight adjust */
+  }
+
+  #nav-notifications-link a {
+    border-bottom: none;
+    /* Remove inner border */
+    padding: 0;
+    width: auto;
+    font-size: 1.2rem;
+    /* Match theme icon size */
+  }
+
+  /* Adjust theme item specific spacing */
+  #nav-theme-item {
+    margin-top: 0;
+    /* Reset */
+  }
+
   .nav-links.show {
-    max-height: 400px;
+    max-height: 600px;
+    /* Increased to prevent cutoff */
+    padding-bottom: 20px;
+    /* Add bottom spacing */
   }
 
   .nav-links li {

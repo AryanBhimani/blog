@@ -9,6 +9,12 @@ const searchResultsInfo = document.getElementById("search-results-info");
 let allPosts = [];
 let currentUser = null;
 
+// Pagination State
+let currentPage = 1;
+const POSTS_PER_PAGE = 10;
+let hasMore = true;
+let isLoading = false;
+
 /* ---------------------------
    AUTH USER
 ---------------------------- */
@@ -24,9 +30,11 @@ supabase.auth.onAuthStateChange((_event, session) => {
    LOAD ON PAGE
 ---------------------------- */
 document.addEventListener("DOMContentLoaded", () => {
-  loadAllPosts();
+  // Initial Load
+  loadPostsChunk(); 
   setupFilters();
   setupSearch();
+  setupInfiniteScroll();
 });
 
 /* ---------------------------
@@ -44,16 +52,26 @@ function setupFilters() {
 
             // Set filter
             currentFilter = btn.dataset.filter;
-            applyFilters();
+            
+            // Reset List for new filter
+            resetFeed();
         };
     });
 }
 
-function applyFilters() {
+function resetFeed() {
+    currentPage = 1;
+    allPosts = [];
+    hasMore = true;
+    postsList.innerHTML = "";
+    loadPostsChunk();
+}
+
+function applyFilters(posts) {
     const term = searchInput ? searchInput.value.toLowerCase().trim() : "";
     
     // 1. Filter by Category
-    let filtered = allPosts;
+    let filtered = posts;
     if (currentFilter === 'stories') {
         filtered = filtered.filter(p => !p.image); // No image = Story
     }
@@ -66,42 +84,41 @@ function applyFilters() {
           p.author.toLowerCase().includes(term)
         );
         if (searchResultsInfo) {
-            searchResultsInfo.textContent = `Showing ${filtered.length} result${filtered.length === 1 ? '' : 's'}`;
+            searchResultsInfo.textContent = `Showing ${filtered.length} results`;
         }
     } else {
         if (searchResultsInfo) searchResultsInfo.textContent = "";
     }
 
-    renderPosts(filtered);
+    return filtered;
 }
 
 /* ---------------------------
-   LOAD POSTS (FEED ALGORITHM)
+   LOAD POSTS (PAGINATED)
 ---------------------------- */
-async function loadAllPosts() {
-  if (!postsList) return;
+async function loadPostsChunk() {
+  if (!postsList || isLoading || !hasMore) return;
+  isLoading = true;
 
-  postsList.innerHTML = `<div class="loading">
-    <div class="loading-spinner"></div>
-    <p>Curating your feed...</p>
-  </div>`;
+  // Show Loading Spinner if first load
+  if(currentPage === 1) {
+      postsList.innerHTML = `<div class="loading">
+        <div class="loading-spinner"></div>
+        <p>Curating your feed...</p>
+      </div>`;
+  } else {
+      // Append loader for pagination
+      const loader = document.createElement("div");
+      loader.className = "pagination-loader";
+      loader.innerHTML = `<div class="loading-spinner small"></div>`;
+      postsList.appendChild(loader);
+  }
 
   try {
-      // 1. Fetch Followed User IDs (Affinity)
-      let followedIds = new Set();
-      if (currentUser) {
-          const { data: follows } = await supabase
-              .from("followers")
-              .select("following")
-              .eq("follower", currentUser.id);
-          
-          if (follows) {
-              follows.forEach(f => followedIds.add(f.following));
-          }
-      }
+      const from = (currentPage - 1) * POSTS_PER_PAGE;
+      const to = from + POSTS_PER_PAGE - 1;
 
-      // 2. Fetch Posts with Engagement Counts
-      // select(count) is efficiently supported for getting the number of related rows
+      // 1. Fetch Posts
       const { data, error } = await supabase
         .from("posts")
         .select(`
@@ -111,30 +128,22 @@ async function loadAllPosts() {
             comments (count)
         `)
         .order("created_at", { ascending: false })
-        .limit(100); // Limit efficient initial load
+        .range(from, to);
 
-      if (error) {
-        console.error("Feed Error:", error);
-        postsList.innerHTML = `<p class="no-results">Failed to load feed</p>`;
-        return;
+      if (error) throw error;
+
+      if (data.length < POSTS_PER_PAGE) {
+          hasMore = false;
       }
 
-      // 3. Process & Rank Algorithm
+      // 2. Process Posts
       const processedPosts = data.map(p => {
-          const likesCount = p.likes ? p.likes[0]?.count || 0 : 0; // .select('likes(count)') returns array 
-          // Actually supabase .select('likes(count)') usually returns [{count: N}] or similar depending on version.
-          // Wait, 'likes(count)' results in p.likes having {count: N} if using head? 
-          // In JS client V2: select('*, likes(count)') -> p.likes = [{count: 5}]
-          
           let lCount = 0;
           let cCount = 0;
           
           if(p.likes && p.likes.length > 0) lCount = p.likes[0].count;
           if(p.comments && p.comments.length > 0) cCount = p.comments[0].count;
 
-          // Safe fallback if the count syntax returned weird structure
-          // If the count query didn't work as expected, we default to 0 to avoid NaN
-          
           return {
             id: p.id,
             title: p.title,
@@ -143,62 +152,60 @@ async function loadAllPosts() {
             tags: parseTags(p.tags),
             author: p.users?.name || "Unknown",
             authorAvatar: p.users?.avatar_url || "./assets/images/default-avatar.png",
-            userId: p.users?.id || p.user_id, // Store author ID for affinity check
+            userId: p.users?.id || p.user_id,
             createdAt: new Date(p.created_at),
             likesCount: lCount,
-            commentsCount: cCount
+            commentsCount: cCount,
+            readingTime: calculateReadingTime(p.content)
           };
       });
 
-      // 4. Algorithm Scoring
-      // Score = (Affinity * W1) + (Freshness * W2) + (Popularity * W3)
-      const rankedPosts = processedPosts.map(post => {
-          // A. Affinity (Is Followed?)
-          const isFollowed = followedIds.has(post.userId);
-          const affinityScore = isFollowed ? 50 : 0; 
-          // (Self is also high affinity intuitively, but let's keep it standard)
-          // If it's me, maybe neutral?
-          
-          // B. Freshness (Time Decay)
-          // Hours since posted
-          const now = new Date();
-          const hoursAgo = (now - post.createdAt) / (1000 * 60 * 60);
-          // Decay function: 100 / (hours + 2)^1.5 
-          // Recent posts (0h) = 35 pts. 24h ago = ~0.7 pts.
-          const freshnessScore = 150 / Math.pow(hoursAgo + 1, 1.2); 
+      // Remove loading indicators
+      if(currentPage === 1) {
+          postsList.innerHTML = "";
+      } else {
+          const loader = postsList.querySelector(".pagination-loader");
+          if(loader) loader.remove();
+      }
 
-          // C. Popularity (Engagement)
-          // Comments are worth more than likes
-          const popularityScore = (post.likesCount * 1) + (post.commentsCount * 3);
-
-          const totalScore = affinityScore + freshnessScore + popularityScore;
-
-          return { ...post, score: totalScore, debugScore: { affinityScore, freshnessScore, popularityScore } };
-      });
-
-      // 5. Sort
-      rankedPosts.sort((a, b) => b.score - a.score);
-
-      allPosts = rankedPosts;
-      applyFilters(); // Render
+      // Filter & Render
+      const filteredAndRanked = applyFilters(processedPosts);
+      
+      // Note: Client-side ranking/filtering breaks strict server-side pagination slightly, 
+      // but for "infinite scroll" of latest posts, appending is fine.
+      // If searching, we might need client-side search on loaded items or server search (simpler here: filter loaded).
+      
+      renderPosts(filteredAndRanked, currentPage === 1);
+      
+      allPosts = [...allPosts, ...processedPosts]; // Keep track if needed
+      currentPage++;
 
   } catch (err) {
-      console.error("Algo Error:", err);
-      postsList.innerHTML = `<p class="no-results">Error calculating feed</p>`;
+      console.error("Feed Error:", err);
+      if(currentPage === 1) {
+          postsList.innerHTML = `<p class="no-results">Failed to load feed</p>`;
+      }
+  } finally {
+      isLoading = false;
   }
+}
+
+function calculateReadingTime(text) {
+    const wordsPerMinute = 200;
+    const noTags = text.replace(/<[^>]*>/g, ''); 
+    const words = noTags.trim().split(/\s+/).length;
+    const time = Math.ceil(words / wordsPerMinute);
+    return `${time} min read`;
 }
 
 function parseTags(tags) {
   if (Array.isArray(tags)) return tags;
   if (!tags) return [];
   if (typeof tags === 'string') {
-    // Try JSON parse
     try {
       const parsed = JSON.parse(tags);
       if (Array.isArray(parsed)) return parsed;
     } catch (e) {
-      // If not JSON, maybe comma separated or Postgres array format?
-      // Handle Postgres {a,b,c}
       if (tags.startsWith('{') && tags.endsWith('}')) {
           return tags.slice(1, -1).split(',').map(t => t.replace(/"/g, ''));
       }
@@ -215,17 +222,46 @@ function setupSearch() {
   if (!searchInput) return;
 
   searchInput.addEventListener("input", () => {
-    applyFilters();
+      // For simple search on LOADED posts:
+      const term = searchInput.value.toLowerCase().trim();
+      if(!term) {
+          postsList.innerHTML = "";
+          renderPosts(allPosts, true); // re-render all loaded
+          return;
+      }
+      
+      const filtered = allPosts.filter(p =>
+          p.title.toLowerCase().includes(term) ||
+          p.content.toLowerCase().includes(term) ||
+          p.author.toLowerCase().includes(term)
+      );
+      
+      postsList.innerHTML = "";
+      renderPosts(filtered, true);
   });
+}
+
+/* ---------------------------
+   INFINITE SCROLL OBSERVER
+---------------------------- */
+function setupInfiniteScroll() {
+    const observer = new IntersectionObserver((entries) => {
+        if(entries[0].isIntersecting && hasMore && !isLoading && !searchInput.value) {
+            loadPostsChunk();
+        }
+    }, { rootMargin: "200px" });
+
+    // We observe a sentinel header/footer or create a dedicated element at bottom
+    // We will append a sentinel at the end of render
 }
 
 /* ---------------------------
    RENDER POSTS
 ---------------------------- */
-function renderPosts(posts) {
-  postsList.innerHTML = "";
+function renderPosts(posts, clear = false) {
+  if (clear) postsList.innerHTML = "";
 
-  if (!posts.length) {
+  if (!posts.length && clear) {
     postsList.innerHTML = `<div class="no-results">
       <div class="no-results-icon">📭</div>
       <p>No blogs found</p>
@@ -237,29 +273,38 @@ function renderPosts(posts) {
     const card = document.createElement("article");
     card.className = "post-card";
     card.dataset.postId = post.id;
+    
+    // Add fade-in animation
+    card.style.animation = "fadeIn 0.5s ease forwards";
 
     const dateStr = post.createdAt.toLocaleDateString(undefined, {month:'short', day:'numeric'});
 
     card.innerHTML = `
-      <!-- Date Badge (Always visible, positioned absolute relative to card) -->
-      <span class="post-date-badge">${dateStr}</span>
-
-      <!-- Image Section (Only if image exists) -->
+      <!-- 1. Image Section (includes Date Badge if image exists) -->
       ${post.image ? `
       <div class="post-card-image-container">
         <img src="${post.image}" class="post-card-img" loading="lazy">
+        <span class="post-date-badge">${dateStr}</span>
       </div>` : ''}
 
-      <!-- Content Section -->
+      <!-- 2. Content Section -->
       <div class="post-card-content">
         
-        <div class="post-author-row">
-            ${post.authorAvatar && !post.authorAvatar.includes("default-avatar.png")
-              ? `<img src="${post.authorAvatar}" class="post-author-avatar" onerror="this.src='./assets/images/default-avatar.png'">`
-              : `<div class="post-author-placeholder">${escapeHtml(post.author).charAt(0)}</div>`
-            }
-            <div class="post-author-info">
-                <span class="post-author-name">${escapeHtml(post.author)}</span>
+        <div class="post-header-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+             <!-- Author -->
+             <div class="post-author-row" style="margin-bottom:0;">
+                ${post.authorAvatar && !post.authorAvatar.includes("default-avatar.png")
+                  ? `<img src="${post.authorAvatar}" class="post-author-avatar" onerror="this.src='./assets/images/default-avatar.png'">`
+                  : `<div class="post-author-placeholder">${escapeHtml(post.author).charAt(0)}</div>`
+                }
+                <div class="post-author-info">
+                    <span class="post-author-name">${escapeHtml(post.author)}</span>
+                </div>
+            </div>
+            
+            <!-- Meta: Date (if no image) -->
+            <div style="display:flex; align-items:center;">
+                ${!post.image ? `<span class="post-date-badge inline">${dateStr}</span>` : ''}
             </div>
         </div>
 
@@ -300,7 +345,6 @@ function renderPosts(posts) {
     const excerpt = card.querySelector(".excerpt");
     const full = card.querySelector(".full-content");
 
-    // Hide read more if content is short
     if (post.content.length <= 100) {
       toggleBtn.style.display = 'none';
     }
@@ -333,14 +377,12 @@ function renderPosts(posts) {
     setInitialLikeState(post.id, card);
     setInitialSaveState(post.id, card);
 
-    // Double tap / double click to like
+    // Double tap
     let lastTap = 0;
     card.addEventListener("click", (e) => {
-      // Don't trigger double-tap like if clicking on buttons or links
-      if (e.target.closest('.icon-action-btn') || e.target.closest('.toggle-read-more')) {
+      if (e.target.closest('.icon-action-btn') || e.target.closest('.toggle-read-more') || e.target.closest('.post-title')) {
         return;
       }
-      
       const now = Date.now();
       if (now - lastTap < 300) {
         handleLike(post.id);
@@ -350,6 +392,28 @@ function renderPosts(posts) {
       lastTap = now;
     });
   });
+
+  // Create or move Sentinel to bottom for Infinite Scroll
+  let sentinel = document.getElementById("scroll-sentinel");
+  if(!sentinel) {
+      sentinel = document.createElement("div");
+      sentinel.id = "scroll-sentinel";
+      sentinel.style.height = "20px";
+      sentinel.style.width = "100%";
+  } else {
+      sentinel.remove(); // Remove to re-append at end
+  }
+  
+  if(hasMore) {
+      postsList.appendChild(sentinel);
+      // Re-observe
+      const observer = new IntersectionObserver((entries) => {
+        if(entries[0].isIntersecting && hasMore && !isLoading && !searchInput.value) {
+            loadPostsChunk();
+        }
+      }, { rootMargin: "200px" });
+      observer.observe(sentinel);
+  }
 }
 
 /* ---------------------------
@@ -357,7 +421,6 @@ function renderPosts(posts) {
 ---------------------------- */
 async function loadLikeCount(postId, card) {
   const countEl = card.querySelector(".like-count");
-
   const { count } = await supabase
     .from("likes")
     .select("*", { count: "exact", head: true })
@@ -387,7 +450,6 @@ async function refreshLikeCount(postId) {
   if (!card) return;
 
   const countEl = card.querySelector(".like-count");
-
   const { count } = await supabase
     .from("likes")
     .select("*", { count: "exact", head: true })
@@ -401,14 +463,7 @@ async function refreshLikeCount(postId) {
 ---------------------------- */
 async function setInitialLikeState(postId, card) {
   if (!currentUser) return;
-
-  const { data } = await supabase
-    .from("likes")
-    .select("id")
-    .eq("post_id", postId)
-    .eq("user_id", currentUser.id)
-    .maybeSingle();
-
+  const { data } = await supabase.from("likes").select("id").eq("post_id", postId).eq("user_id", currentUser.id).maybeSingle();
   if (data) {
     const likeBtn = card.querySelector(".like-btn");
     const icon = likeBtn.querySelector("i");
@@ -419,14 +474,7 @@ async function setInitialLikeState(postId, card) {
 
 async function setInitialSaveState(postId, card) {
   if (!currentUser) return;
-
-  const { data } = await supabase
-    .from("saved_posts")
-    .select("id")
-    .eq("post_id", postId)
-    .eq("user_id", currentUser.id)
-    .maybeSingle();
-
+  const { data } = await supabase.from("saved_posts").select("id").eq("post_id", postId).eq("user_id", currentUser.id).maybeSingle();
   if (data) {
     const saveBtn = card.querySelector(".save-btn");
     const icon = saveBtn.querySelector("i");
@@ -436,139 +484,74 @@ async function setInitialSaveState(postId, card) {
 }
 
 /* ---------------------------
-   LIKE POST
+   LIKE & SAVE
 ---------------------------- */
 async function handleLike(postId) {
   if (!currentUser) {
     showToast("Please login to like posts");
     return;
   }
-
-  const likeBtn = document.querySelector(
-    `[data-post-id="${postId}"] .like-btn`
-  );
+  const likeBtn = document.querySelector(`[data-post-id="${postId}"] .like-btn`);
   const icon = likeBtn.querySelector("i");
-
-  const { data } = await supabase
-    .from("likes")
-    .select("*")
-    .eq("post_id", postId)
-    .eq("user_id", currentUser.id);
+  const { data } = await supabase.from("likes").select("id").eq("post_id", postId).eq("user_id", currentUser.id);
 
   if (data.length) {
-    // Unlike
-    await supabase.from("likes").delete()
-      .eq("post_id", postId)
-      .eq("user_id", currentUser.id);
-
-    icon.classList.replace("fi-sr-heart", "fi-rr-heart");
+    await supabase.from("likes").delete().eq("post_id", postId).eq("user_id", currentUser.id);
+    icon.classList.replace("fi-sr-heart", "fi-sr-heart");
     likeBtn.classList.remove("liked");
-    refreshLikeCount(postId);
     showToast("Like removed");
   } else {
-    // Like
-    await supabase.from("likes").insert({
-      post_id: postId,
-      user_id: currentUser.id
-    });
-
-    icon.classList.replace("fi-rr-heart", "fi-sr-heart");
+    await supabase.from("likes").insert({ post_id: postId, user_id: currentUser.id });
+    icon.classList.replace("fi-sr-heart", "fi-sr-heart");
     likeBtn.classList.add("liked");
-    
-    // Add pulse animation
     likeBtn.style.animation = 'none';
-    setTimeout(() => {
-      likeBtn.style.animation = 'heartPulse 0.4s ease';
-    }, 10);
-    
-    refreshLikeCount(postId);
+    setTimeout(() => { likeBtn.style.animation = 'heartPulse 0.4s ease'; }, 10);
     showToast("Liked! ❤️");
   }
+  refreshLikeCount(postId);
 }
 
-/* ---------------------------
-   SAVE POST
----------------------------- */
 async function handleSave(postId) {
   if (!currentUser) {
     showToast("Please login to save posts");
     return;
   }
-
-  const saveBtn = document.querySelector(
-    `[data-post-id="${postId}"] .save-btn`
-  );
+  const saveBtn = document.querySelector(`[data-post-id="${postId}"] .save-btn`);
   const icon = saveBtn.querySelector("i");
-
-  const { data } = await supabase
-    .from("saved_posts")
-    .select("*")
-    .eq("post_id", postId)
-    .eq("user_id", currentUser.id);
+  const { data } = await supabase.from("saved_posts").select("id").eq("post_id", postId).eq("user_id", currentUser.id);
 
   if (data.length) {
-    // Unsave
-    await supabase.from("saved_posts").delete()
-      .eq("post_id", postId)
-      .eq("user_id", currentUser.id);
-
+    await supabase.from("saved_posts").delete().eq("post_id", postId).eq("user_id", currentUser.id);
     icon.classList.replace("fi-sr-bookmark", "fi-rr-bookmark");
     saveBtn.classList.remove("saved");
     showToast("Removed from saved ❌");
   } else {
-    // Save
-    await supabase.from("saved_posts").insert({
-      post_id: postId,
-      user_id: currentUser.id
-    });
-
+    await supabase.from("saved_posts").insert({ post_id: postId, user_id: currentUser.id });
     icon.classList.replace("fi-sr-bookmark", "fi-sr-bookmark");
     saveBtn.classList.add("saved");
-    
-    // Add bounce animation
     saveBtn.style.animation = 'none';
-    setTimeout(() => {
-      saveBtn.style.animation = 'heartPulse 0.4s ease';
-    }, 10);
-    
+    setTimeout(() => { saveBtn.style.animation = 'heartPulse 0.4s ease'; }, 10);
     showToast("Post saved ✅");
   }
 }
 
 /* ---------------------------
-   TOAST
+   TOAST & UTIL
 ---------------------------- */
 function showToast(msg) {
-  // Remove existing toast
   const existingToast = document.querySelector('.toast');
-  if (existingToast) {
-    existingToast.remove();
-  }
+  if (existingToast) existingToast.remove();
   
   const t = document.createElement("div");
   t.className = "toast";
   t.textContent = msg;
   document.body.appendChild(t);
-  
-  // Auto remove after animation
-  setTimeout(() => {
-    if (t.parentNode) {
-      t.remove();
-    }
-  }, 2000);
+  setTimeout(() => { if (t.parentNode) t.remove(); }, 2000);
 }
 
-/* ---------------------------
-   UTIL
----------------------------- */
 function escapeHtml(str) {
   if (!str) return '';
-  return str
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  return str.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
 function stripHtml(html) {

@@ -37,6 +37,7 @@
   <link rel="stylesheet" href="./css/feed.css">
   <link rel="stylesheet" href="./css/post-detail.css"> <!-- New Article UI -->
   <link rel="stylesheet" href="./css/comments.css">
+  <link rel="stylesheet" href="./css/social-share.css">
 </head>
 
 
@@ -60,6 +61,26 @@
 
       <div id="post-featured-image-container">
         <!-- Image injected here via JS if exists -->
+      </div>
+
+      <!-- Social Share -->
+      <div class="social-share-container">
+        <span class="share-label">Share:</span>
+        <button class="share-btn twitter" onclick="sharePost('twitter')" aria-label="Share on Twitter">
+          <i class="fi fi-brands-twitter"></i>
+        </button>
+        <button class="share-btn linkedin" onclick="sharePost('linkedin')" aria-label="Share on LinkedIn">
+          <i class="fi fi-brands-linkedin"></i>
+        </button>
+        <button class="share-btn facebook" onclick="sharePost('facebook')" aria-label="Share on Facebook">
+          <i class="fi fi-brands-facebook"></i>
+        </button>
+        <button class="share-btn whatsapp" onclick="sharePost('whatsapp')" aria-label="Share on WhatsApp">
+          <i class="fi fi-brands-whatsapp"></i>
+        </button>
+        <button class="share-btn copy-link" onclick="sharePost('copy')" aria-label="Copy Link">
+          <i class="fi fi-rr-copy"></i>
+        </button>
       </div>
 
       <div id="post-content" class="article-content">

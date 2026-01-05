@@ -115,6 +115,25 @@
     font-weight: 700;
     color: var(--text-main);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.post-date-badge.inline {
+    position: static;
+    margin-right: 8px;
+    box-shadow: none;
+    /* simpler look for header */
+    background: rgba(0, 0, 0, 0.03);
+    /* match reading time */
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 4px 10px;
+}
+
+[data-theme="dark"] .post-date-badge.inline {
+    background: rgba(255, 255, 255, 0.05);
+    /* match reading time */
+    color: var(--text-muted);
 }
 
 /* --- Content Section --- */
@@ -441,7 +460,32 @@
     transition: all 0.2s;
 }
 
-.post-tag:hover {
-    background: rgba(255, 87, 34, 0.2);
-    transform: translateY(-1px);
+/* Reading Time Badge */
+.reading-time-badge {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.03);
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+[data-theme="dark"] .reading-time-badge {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Pagination Loader */
+.pagination-loader {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.loading-spinner.small {
+    width: 30px;
+    height: 30px;
+    border-width: 3px;
 }

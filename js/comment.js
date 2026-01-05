@@ -475,3 +475,39 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+// ----------------------------------------------------
+// 6. SOCIAL SHARE
+// ----------------------------------------------------
+window.sharePost = async (platform) => {
+  const url = encodeURIComponent(window.location.href);
+  const title = encodeURIComponent(document.title);
+  
+  let shareUrl = "";
+
+  switch (platform) {
+      case 'twitter':
+          shareUrl = `https://twitter.com/intent/tweet?text=${title}&url=${url}`;
+          break;
+      case 'linkedin':
+          shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+          break;
+      case 'facebook':
+          shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+          break;
+      case 'whatsapp':
+          shareUrl = `https://api.whatsapp.com/send?text=${title} ${url}`;
+          break;
+      case 'copy':
+          try {
+              await navigator.clipboard.writeText(window.location.href);
+              alert("Link copied to clipboard!");
+          } catch (err) {
+              console.error('Failed to copy: ', err);
+          }
+          return;
+  }
+  
+  if (shareUrl) {
+      window.open(shareUrl, '_blank', 'width=600,height=400');
+  }
+};

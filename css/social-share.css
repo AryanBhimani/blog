@@ -1,0 +1,63 @@
+/* Social Share Buttons */
+.social-share-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.share-label {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-right: 5px;
+}
+
+.share-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--bg-card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    color: var(--text-main);
+}
+
+.share-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+}
+
+/* Brand Colors on Hover */
+.share-btn.twitter:hover {
+    color: #1DA1F2;
+    background: #E8F5FE;
+}
+
+.share-btn.linkedin:hover {
+    color: #0A66C2;
+    background: #E1F0FF;
+}
+
+.share-btn.facebook:hover {
+    color: #1877F2;
+    background: #E7F3FF;
+}
+
+.share-btn.whatsapp:hover {
+    color: #25D366;
+    background: #E6FCEB;
+}
+
+.share-btn.copy-link:hover {
+    color: var(--brand);
+    background: rgba(255, 87, 34, 0.1);
+}
