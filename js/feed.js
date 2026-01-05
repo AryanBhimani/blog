@@ -78,70 +78,6 @@ function applyFilters() {
 /* ---------------------------
    LOAD POSTS (FEED ALGORITHM)
 ---------------------------- */
-/* ---------------------------
-   MOCK DATA (FALLBACK)
----------------------------- */
-const MOCK_POSTS = [
-  {
-    id: "mock-1",
-    title: "The Future of Web Development: What to Expect in 2026",
-    content: "As we move further into 2026, the landscape of web development is shifting rapidly. From AI-driven code generation to the rise of WebAssembly, developers are finding new ways to build faster, more resilient applications. In this article, we explore the top trends defining the industry this year...",
-    image_url: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80",
-    tags: ["Tech", "WebDev", "Future"],
-    created_at: new Date().toISOString(),
-    users: { name: "Sarah Jenkins", avatar_url: "https://randomuser.me/api/portraits/women/44.jpg" },
-    likes: [{ count: 124 }],
-    comments: [{ count: 45 }]
-  },
-  {
-    id: "mock-2",
-    title: "Minimalism in Design: Less is More",
-    content: "Minimalism isn't just about removing things; it's about adding meaning. In a world cluttered with information, clean design stands out by offering clarity and purpose. We discuss how to implement effective minimalist principles in your next UI project without sacrificing functionality.",
-    image_url: "https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?auto=format&fit=crop&w=800&q=80",
-    tags: ["Design", "UI/UX", "Minimalism"],
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    users: { name: "David Chen", avatar_url: "https://randomuser.me/api/portraits/men/32.jpg" },
-    likes: [{ count: 89 }],
-    comments: [{ count: 12 }]
-  },
-  {
-    id: "mock-3",
-    title: "Understanding the Power of Habit",
-    content: "Habits shape our lives more than we realize. Drawing from the latest research in psychology and neuroscience, we break down the 'Habit Loop' and how you can hack it to build positive routines and break bad ones. It's never too late to reinvent yourself.",
-    image_url: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800&q=80",
-    tags: ["Lifestyle", "Productivity", "Psychology"],
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-    users: { name: "Emily Ross", avatar_url: "https://randomuser.me/api/portraits/women/68.jpg" },
-    likes: [{ count: 256 }],
-    comments: [{ count: 78 }]
-  },
-  {
-    id: "mock-4",
-    title: "Exploring the Hidden Gems of Kyoto",
-    content: "Kyoto is a city where tradition meets modernity. Beyond the famous temples, there are quiet alleyways, hidden tea houses, and breathtaking gardens that few tourists see. Join me on a photographic journey through the ancient capital of Japan.",
-    image_url: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=80",
-    tags: ["Travel", "Japan", "Photography"],
-    created_at: new Date(Date.now() - 259200000).toISOString(),
-    users: { name: "Michael Wright", avatar_url: "https://randomuser.me/api/portraits/men/86.jpg" },
-    likes: [{ count: 342 }],
-    comments: [{ count: 56 }]
-  },
-  {
-    id: "mock-5",
-    title: "Sustainable Living: Small Changes, Big Impact",
-    content: "Sustainability is no longer a choice but a necessity. You don't need to change your entire lifestyle overnight. We share 10 simple, actionable steps you can take today to reduce your carbon footprint and live a more eco-friendly life.",
-    image_url: "https://images.unsplash.com/photo-1542601906990-b4d3fb7d5afa?auto=format&fit=crop&w=800&q=80",
-    tags: ["Sustainability", "Eco", "Lifestyle"],
-    created_at: new Date(Date.now() - 432000000).toISOString(),
-    users: { name: "Jessica Green", avatar_url: "https://randomuser.me/api/portraits/women/12.jpg" },
-    likes: [{ count: 167 }],
-    comments: [{ count: 23 }]
-  }
-];
-
-/* ---------------------------
-   LOAD POSTS (FEED ALGORITHM)
----------------------------- */
 async function loadAllPosts() {
   if (!postsList) return;
 
@@ -165,7 +101,8 @@ async function loadAllPosts() {
       }
 
       // 2. Fetch Posts with Engagement Counts
-      let { data, error } = await supabase
+      // select(count) is efficiently supported for getting the number of related rows
+      const { data, error } = await supabase
         .from("posts")
         .select(`
             id, title, content, image_url, tags, created_at, user_id,
@@ -174,27 +111,30 @@ async function loadAllPosts() {
             comments (count)
         `)
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(100); // Limit efficient initial load
 
-      // --- FALLBACK TO MOCK DATA IF EMPTY OR ERROR ---
-      if (error || !data || data.length === 0) {
-        console.warn("Using Mock Data (Database empty or unreachable)");
-        data = MOCK_POSTS; 
+      if (error) {
+        console.error("Feed Error:", error);
+        postsList.innerHTML = `<p class="no-results">Failed to load feed</p>`;
+        return;
       }
 
       // 3. Process & Rank Algorithm
       const processedPosts = data.map(p => {
+          const likesCount = p.likes ? p.likes[0]?.count || 0 : 0; // .select('likes(count)') returns array 
+          // Actually supabase .select('likes(count)') usually returns [{count: N}] or similar depending on version.
+          // Wait, 'likes(count)' results in p.likes having {count: N} if using head? 
+          // In JS client V2: select('*, likes(count)') -> p.likes = [{count: 5}]
+          
           let lCount = 0;
           let cCount = 0;
           
-          // Handle real Supabase count response vs Mock data structure
-          if (Array.isArray(p.likes)) {
-             lCount = p.likes[0]?.count || 0;
-          }
-          if (Array.isArray(p.comments)) {
-             cCount = p.comments[0]?.count || 0;
-          }
+          if(p.likes && p.likes.length > 0) lCount = p.likes[0].count;
+          if(p.comments && p.comments.length > 0) cCount = p.comments[0].count;
 
+          // Safe fallback if the count syntax returned weird structure
+          // If the count query didn't work as expected, we default to 0 to avoid NaN
+          
           return {
             id: p.id,
             title: p.title,
@@ -203,7 +143,7 @@ async function loadAllPosts() {
             tags: parseTags(p.tags),
             author: p.users?.name || "Unknown",
             authorAvatar: p.users?.avatar_url || "./assets/images/default-avatar.png",
-            userId: p.users?.id || p.user_id, 
+            userId: p.users?.id || p.user_id, // Store author ID for affinity check
             createdAt: new Date(p.created_at),
             likesCount: lCount,
             commentsCount: cCount
@@ -211,54 +151,40 @@ async function loadAllPosts() {
       });
 
       // 4. Algorithm Scoring
+      // Score = (Affinity * W1) + (Freshness * W2) + (Popularity * W3)
       const rankedPosts = processedPosts.map(post => {
-          // A. Affinity
+          // A. Affinity (Is Followed?)
           const isFollowed = followedIds.has(post.userId);
           const affinityScore = isFollowed ? 50 : 0; 
+          // (Self is also high affinity intuitively, but let's keep it standard)
+          // If it's me, maybe neutral?
           
-          // B. Freshness
+          // B. Freshness (Time Decay)
+          // Hours since posted
           const now = new Date();
           const hoursAgo = (now - post.createdAt) / (1000 * 60 * 60);
+          // Decay function: 100 / (hours + 2)^1.5 
+          // Recent posts (0h) = 35 pts. 24h ago = ~0.7 pts.
           const freshnessScore = 150 / Math.pow(hoursAgo + 1, 1.2); 
 
-          // C. Popularity
+          // C. Popularity (Engagement)
+          // Comments are worth more than likes
           const popularityScore = (post.likesCount * 1) + (post.commentsCount * 3);
 
           const totalScore = affinityScore + freshnessScore + popularityScore;
 
-          return { ...post, score: totalScore };
+          return { ...post, score: totalScore, debugScore: { affinityScore, freshnessScore, popularityScore } };
       });
 
       // 5. Sort
       rankedPosts.sort((a, b) => b.score - a.score);
 
       allPosts = rankedPosts;
-      applyFilters(); 
+      applyFilters(); // Render
 
   } catch (err) {
       console.error("Algo Error:", err);
-      // Even in catch, try to render mocks if allPosts is empty
-      if (allPosts.length === 0) {
-          console.warn("Fatal error, rendering backup mocks");
-          // Re-map mock posts directly to view model
-          allPosts = MOCK_POSTS.map(p => ({
-            id: p.id,
-            title: p.title,
-            content: p.content,
-            image: p.image_url,
-            tags: p.tags,
-            author: p.users.name,
-            authorAvatar: p.users.avatar_url,
-            userId: p.users.id,
-            createdAt: new Date(p.created_at),
-            likesCount: p.likes[0].count,
-            commentsCount: p.comments[0].count,
-            score: 100 // Default score
-          }));
-          applyFilters();
-      } else {
-        postsList.innerHTML = `<p class="no-results">Error calculating feed</p>`;
-      }
+      postsList.innerHTML = `<p class="no-results">Error calculating feed</p>`;
   }
 }
 
