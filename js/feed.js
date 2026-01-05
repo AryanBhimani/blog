@@ -74,6 +74,10 @@ function applyFilters(posts) {
     let filtered = posts;
     if (currentFilter === 'stories') {
         filtered = filtered.filter(p => !p.image); // No image = Story
+    } else if (currentFilter === 'news') {
+        filtered = filtered.filter(p => 
+            p.tags && p.tags.some(t => t.toLowerCase() === 'news')
+        );
     }
 
     // 2. Filter by Search
@@ -284,7 +288,12 @@ function renderPosts(posts, clear = false) {
       ${post.image ? `
       <div class="post-card-image-container">
         <img src="${post.image}" class="post-card-img" loading="lazy">
-        <span class="post-date-badge">${dateStr}</span>
+        <div class="badges-overlay">
+            ${post.tags && post.tags.some(t => t.toLowerCase() === 'news') 
+                ? `<span class="category-badge news">NEWS</span>` 
+                : ''}
+            <span class="post-date-badge">${dateStr}</span>
+        </div>
       </div>` : ''}
 
       <!-- 2. Content Section -->
@@ -303,7 +312,10 @@ function renderPosts(posts, clear = false) {
             </div>
             
             <!-- Meta: Date (if no image) -->
-            <div style="display:flex; align-items:center;">
+            <div style="display:flex; align-items:center; gap: 8px;">
+                ${!post.image && post.tags && post.tags.some(t => t.toLowerCase() === 'news') 
+                   ? `<span class="category-badge news inline">NEWS</span>` 
+                   : ''}
                 ${!post.image ? `<span class="post-date-badge inline">${dateStr}</span>` : ''}
             </div>
         </div>

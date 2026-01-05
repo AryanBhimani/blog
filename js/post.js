@@ -1,6 +1,7 @@
 import { supabase } from "./supabase/supabaseClient.js";
 
 const section = document.getElementById("create-post");
+const categoryInput = document.getElementById("post-category");
 const titleInput = document.getElementById("post-title");
 const imageInput = document.getElementById("main-image");
 const submitBtn = document.getElementById("submit-post");
@@ -100,6 +101,16 @@ async function loadPost(id) {
         }
     }
     tags = Array.isArray(t) ? t : [];
+    
+    // Set Category Logic
+    if (tags.includes("News") || tags.includes("news")) {
+        categoryInput.value = "news";
+        // Remove news tag from display list so it doesn't look duplicate, or keep it?
+        // Let's keep it simple: just set the dropdown.
+    } else {
+        categoryInput.value = "general";
+    }
+
     renderTags();
 
     // Image
@@ -235,10 +246,27 @@ submitBtn.onclick = async () => {
     submitBtn.disabled = true;
     submitBtn.textContent = "Publishing...";
 
+    // Handle Category Tag
+    const category = categoryInput.value;
+    const finalTags = [...tags]; // Copy
+    
+    if (category === "news") {
+        // Ensure 'News' tag exists
+        if (!finalTags.includes("News") && !finalTags.includes("news")) {
+            finalTags.push("News");
+        }
+    } else {
+        // distinct 'General' category logic? usually 'General' just means no special category
+        // Optional: Remove 'News' tag if switching back to General?
+        // Yes, that's better UX.
+        const newsIdx = finalTags.findIndex(t => t.toLowerCase() === "news");
+        if (newsIdx > -1) finalTags.splice(newsIdx, 1);
+    }
+
     const payload = {
         title,
         content,
-        tags, // Array, Supabase handles JSONB or Text[]
+        tags: finalTags,
         image_url: mainImageUrl,
         user_id: user.id
     };

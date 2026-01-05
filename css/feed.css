@@ -484,8 +484,44 @@
     padding: 20px;
 }
 
-.loading-spinner.small {
-    width: 30px;
-    height: 30px;
-    border-width: 3px;
+
+/* --- Badges Overlay --- */
+.badges-overlay {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+    z-index: 10;
+}
+
+/* Category Badge (News) */
+.category-badge.news {
+    background: #ef4444;
+    /* Red for News */
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 50px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
+    letter-spacing: 0.5px;
+}
+
+.category-badge.news.inline {
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    box-shadow: none;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Adjust original Date Badge to work inside overlay */
+.badges-overlay .post-date-badge {
+    position: static;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
