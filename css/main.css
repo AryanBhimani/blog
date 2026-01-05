@@ -29,15 +29,15 @@
 
 /* Dark Mode Variables */
 [data-theme="dark"] {
-  --bg-body: #121212;
-  --bg-card: #1e1e1e;
-  --bg-gradient: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
+  --bg-body: #0d0d0d;
+  --bg-card: rgba(30, 30, 30, 0.65); /* Glassmorphism base */
+  --bg-gradient: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
   --text-main: #f0f0f0;
   --text-muted: #b0b0b0;
-  --border-color: rgba(255, 255, 255, 0.1);
-  --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 10px 40px rgba(0, 0, 0, 0.5);
-  --navbar-bg: rgba(30, 30, 30, 0.85);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --navbar-bg: rgba(20, 20, 20, 0.85);
   --input-bg: #2d2d2d;
 }
 
