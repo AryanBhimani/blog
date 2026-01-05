@@ -218,28 +218,29 @@ a:hover {
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  color: var(--text-muted);
+  color: var(--text-muted) !important;
   font-size: 1.1rem;
-  background: transparent;
-  border: none;
+  background: transparent !important;
+  border: none !important;
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
   z-index: 10;
   outline: none;
+  box-shadow: none !important;
 }
 
 .toggle-password:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  /* Subtle circle */
-  color: var(--brand);
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: var(--brand) !important;
+  transform: translateY(-50%) !important;
 }
 
 .toggle-password:active {
-  background-color: rgba(0, 0, 0, 0.1);
-  transform: translateY(-50%) scale(0.95);
+  background-color: rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-50%) scale(0.95) !important;
 }
