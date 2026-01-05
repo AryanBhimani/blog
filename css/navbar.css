@@ -239,10 +239,10 @@
     align-items: center;
     gap: 0;
 
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid transparent;
     border-radius: 20px;
     /* Rounded card */
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    box-shadow: none;
 
     max-height: 0;
     overflow: hidden;
@@ -254,6 +254,9 @@
   /* Dark mode mobile menu */
   [data-theme="dark"] .nav-links {
     background: rgba(20, 20, 20, 0.95);
+  }
+
+  [data-theme="dark"] .nav-links.show {
     border-color: rgba(255, 255, 255, 0.1);
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
   }
@@ -291,6 +294,8 @@
     /* Increased to prevent cutoff */
     padding-bottom: 20px;
     /* Add bottom spacing */
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
   }
 
   .nav-links li {
