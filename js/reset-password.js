@@ -11,6 +11,31 @@ function setMessage(text, type) {
   message.className = "msg " + (type || "");
 }
 
+function setupPasswordToggle(toggleBtnId, inputId) {
+    const toggleBtn = document.getElementById(toggleBtnId);
+    const input = document.getElementById(inputId);
+    
+    if (!toggleBtn || !input) return;
+
+    toggleBtn.addEventListener("click", () => {
+        const type = input.getAttribute("type") === "password" ? "text" : "password";
+        input.setAttribute("type", type);
+        
+        // Toggle icon
+        const icon = toggleBtn.querySelector("i");
+        if (type === "password") {
+            icon.classList.remove("fi-rr-eye-crossed");
+            icon.classList.add("fi-rr-eye");
+        } else {
+            icon.classList.remove("fi-rr-eye");
+            icon.classList.add("fi-rr-eye-crossed");
+        }
+    });
+}
+
+setupPasswordToggle("togglePassword", "password");
+setupPasswordToggle("toggleConfirmPassword", "confirmPassword");
+
 // Check for error in URL hash immediately
 const hash = window.location.hash;
 const params = new URLSearchParams(hash.substring(1)); // strip #

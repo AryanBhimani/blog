@@ -131,25 +131,31 @@
 
           <div class="form-group">
             <label class="form-label" for="currentPass">Current Password</label>
-            <div class="input-wrapper">
+            <div class="password-wrapper">
               <input type="password" id="currentPass" class="form-input" placeholder="Enter current password">
-              <button class="toggle-password" onclick="togglePassword('currentPass', this)">👁️</button>
+              <button class="toggle-password" onclick="togglePassword('currentPass', this)">
+                <i class="fi fi-rr-eye"></i>
+              </button>
             </div>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="newPass">New Password</label>
-            <div class="input-wrapper">
+            <div class="password-wrapper">
               <input type="password" id="newPass" class="form-input" placeholder="Enter new password">
-              <button class="toggle-password" onclick="togglePassword('newPass', this)">👁️</button>
+              <button class="toggle-password" onclick="togglePassword('newPass', this)">
+                <i class="fi fi-rr-eye"></i>
+              </button>
             </div>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="confirmPass">Confirm Password</label>
-            <div class="input-wrapper">
+            <div class="password-wrapper">
               <input type="password" id="confirmPass" class="form-input" placeholder="Confirm new password">
-              <button class="toggle-password" onclick="togglePassword('confirmPass', this)">👁️</button>
+              <button class="toggle-password" onclick="togglePassword('confirmPass', this)">
+                <i class="fi fi-rr-eye"></i>
+              </button>
             </div>
           </div>
 
@@ -343,10 +349,12 @@
           </p>
 
           <div class="form-group">
-            <label class="form-label">Confirm Password to Delete</label>
-            <div class="input-wrapper">
+            <label class="form-label" for="deletePass">Confirm Password to Delete</label>
+            <div class="password-wrapper">
               <input type="password" id="deletePass" class="form-input" placeholder="Enter your password">
-              <button class="toggle-password" onclick="togglePassword('deletePass', this)">👁️</button>
+              <button class="toggle-password" onclick="togglePassword('deletePass', this)">
+                <i class="fi fi-rr-eye"></i>
+              </button>
             </div>
           </div>
 

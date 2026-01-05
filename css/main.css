@@ -197,3 +197,49 @@ a:hover {
     transform: translate(-50%, 0);
   }
 }
+
+/* Global Password Toggle Wrapper */
+.password-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 48px !important;
+  /* Touch target space */
+}
+
+.toggle-password {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  background: transparent;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+  outline: none;
+}
+
+.toggle-password:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  /* Subtle circle */
+  color: var(--brand);
+}
+
+.toggle-password:active {
+  background-color: rgba(0, 0, 0, 0.1);
+  transform: translateY(-50%) scale(0.95);
+}

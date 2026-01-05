@@ -41,12 +41,24 @@ window.closeMobileTab = () => {
 // Toggle Password Visibility
 window.togglePassword = (inputId, btn) => {
   const input = document.getElementById(inputId);
+  const icon = btn.querySelector("i");
+  
   if (input.type === "password") {
     input.type = "text";
-    btn.textContent = "🙈"; 
+    if (icon) {
+        icon.classList.remove("fi-rr-eye");
+        icon.classList.add("fi-rr-eye-crossed");
+    } else {
+        btn.textContent = "🙈"; // Fallback
+    }
   } else {
     input.type = "password";
-    btn.textContent = "👁️";
+    if (icon) {
+        icon.classList.remove("fi-rr-eye-crossed");
+        icon.classList.add("fi-rr-eye");
+    } else {
+        btn.textContent = "👁️"; // Fallback
+    }
   }
 };
 

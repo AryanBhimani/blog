@@ -22,7 +22,8 @@
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
   position: sticky;
-  top: 100px; /* Offset for navbar */
+  top: 100px;
+  /* Offset for navbar */
 }
 
 .sidebar-title {
@@ -118,7 +119,8 @@
 .form-input {
   width: 100%;
   padding: 14px 16px;
-  padding-right: 45px; /* For eye icon */
+  padding-right: 45px;
+  /* For eye icon */
   border-radius: 12px;
   border: 2px solid var(--border-color);
   background: var(--bg-body);
@@ -135,21 +137,7 @@
   box-shadow: 0 0 0 4px rgba(255, 87, 34, 0.1);
 }
 
-.toggle-password {
-  position: absolute;
-  right: 16px;
-  top: 42px; /* Adjusted for label */
-  cursor: pointer;
-  opacity: 0.5;
-  transition: opacity 0.2s;
-  background: none;
-  border: none;
-  padding: 0;
-}
 
-.toggle-password:hover {
-  opacity: 1;
-}
 
 /* Content Sections */
 .tab-pane {
@@ -162,8 +150,15 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Buttons */
@@ -210,6 +205,7 @@
   background: #dc2626;
   color: white;
 }
+
 .btn-danger-confirm:hover {
   background: #b91c1c;
   box-shadow: 0 8px 20px rgba(220, 38, 38, 0.25);
@@ -220,6 +216,7 @@
   line-height: 1.8;
   color: var(--text-muted);
 }
+
 .policy-content p {
   margin-bottom: 16px;
 }
@@ -241,15 +238,18 @@
 @media (max-width: 768px) {
   .settings-layout {
     grid-template-columns: 1fr;
-    display: block; /* Stack them */
+    display: block;
+    /* Stack them */
   }
 
   .settings-sidebar {
-    display: block; /* Default visible */
+    display: block;
+    /* Default visible */
   }
-  
+
   .settings-content {
-    display: none; /* Hidden by default on mobile */
+    display: none;
+    /* Hidden by default on mobile */
     position: fixed;
     top: 0;
     left: 0;
@@ -259,7 +259,8 @@
     border-radius: 0;
     overflow-y: auto;
     padding: 20px;
-    padding-top: 80px; /* Space for hidden nav or back button */
+    padding-top: 80px;
+    /* Space for hidden nav or back button */
   }
 
   .settings-content.mobile-visible {
@@ -272,9 +273,14 @@
   }
 
   /* When content is open, hide sidebar? No, content covers it */
-  
+
   @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    from {
+      transform: translateY(100%);
+    }
+
+    to {
+      transform: translateY(0);
+    }
   }
 }
