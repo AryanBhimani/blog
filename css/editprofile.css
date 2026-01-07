@@ -1,21 +1,30 @@
 /* Main Container */
 .edit-profile {
   max-width: 600px;
-  margin: 80px auto; /* Slightly more spacing */
+  margin: 80px auto;
+  /* Slightly more spacing */
   padding: 0 20px;
   animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .edit-profile h2 {
   font-family: 'Outfit', sans-serif;
   text-align: center;
   margin-bottom: 30px;
-  color: var(--text-main); /* FIX: Use variable for dark mode support */
+  color: var(--text-main);
+  /* FIX: Use variable for dark mode support */
   font-size: 2.2rem;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -23,17 +32,20 @@
 
 /* Form Card */
 #editProfileForm {
-  background: var(--bg-card); /* FIX: Use variable */
+  background: var(--bg-card);
+  /* FIX: Use variable */
   padding: 50px 40px;
   border-radius: 24px;
-  box-shadow: var(--shadow-md); /* FIX: Use variable */
-  border: 1px solid var(--border-color); /* FIX: Use variable */
+  box-shadow: var(--shadow-md);
+  /* FIX: Use variable */
+  border: 1px solid var(--border-color);
+  /* FIX: Use variable */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 #editProfileForm:hover {
   transform: translateY(-2px);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
 }
 
 /* Avatar Section */
@@ -46,7 +58,8 @@
 }
 
 #avatar-preview {
-  width: 140px; /* Slightly larger */
+  width: 140px;
+  /* Slightly larger */
   height: 140px;
   border-radius: 50%;
   object-fit: cover;
@@ -65,7 +78,7 @@
 
 .upload-label {
   cursor: pointer;
-  color: var(--brand); 
+  color: var(--brand);
   font-weight: 600;
   font-size: 0.95rem;
   padding: 10px 24px;
@@ -93,23 +106,35 @@
 }
 
 .form-group {
-    margin-bottom: 25px;
+  margin-bottom: 25px;
 }
 
 input[type="text"],
 textarea {
   width: 100%;
   padding: 16px 20px;
-  border: 2px solid var(--border-color); /* Thicker border */
+  border: 2px solid var(--border-color);
+  /* Thicker border */
   border-radius: 16px;
   font-size: 1rem;
   font-family: 'Inter', sans-serif;
   box-sizing: border-box;
   resize: vertical;
-  background: var(--bg-body); /* Use body bg for inputs to contrast with card */
+  background: var(--bg-body);
+  /* Use body bg for inputs to contrast with card */
   color: var(--text-main);
   transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-bottom: 5px;
+}
+
+/* Character Count */
+.char-count {
+  text-align: right;
+  font-size: 0.85rem;
+  color: var(--text-muted, #888);
   margin-bottom: 25px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
 }
 
 input[type="text"]:focus,

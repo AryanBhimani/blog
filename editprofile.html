@@ -36,7 +36,8 @@
             <input type="text" id="username" placeholder="Enter new username" required />
 
             <label for="bio">Bio:</label>
-            <textarea id="bio" placeholder="Enter your bio"></textarea>
+            <textarea id="bio" placeholder="Enter your bio" maxlength="150"></textarea>
+            <div id="bio-count" class="char-count">0/150</div>
 
             <button type="submit">Update Profile</button>
         </form>

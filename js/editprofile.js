@@ -30,6 +30,7 @@ supabase.auth.getUser().then(async ({ data }) => {
 
   usernameInput.value = profile?.name || "";
   bioInput.value = profile?.bio || "";
+  updateBioCount();
   
   if (profile?.avatar_url) {
     currentAvatarUrl = profile.avatar_url;
@@ -93,3 +94,23 @@ editProfileForm.addEventListener("submit", async (e) => {
   alert("✅ Profile updated successfully!");
   window.location.href = "profile.html";
 });
+
+// Character Counter Logic
+const bioCount = document.getElementById("bio-count");
+
+function updateBioCount() {
+  const currentLength = bioInput.value.length;
+  bioCount.textContent = `${currentLength}/150`;
+  
+  if (currentLength >= 150) {
+    bioCount.style.color = "#ff5722"; // Brand color or warning color
+  } else {
+    bioCount.style.color = ""; // Reset
+  }
+}
+
+bioInput.addEventListener("input", updateBioCount);
+
+
+
+
