@@ -66,6 +66,7 @@
     overflow: hidden;
     position: relative;
     height: 100%;
+    cursor: pointer;
 }
 
 .post-card:hover {

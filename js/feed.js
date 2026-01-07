@@ -320,7 +320,7 @@ function renderPosts(posts, clear = false) {
             </div>
         </div>
 
-        <h3 class="post-title" onclick="window.location.href='comment.html?postId=${post.id}'">${escapeHtml(post.title)}</h3>
+        <h3 class="post-title">${escapeHtml(post.title)}</h3>
         
         <div class="post-tags">
             ${post.tags && post.tags.length > 0 
@@ -389,19 +389,15 @@ function renderPosts(posts, clear = false) {
     setInitialLikeState(post.id, card);
     setInitialSaveState(post.id, card);
 
-    // Double tap
-    let lastTap = 0;
+    // Card Click -> Open Post
     card.addEventListener("click", (e) => {
-      if (e.target.closest('.icon-action-btn') || e.target.closest('.toggle-read-more') || e.target.closest('.post-title')) {
+      // Prevent navigation if clicking on interactive elements
+      if (e.target.closest('.icon-action-btn') || e.target.closest('.toggle-read-more')) {
         return;
       }
-      const now = Date.now();
-      if (now - lastTap < 300) {
-        handleLike(post.id);
-        card.classList.add("heart-pop");
-        setTimeout(() => card.classList.remove("heart-pop"), 600);
-      }
-      lastTap = now;
+      
+      // Navigate to post
+      window.location.href = `comment.html?postId=${post.id}`;
     });
   });
 
