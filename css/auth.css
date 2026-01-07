@@ -149,21 +149,28 @@ body.auth-page {
 
 .validation-feedback {
   font-size: 0.85rem;
-  margin-top: -10px;
-  /* pull closer to input */
-  margin-bottom: 5px;
+  /* margin-top: -10px; */
+  /* Removed invalid margin */
+  margin-bottom: 0;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
-  min-height: 1.25em;
-  /* Prevent layout shift */
+  /* min-height: 1.25em; */
+  /* Removed to fix spacing issue */
+}
+
+/* Hide when empty to prevent layout gaps */
+.validation-feedback:empty {
+  display: none;
 }
 
 .validation-feedback.success {
   color: #4caf50;
+  margin-top: 5px;
 }
 
 .validation-feedback.error {
   color: #f44336;
+  margin-top: 5px;
 }
 
 .auth-form input:focus {
