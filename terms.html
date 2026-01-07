@@ -22,44 +22,109 @@
 
     <style>
         .policy-container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-            line-height: 1.7;
+            max-width: 900px;
+            margin: 60px auto;
+            padding: 60px;
+            background: var(--bg-card);
+            border-radius: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .policy-container:hover {
+            box-shadow: var(--shadow-md);
         }
 
         .policy-container h1 {
-            font-size: 2.5rem;
-            margin-bottom: 2rem;
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            margin-bottom: 1rem;
             color: var(--text-main);
+            letter-spacing: -1px;
+            text-align: center;
+        }
+
+        .last-updated {
+            color: var(--brand);
+            font-family: var(--font-body);
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 3rem;
+            display: block;
+            opacity: 0.9;
         }
 
         .policy-container h2 {
-            font-size: 1.5rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
+            font-family: var(--font-heading);
+            font-size: 1.8rem;
+            margin-top: 3rem;
+            margin-bottom: 1.2rem;
             color: var(--text-main);
+            border-left: 4px solid var(--brand);
+            padding-left: 15px;
         }
 
         .policy-container p {
-            margin-bottom: 1rem;
+            margin-bottom: 1.1rem;
             color: var(--text-muted);
+            line-height: 1.8;
+            font-size: 1.05rem;
         }
 
         .policy-container ul {
-            margin-bottom: 1rem;
-            padding-left: 2rem;
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
             color: var(--text-muted);
         }
 
         .policy-container li {
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.8rem;
+            line-height: 1.6;
+            position: relative;
+            list-style: none;
         }
 
-        .last-updated {
-            color: var(--text-muted);
-            font-style: italic;
-            margin-bottom: 2rem;
+        .policy-container li::before {
+            content: "•";
+            color: var(--brand);
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        .policy-container a {
+            color: var(--brand);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .policy-container a:hover {
+            color: var(--brand-hover);
+            text-decoration: underline;
+        }
+
+        .policy-container strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .policy-container {
+                margin: 30px 20px;
+                padding: 30px;
+            }
+
+            .policy-container h1 {
+                font-size: 2.2rem;
+            }
+
+            .policy-container h2 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -69,14 +134,14 @@
 
     <main class="policy-container">
         <h1>Terms of Service</h1>
-        <p class="last-updated">Last updated: December 30, 2025</p>
+        <p class="last-updated">Last updated: January 7, 2026</p>
 
         <h2>1. Terms</h2>
         <p>By accessing this Website, accessible from https://blog--in.vercel.app, you are agreeing to be bound by these
-            Website
-            Terms and Conditions of Use and agree that you are responsible for the agreement with any applicable local
+            Website Terms and Conditions of Use and agree that you are responsible for the agreement with any applicable
+            local
             laws. If you disagree with any of these terms, you are prohibited from accessing this site. The materials
-            contained in this Website are protected by copyright and trade mark law.</p>
+            contained in this Website are protected by copyright and trademark law.</p>
 
         <h2>2. Use License</h2>
         <p>Permission is granted to temporarily download one copy of the materials on Blog.in's Website for personal,
@@ -89,20 +154,20 @@
             <li>remove any copyright or other proprietary notations from the materials; or</li>
             <li>transfer the materials to another person or "mirror" the materials on any other server.</li>
         </ul>
-        <p>This will let Blog.in to terminate upon violations of any of these restrictions. Upon termination, your
+        <p>This will let Blog.in terminate upon violations of any of these restrictions. Upon termination, your
             viewing right will also be terminated and you should destroy any downloaded materials in your possession
             whether it is printed or electronic format.</p>
 
         <h2>3. Disclaimer</h2>
         <p>All the materials on Blog.in's Website are provided "as is". Blog.in makes no warranties, may it be expressed
             or implied, therefore negates all other warranties. Furthermore, Blog.in does not make any representations
-            concerning the accuracy or likely results or reliability of the use of the materials on its Website or
+            concerning the accuracy or reliability of the use of the materials on its Website or
             otherwise relating to such materials or on any sites linked to this Website.</p>
 
         <h2>4. Limitations</h2>
-        <p>Blog.in or its suppliers will not be hold accountable for any damages that will arise with the use or
-            inability to use the materials on Blog.in's Website, even if Blog.in or an authorize representative of this
-            Website has been notified, orally or written, of the possibility of such damage. Some jurisdiction does not
+        <p>Blog.in or its suppliers will not be held accountable for any damages that will arise with the use or
+            inability to use the materials on Blog.in's Website, even if Blog.in or an authorized representative of this
+            Website has been notified, orally or written, of the possibility of such damage. Some jurisdictions do not
             allow limitations on implied warranties or limitations of liability for incidental damages, these
             limitations may not apply to you.</p>
 
@@ -125,8 +190,17 @@
         <p>Please read our <a href="./privacy.html">Privacy Policy</a>.</p>
 
         <h2>9. Governing Law</h2>
-        <p>Any claim related to Blog.in's Website shall be governed by the laws of in without regards to its conflict of
+        <p>Any claim related to Blog.in's Website shall be governed by the laws of India without regards to its conflict
+            of
             law provisions.</p>
+
+        <h2>10. Contact Us</h2>
+        <p>If you have any questions about these Terms of Service, please contact us:</p>
+        <ul>
+            <li><strong>Email:</strong> <a href="mailto:mobintix@gmail.com">mobintix@gmail.com</a></li>
+            <li><strong>Website:</strong> <a href="https://blog--in.vercel.app">https://blog--in.vercel.app</a></li>
+            <li><strong>Contact Page:</strong> <a href="./contact.html">Contact Us</a></li>
+        </ul>
     </main>
 
     <div id="footer-placeholder"></div>

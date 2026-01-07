@@ -22,28 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    /* -------------------------------------------------------------------------- */
-    /*                               SEARCH FUNCTION                              */
-    /* -------------------------------------------------------------------------- */
-    const searchInput = document.getElementById('helpSearch');
-    const questions = document.querySelectorAll('.faq-item');
 
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase().trim();
-
-            questions.forEach(item => {
-                const text = item.innerText.toLowerCase();
-                if (text.includes(term)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-
-            // Optional: Toggle entire sections if empty (advanced)
-            // For now, simpler filtering is sufficient.
-        });
-    }
 
 });

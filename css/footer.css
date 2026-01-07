@@ -177,6 +177,7 @@
 
 .newsletter-form input {
   flex: 1;
+  min-width: 0; /* Critical for flex text overflow */
   border: none;
   background: transparent;
   padding: 10px 16px;
@@ -184,6 +185,7 @@
   color: var(--text-main);
   font-family: 'Inter', sans-serif;
   outline: none;
+  text-overflow: ellipsis; /* Nice to have */
 }
 
 .newsletter-form button {
@@ -199,6 +201,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 1.1rem;
+  flex-shrink: 0; /* Prevent button from squishing */
 }
 
 .newsletter-form button:hover {

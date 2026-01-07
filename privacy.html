@@ -22,44 +22,109 @@
 
     <style>
         .policy-container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-            line-height: 1.7;
+            max-width: 900px;
+            margin: 60px auto;
+            padding: 60px;
+            background: var(--bg-card);
+            border-radius: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .policy-container:hover {
+            box-shadow: var(--shadow-md);
         }
 
         .policy-container h1 {
-            font-size: 2.5rem;
-            margin-bottom: 2rem;
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            margin-bottom: 1rem;
             color: var(--text-main);
+            letter-spacing: -1px;
+            text-align: center;
+        }
+
+        .last-updated {
+            color: var(--brand);
+            font-family: var(--font-body);
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 3rem;
+            display: block;
+            opacity: 0.9;
         }
 
         .policy-container h2 {
-            font-size: 1.5rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
+            font-family: var(--font-heading);
+            font-size: 1.8rem;
+            margin-top: 3rem;
+            margin-bottom: 1.2rem;
             color: var(--text-main);
+            border-left: 4px solid var(--brand);
+            padding-left: 15px;
         }
 
         .policy-container p {
-            margin-bottom: 1rem;
+            margin-bottom: 1.1rem;
             color: var(--text-muted);
+            line-height: 1.8;
+            font-size: 1.05rem;
         }
 
         .policy-container ul {
-            margin-bottom: 1rem;
-            padding-left: 2rem;
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
             color: var(--text-muted);
         }
 
         .policy-container li {
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.8rem;
+            line-height: 1.6;
+            position: relative;
+            list-style: none;
         }
 
-        .last-updated {
-            color: var(--text-muted);
-            font-style: italic;
-            margin-bottom: 2rem;
+        .policy-container li::before {
+            content: "•";
+            color: var(--brand);
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        .policy-container a {
+            color: var(--brand);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .policy-container a:hover {
+            color: var(--brand-hover);
+            text-decoration: underline;
+        }
+
+        .policy-container strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .policy-container {
+                margin: 30px 20px;
+                padding: 30px;
+            }
+
+            .policy-container h1 {
+                font-size: 2.2rem;
+            }
+
+            .policy-container h2 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -69,62 +134,137 @@
 
     <main class="policy-container">
         <h1>Privacy Policy</h1>
-        <p class="last-updated">Last updated: December 30, 2025</p>
+        <p class="last-updated">Last updated: January 7, 2026</p>
 
         <p>At Blog.in, accessible from https://blog--in.vercel.app, one of our main priorities is the privacy of our
-            visitors. This
-            Privacy Policy document contains types of information that is collected and recorded by Blog.in and how we
+            visitors. This Privacy Policy document contains types of information that is collected and recorded by
+            Blog.in and how we
             use it.</p>
 
-        <p>If you have additional questions or require more information about our Privacy Policy, do not hesitate to
-            contact us.</p>
+        <p>If you have additional questions or require more information about our Privacy Policy, please contact us at
+            <a href="mailto:mobintix@gmail.com">mobintix@gmail.com</a> or visit our <a href="./contact.html">Contact
+                Page</a>.
+        </p>
+
+        <h2>Information We Collect</h2>
+        <p>When you visit Blog.in, we may collect the following types of information:</p>
+        <ul>
+            <li><strong>Personal Information:</strong> Name, email address, and profile information you provide when
+                creating an account</li>
+            <li><strong>Usage Data:</strong> Information about how you interact with our website, including pages
+                visited, time spent, and features used</li>
+            <li><strong>Device Information:</strong> Browser type, operating system, IP address, and device identifiers
+            </li>
+            <li><strong>Cookies and Tracking Data:</strong> Information collected through cookies and similar tracking
+                technologies</li>
+        </ul>
+
+        <h2>How We Use Your Information</h2>
+        <p>We use the collected information for the following purposes:</p>
+        <ul>
+            <li>To provide and maintain our service</li>
+            <li>To personalize your experience on our platform</li>
+            <li>To improve our website and user experience</li>
+            <li>To communicate with you about updates, newsletters, and promotional materials</li>
+            <li>To detect, prevent, and address technical issues and security concerns</li>
+            <li>To comply with legal obligations</li>
+        </ul>
+
+        <h2>Cookies and Tracking Technologies</h2>
+        <p>Blog.in uses cookies and similar tracking technologies to enhance your browsing experience. Cookies are small
+            text files stored on your device that help us:</p>
+        <ul>
+            <li>Remember your preferences and settings</li>
+            <li>Understand how you use our website</li>
+            <li>Provide personalized content and advertisements</li>
+            <li>Analyze website traffic and performance</li>
+        </ul>
+        <p>You can control cookie settings through your browser preferences. However, disabling cookies may limit your
+            ability to use certain features of our website.</p>
+
+        <h2>Google AdSense and Advertising</h2>
+        <p><strong>Important Notice:</strong> Blog.in uses Google AdSense to display advertisements. Google AdSense uses
+            cookies and web beacons to serve ads based on your prior visits to our website and other websites on the
+            Internet.</p>
+
+        <p><strong>Third-Party Advertising Cookies:</strong> Google and other third-party vendors use cookies to:</p>
+        <ul>
+            <li>Serve ads based on your previous visits to Blog.in and other websites</li>
+            <li>Measure ad effectiveness and engagement</li>
+            <li>Provide personalized advertising based on your interests</li>
+        </ul>
+
+        <p><strong>Opt-Out Options:</strong> You can opt out of personalized advertising by visiting:</p>
+        <ul>
+            <li><a href="https://www.google.com/settings/ads" target="_blank" rel="noopener">Google Ads Settings</a>
+            </li>
+            <li><a href="https://optout.aboutads.info/" target="_blank" rel="noopener">Digital Advertising Alliance
+                    Opt-Out</a></li>
+            <li><a href="https://optout.networkadvertising.org/" target="_blank" rel="noopener">Network Advertising
+                    Initiative Opt-Out</a></li>
+        </ul>
+
+        <p>For more information about how Google uses data when you use our website, please visit <a
+                href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">Google's
+                Privacy & Terms</a>.</p>
 
         <h2>Log Files</h2>
         <p>Blog.in follows a standard procedure of using log files. These files log visitors when they visit websites.
-            All hosting companies do this and a part of hosting services' analytics. The information collected by log
-            files include internet protocol (IP) addresses, browser type, Internet Service Provider (ISP), date and time
-            stamp, referring/exit pages, and possibly the number of clicks. These are not linked to any information that
+            The information collected by log files includes internet protocol (IP) addresses, browser type, Internet
+            Service Provider (ISP), date and time
+            stamp, referring/exit pages, and number of clicks. These are not linked to any information that
             is personally identifiable. The purpose of the information is for analyzing trends, administering the site,
             tracking users' movement on the website, and gathering demographic information.</p>
 
-        <h2>Cookies and Web Beacons</h2>
-        <p>Like any other website, Blog.in uses 'cookies'. These cookies are used to store information including
-            visitors' preferences, and the pages on the website that the visitor accessed or visited. The information is
-            used to optimize the users' experience by customizing our web page content based on visitors' browser type
-            and/or other information.</p>
+        <h2>Third-Party Privacy Policies</h2>
+        <p>Blog.in's Privacy Policy does not apply to other advertisers or websites. We advise you to
+            consult the respective Privacy Policies of these third-party ad servers for more detailed information,
+            including their practices and instructions about how to opt-out of certain options.</p>
 
-        <h2>Google DoubleClick DART Cookie</h2>
-        <p>Google is one of a third-party vendor on our site. It also uses cookies, known as DART cookies, to serve ads
-            to our site visitors based upon their visit to www.website.com and other sites on the internet. However,
-            visitors may choose to decline the use of DART cookies by visiting the Google ad and content network Privacy
-            Policy at the following URL – <a
-                href="https://policies.google.com/technologies/ads">https://policies.google.com/technologies/ads</a></p>
+        <p><strong>Third-Party Services We Use:</strong></p>
+        <ul>
+            <li><strong>Google AdSense:</strong> <a href="https://policies.google.com/privacy" target="_blank"
+                    rel="noopener">Privacy Policy</a></li>
+            <li><strong>Google Analytics:</strong> <a href="https://policies.google.com/privacy" target="_blank"
+                    rel="noopener">Privacy Policy</a></li>
+        </ul>
 
-        <h2>Privacy Policies</h2>
-        <p>You may consult this list to find the Privacy Policy for each of the advertising partners of Blog.in.</p>
+        <h2>Data Security</h2>
+        <p>We implement appropriate technical and organizational security measures to protect your personal information
+            against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over
+            the Internet or electronic storage is 100% secure.</p>
 
-        <p>Third-party ad servers or ad networks use technologies like cookies, JavaScript, or Web Beacons that are used
-            in their respective advertisements and links that appear on Blog.in, which are sent directly to users'
-            browser. They automatically receive your IP address when this occurs. These technologies are used to measure
-            the effectiveness of their advertising campaigns and/or to personalize the advertising content that you see
-            on websites that you visit.</p>
-
-        <p>Note that Blog.in has no access to or control over these cookies that are used by third-party advertisers.
+        <h2>Your Rights and Choices</h2>
+        <p>Depending on your location, you may have certain rights regarding your personal information, including:</p>
+        <ul>
+            <li>The right to access your personal data</li>
+            <li>The right to correct inaccurate data</li>
+            <li>The right to delete your data</li>
+            <li>The right to restrict or object to data processing</li>
+            <li>The right to data portability</li>
+        </ul>
+        <p>To exercise these rights, please contact us at <a href="mailto:mobintix@gmail.com">mobintix@gmail.com</a>.
         </p>
 
-        <h2>Third Party Privacy Policies</h2>
-        <p>Blog.in's Privacy Policy does not apply to other advertisers or websites. Thus, we are advising you to
-            consult the respective Privacy Policies of these third-party ad servers for more detailed information. It
-            may include their practices and instructions about how to opt-out of certain options.</p>
+        <h2>Children's Privacy</h2>
+        <p>Blog.in does not knowingly collect personal information from children under the age of 13.
+            If you are a parent or guardian and believe that your child has provided us with personal information,
+            please contact us immediately at <a href="mailto:mobintix@gmail.com">mobintix@gmail.com</a>, and we will
+            take
+            steps to remove such information from our records.</p>
 
-        <h2>Children's Information</h2>
-        <p>Another part of our priority is adding protection for children while using the internet. We encourage parents
-            and guardians to observe, participate in, and/or monitor and guide their online activity.</p>
+        <h2>Changes to This Privacy Policy</h2>
+        <p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new
+            Privacy Policy on this page and updating the "Last updated" date. You are advised to review this Privacy
+            Policy periodically for any changes.</p>
 
-        <p>Blog.in does not knowingly collect any Personal Identifiable Information from children under the age of 13.
-            If you think that your child provided this kind of information on our website, we strongly encourage you to
-            contact us immediately and we will do our best efforts to promptly remove such information from our records.
-        </p>
+        <h2>Contact Us</h2>
+        <p>If you have any questions about this Privacy Policy, please contact us:</p>
+        <ul>
+            <li><strong>Email:</strong> <a href="mailto:mobintix@gmail.com">mobintix@gmail.com</a></li>
+            <li><strong>Website:</strong> <a href="https://blog--in.vercel.app">https://blog--in.vercel.app</a></li>
+            <li><strong>Contact Page:</strong> <a href="./contact.html">Contact Us</a></li>
+        </ul>
     </main>
 
     <div id="footer-placeholder"></div>
