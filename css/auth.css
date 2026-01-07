@@ -147,6 +147,25 @@ body.auth-page {
   font-family: 'Inter', sans-serif;
 }
 
+.validation-feedback {
+  font-size: 0.85rem;
+  margin-top: -10px;
+  /* pull closer to input */
+  margin-bottom: 5px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  min-height: 1.25em;
+  /* Prevent layout shift */
+}
+
+.validation-feedback.success {
+  color: #4caf50;
+}
+
+.validation-feedback.error {
+  color: #f44336;
+}
+
 .auth-form input:focus {
   outline: none;
   background: var(--bg-card);

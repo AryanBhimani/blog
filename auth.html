@@ -63,6 +63,7 @@
       <form id="signup-form" class="auth-form hidden">
         <h2>Create Account</h2>
         <input type="text" id="signup-name" placeholder="Full Name" required>
+        <div id="signup-name-feedback" class="validation-feedback"></div>
         <input type="email" id="signup-email" placeholder="Email" required>
         <div class="password-wrapper">
           <input type="password" id="signup-pass" placeholder="Password" required>
@@ -88,6 +89,56 @@
 
   <script type="module">
     import { login, signup, loginWithGoogle } from "/js/supabase/auth.js";
+    import { supabase } from "/js/supabase/supabaseClient.js";
+
+    // --- USERNAME VALIDATION LOGIC ---
+    let isSignupNameValid = false; // Default false until checked
+    const signupNameInput = document.getElementById("signup-name");
+    const signupNameFeedback = document.getElementById("signup-name-feedback");
+
+    function debounce(func, wait) {
+      let timeout;
+      return function (...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+      };
+    }
+
+    const checkSignupName = debounce(async (e) => {
+      const name = e.target.value.trim();
+
+      if (name.length < 3) {
+        signupNameFeedback.textContent = "⚠️ Name must be at least 3 characters.";
+        signupNameFeedback.className = "validation-feedback error";
+        isSignupNameValid = false;
+        return;
+      }
+
+      // Check availability
+      signupNameFeedback.textContent = "Checking...";
+      signupNameFeedback.className = "validation-feedback";
+
+      const { data, error } = await supabase
+        .from("users")
+        .select("id")
+        .eq("name", name) // Checking exact match on name
+        .maybeSingle();
+
+      if (data) {
+        signupNameFeedback.textContent = "❌ Name is already taken. Please choose another.";
+        signupNameFeedback.className = "validation-feedback error";
+        isSignupNameValid = false;
+      } else {
+        // Available
+        signupNameFeedback.textContent = "✅ Name is available!";
+        signupNameFeedback.className = "validation-feedback success";
+        isSignupNameValid = true;
+      }
+    }, 500);
+
+    signupNameInput.addEventListener("input", checkSignupName);
+
 
     // --- PASSWORD TOGGLE ---
     function setupPasswordToggle(toggleBtnId, inputId) {
@@ -164,6 +215,11 @@
       const name = document.getElementById("signup-name").value.trim();
       const email = document.getElementById("signup-email").value.trim();
       const pass = document.getElementById("signup-pass").value.trim();
+
+      if (!isSignupNameValid) {
+        alert("⚠️ Please choose a valid available name before signing up.");
+        return;
+      }
 
       // Disable Button
       btn.disabled = true;

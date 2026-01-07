@@ -29,6 +29,7 @@ supabase.auth.getUser().then(async ({ data }) => {
     .single();
 
   usernameInput.value = profile?.name || "";
+  originalUsername = profile?.name || ""; // Store for validation check
   bioInput.value = profile?.bio || "";
   updateBioCount();
   
@@ -51,6 +52,11 @@ editProfileForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   if (!currentUser) return;
+  
+  if (!isUsernameValid) {
+      alert("❌ Please fix usage errors before saving.");
+      return;
+  }
 
   const newUsername = usernameInput.value.trim();
   const newBio = bioInput.value.trim();
@@ -110,6 +116,61 @@ function updateBioCount() {
 }
 
 bioInput.addEventListener("input", updateBioCount);
+
+// Username Validation Logic
+const usernameFeedback = document.getElementById("username-feedback");
+let isUsernameValid = true;
+let originalUsername = ""; // Store original username to allow keeping own name
+
+
+// Debounce function
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    const context = this;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
+
+
+
+const checkUsername = debounce(async (e) => {
+  const username = e.target.value.trim();
+  
+  if (username === originalUsername) {
+      usernameFeedback.textContent = "";
+      isUsernameValid = true;
+      return;
+  }
+
+  if (username.length < 3) {
+      usernameFeedback.textContent = "⚠️ Username must be at least 3 characters.";
+      usernameFeedback.className = "validation-feedback error";
+      isUsernameValid = false;
+      return;
+  }
+
+  const { data } = await supabase
+    .from("users")
+    .select("id")
+    .eq("name", username)
+    .maybeSingle(); // Use maybeSingle to avoid errors on no-result
+
+  if (data) {
+    usernameFeedback.textContent = "❌ Username is already taken.";
+    usernameFeedback.className = "validation-feedback error";
+    isUsernameValid = false;
+  } else {
+    usernameFeedback.textContent = "✅ Username is available!";
+    usernameFeedback.className = "validation-feedback success";
+    isUsernameValid = true;
+  }
+}, 500);
+
+usernameInput.addEventListener("input", checkUsername);
+
+
 
 
 
