@@ -147,15 +147,13 @@ body.auth-page {
   font-family: 'Inter', sans-serif;
 }
 
+/* Validation Feedback */
 .validation-feedback {
-  font-size: 0.85rem;
-  /* margin-top: -10px; */
-  /* Removed invalid margin */
-  margin-bottom: 0;
+  font-size: 0.8rem;
+  margin-bottom: 0px;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
-  /* min-height: 1.25em; */
-  /* Removed to fix spacing issue */
+  line-height: 1.4;
 }
 
 /* Hide when empty to prevent layout gaps */
@@ -166,11 +164,17 @@ body.auth-page {
 .validation-feedback.success {
   color: #4caf50;
   margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .validation-feedback.error {
-  color: #f44336;
+  color: #ff3d00;
   margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .auth-form input:focus {

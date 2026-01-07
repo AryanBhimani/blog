@@ -64,13 +64,17 @@
         <h2>Create Account</h2>
         <input type="text" id="signup-name" placeholder="Full Name" required>
         <div id="signup-name-feedback" class="validation-feedback"></div>
+
         <input type="email" id="signup-email" placeholder="Email" required>
+        <div id="signup-email-feedback" class="validation-feedback"></div>
+
         <div class="password-wrapper">
           <input type="password" id="signup-pass" placeholder="Password" required>
           <button type="button" class="toggle-password" id="toggleSignupPass" tabindex="-1">
             <i class="fi fi-rr-eye"></i>
           </button>
         </div>
+        <div id="signup-pass-feedback" class="validation-feedback"></div>
 
         <button type="button" id="signup-btn">Signup</button>
 
@@ -91,10 +95,20 @@
     import { login, signup, loginWithGoogle } from "/js/supabase/auth.js";
     import { supabase } from "/js/supabase/supabaseClient.js";
 
-    // --- USERNAME VALIDATION LOGIC ---
-    let isSignupNameValid = false; // Default false until checked
+    // --- VALIDATION LOGIC ---
+    let isSignupNameValid = false;
+    let isSignupEmailValid = false;
+    let isSignupPassValid = false;
+
     const signupNameInput = document.getElementById("signup-name");
     const signupNameFeedback = document.getElementById("signup-name-feedback");
+
+    const signupEmailInput = document.getElementById("signup-email");
+    const signupEmailFeedback = document.getElementById("signup-email-feedback");
+
+    const signupPassInput = document.getElementById("signup-pass");
+    const signupPassFeedback = document.getElementById("signup-pass-feedback");
+
 
     function debounce(func, wait) {
       let timeout;
@@ -105,6 +119,7 @@
       };
     }
 
+    // Name Validation
     const checkSignupName = debounce(async (e) => {
       const name = e.target.value.trim();
 
@@ -122,22 +137,113 @@
       const { data, error } = await supabase
         .from("users")
         .select("id")
-        .eq("name", name) // Checking exact match on name
+        .eq("name", name)
         .maybeSingle();
 
       if (data) {
-        signupNameFeedback.textContent = "❌ Name is already taken. Please choose another.";
+        signupNameFeedback.textContent = "❌ Name is already taken.";
         signupNameFeedback.className = "validation-feedback error";
         isSignupNameValid = false;
       } else {
-        // Available
         signupNameFeedback.textContent = "✅ Name is available!";
         signupNameFeedback.className = "validation-feedback success";
         isSignupNameValid = true;
       }
     }, 500);
 
+    // Email Validation (Regex + DB Check)
+    const checkSignupEmail = debounce(async (e) => {
+      const email = e.target.value.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!email) {
+        signupEmailFeedback.innerText = "";
+        isSignupEmailValid = false;
+        return;
+      }
+
+      if (!emailRegex.test(email)) {
+        signupEmailFeedback.innerText = "⚠️ Invalid email format";
+        signupEmailFeedback.className = "validation-feedback error";
+        isSignupEmailValid = false;
+        return;
+      }
+
+      // Check availability in DB
+      signupEmailFeedback.innerText = "Checking...";
+      signupEmailFeedback.className = "validation-feedback";
+
+      const { data, error } = await supabase
+        .from("users")
+        .select("id")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (data) {
+        signupEmailFeedback.innerText = "❌ Email is already registered";
+        signupEmailFeedback.className = "validation-feedback error";
+        isSignupEmailValid = false;
+      } else {
+        signupEmailFeedback.innerText = "✅ Email is available";
+        signupEmailFeedback.className = "validation-feedback success";
+        isSignupEmailValid = true;
+      }
+    }, 500);
+
+    // Password Validation (Strict)
+    const checkSignupPass = (e) => {
+      const pass = e.target.value;
+
+      if (pass.length === 0) {
+        signupPassFeedback.innerText = "";
+        isSignupPassValid = false;
+        return;
+      }
+
+      // 1. Length Check
+      if (pass.length < 8) {
+        signupPassFeedback.innerText = "⚠️ Password too short (min 8 chars)";
+        signupPassFeedback.className = "validation-feedback error";
+        isSignupPassValid = false;
+        return;
+      }
+
+      // 2. Complexity Checks
+      const hasLower = /[a-z]/.test(pass);
+      const hasUpper = /[A-Z]/.test(pass);
+      const hasNumber = /\d/.test(pass);
+      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pass);
+
+      if (!hasLower || !hasUpper || !hasNumber || !hasSpecial) {
+        let missing = [];
+        if (!hasLower) missing.push("lowercase");
+        if (!hasUpper) missing.push("uppercase");
+        if (!hasNumber) missing.push("number");
+        if (!hasSpecial) missing.push("symbol");
+
+        signupPassFeedback.innerText = `⚠️ Weak: Missing ${missing.join(", ")}`;
+        signupPassFeedback.className = "validation-feedback error";
+        isSignupPassValid = false;
+        return;
+      }
+
+      // 3. Common Weak Pattern Check (Simple Sequence)
+      if (pass.includes("12345") || pass.toLowerCase().includes("password")) {
+        signupPassFeedback.innerText = "⚠️ Too easy to guess (avoid '12345' or 'password')";
+        signupPassFeedback.className = "validation-feedback error";
+        isSignupPassValid = false;
+        return;
+      }
+
+      // Valid
+      signupPassFeedback.innerText = "✅ Strong Password";
+      signupPassFeedback.className = "validation-feedback success";
+      isSignupPassValid = true;
+    };
+
     signupNameInput.addEventListener("input", checkSignupName);
+    signupEmailInput.addEventListener("input", checkSignupEmail);
+    signupPassInput.addEventListener("input", checkSignupPass);
 
 
     // --- PASSWORD TOGGLE ---
@@ -218,6 +324,16 @@
 
       if (!isSignupNameValid) {
         alert("⚠️ Please choose a valid available name before signing up.");
+        return;
+      }
+
+      if (!isSignupEmailValid) {
+        alert("⚠️ Please enter a valid email address.");
+        return;
+      }
+
+      if (!isSignupPassValid) {
+        alert("⚠️ Password does not meet requirements (min 6 chars).");
         return;
       }
 
