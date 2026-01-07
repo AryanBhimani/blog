@@ -287,10 +287,25 @@ async function fetchLoginActivity() {
 
 // Hook into switchTab to load data when Activity tab is shown
 const originalSwitchTab = window.switchTab;
-window.switchTab = (tabId, navItem) => {
+window.switchTab = async (tabId, navItem) => {
     originalSwitchTab(tabId, navItem);
+    
     if (tabId === 'activity-screen') {
         fetchLoginActivity();
+    }
+
+    if (tabId === 'delete-screen') {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+             const hasPassword = user.app_metadata?.providers?.includes('email');
+             const passGroup = document.querySelector('#delete-screen .form-group');
+             
+             if (!hasPassword && passGroup) {
+                 passGroup.style.display = 'none';
+             } else if (passGroup) {
+                 passGroup.style.display = 'block';
+             }
+        }
     }
 };
 
@@ -305,14 +320,18 @@ window.deleteAccount = async () => {
     return;
   }
 
-  const pass = document.getElementById("deletePass").value;
-  if (!pass) {
-    return alert("Please enter your password to confirm.");
-  }
+  const hasPassword = user.app_metadata?.providers?.includes('email');
 
-  const isValid = await verifyPassword(user.email, pass);
-  if (!isValid) {
-    return alert("Incorrect password.");
+  if (hasPassword) {
+      const pass = document.getElementById("deletePass").value;
+      if (!pass) {
+        return alert("Please enter your password to confirm.");
+      }
+
+      const isValid = await verifyPassword(user.email, pass);
+      if (!isValid) {
+        return alert("Incorrect password.");
+      }
   }
 
   if (!confirm("Are you absolutely sure? This cannot be undone.")) {
@@ -326,8 +345,15 @@ window.deleteAccount = async () => {
     .eq("id", user.id);
 
   if (dbError) {
-    console.error(dbError);
-    return alert("Error deleting account data.");
+    console.error("Delete Account Error:", dbError);
+    // If it's a permission error (42501), they might not be able to self-update 'deleted'.
+    // We will show the real error.
+    alert("Failed to mark account as deleted: " + dbError.message);
+    // return; // We stop here so they know it didn't fully work.
+    
+    // Fallback: If policy doesn't allow 'update', we might need to rely on an RPC or just Supabase Auth delete.
+    // For now, let's at least show the error message.
+    return;
   }
 
   await supabase.auth.signOut();

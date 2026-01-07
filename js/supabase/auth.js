@@ -57,6 +57,22 @@ export async function login(email, password) {
     return false;
   }
 
+  // Check Deleted Status
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+      const { data: dbUser } = await supabase
+        .from("users")
+        .select("deleted")
+        .eq("id", user.id)
+        .single();
+      
+      if (dbUser && dbUser.deleted) {
+          await supabase.auth.signOut();
+          alert("Account not found or deleted ❌");
+          return false;
+      }
+  }
+
   alert("Welcome back! 🎉");
 
   // Track Login Device

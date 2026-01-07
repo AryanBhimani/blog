@@ -55,6 +55,22 @@ fetch("./components/navbar.html")
       if (!authButton) return;
 
       if (user) {
+        // --- CHECK DELETED STATUS ---
+        // We do a stealth check to see if the user has been marked as deleted
+        // Note: For performance, you might want to cache this or depend on real-time.
+        const { data: dbUser } = await supabase
+          .from("users")
+          .select("deleted")
+          .eq("id", user.id)
+          .single();
+
+        if (dbUser && dbUser.deleted) {
+             await supabase.auth.signOut();
+             alert("Your account has been deleted.");
+             window.location.href = "auth.html";
+             return;
+        }
+
         // User logged in: Show Profile & Notifications link
         if (profileLink) profileLink.style.display = "";
         if (notificationsLink) notificationsLink.style.display = "";
