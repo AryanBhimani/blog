@@ -1,7 +1,8 @@
 /* Chat Layout */
 .chat-container {
   display: flex;
-  height: calc(100vh - 70px); /* Adjust based on navbar height */
+  height: calc(100vh - 70px);
+  /* Adjust based on navbar height */
   background: var(--bg-card);
   border-radius: 12px;
   overflow: hidden;
@@ -43,7 +44,8 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-.chat-user-item:hover, .chat-user-item.active {
+.chat-user-item:hover,
+.chat-user-item.active {
   background: var(--bg-hover);
 }
 
@@ -129,7 +131,8 @@
 
 .message.received {
   align-self: flex-start;
-  background: var(--bg-hover); /* or a generic gray/white */
+  background: var(--bg-hover);
+  /* or a generic gray/white */
   color: var(--text-main);
   border-bottom-left-radius: 2px;
 }
@@ -190,7 +193,7 @@
     margin-top: 0;
     border-radius: 0;
   }
-  
+
   .chat-sidebar {
     position: absolute;
     left: 0;
