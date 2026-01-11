@@ -38,6 +38,7 @@
   <link rel="stylesheet" href="./css/post-detail.css"> <!-- New Article UI -->
   <link rel="stylesheet" href="./css/comments.css">
   <link rel="stylesheet" href="./css/social-share.css">
+  <link rel="stylesheet" href="./css/read-next.css">
 </head>
 
 
@@ -65,22 +66,37 @@
 
       <!-- Social Share -->
       <div class="social-share-container">
-        <span class="share-label">Share:</span>
-        <button class="share-btn twitter" onclick="sharePost('twitter')" aria-label="Share on Twitter">
-          <i class="fi fi-brands-twitter"></i>
-        </button>
-        <button class="share-btn linkedin" onclick="sharePost('linkedin')" aria-label="Share on LinkedIn">
-          <i class="fi fi-brands-linkedin"></i>
-        </button>
-        <button class="share-btn facebook" onclick="sharePost('facebook')" aria-label="Share on Facebook">
-          <i class="fi fi-brands-facebook"></i>
-        </button>
-        <button class="share-btn whatsapp" onclick="sharePost('whatsapp')" aria-label="Share on WhatsApp">
-          <i class="fi fi-brands-whatsapp"></i>
-        </button>
-        <button class="share-btn copy-link" onclick="sharePost('copy')" aria-label="Copy Link">
-          <i class="fi fi-rr-copy"></i>
-        </button>
+        <div class="action-group">
+          <button class="action-btn like-btn" id="like-btn">
+            <i class="fi fi-rr-heart"></i>
+            <span>Like</span>
+          </button>
+          <button class="action-btn save-btn" id="save-btn">
+            <i class="fi fi-rr-bookmark"></i>
+            <span>Save</span>
+          </button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="share-group">
+          <span class="share-label">Share:</span>
+          <button class="share-btn twitter" onclick="sharePost('twitter')" aria-label="Share on Twitter">
+            <i class="fi fi-brands-twitter"></i>
+          </button>
+          <button class="share-btn linkedin" onclick="sharePost('linkedin')" aria-label="Share on LinkedIn">
+            <i class="fi fi-brands-linkedin"></i>
+          </button>
+          <button class="share-btn facebook" onclick="sharePost('facebook')" aria-label="Share on Facebook">
+            <i class="fi fi-brands-facebook"></i>
+          </button>
+          <button class="share-btn whatsapp" onclick="sharePost('whatsapp')" aria-label="Share on WhatsApp">
+            <i class="fi fi-brands-whatsapp"></i>
+          </button>
+          <button class="share-btn copy-link" onclick="sharePost('copy')" aria-label="Copy Link">
+            <i class="fi fi-rr-copy"></i>
+          </button>
+        </div>
       </div>
 
       <div id="post-content" class="article-content">
@@ -111,6 +127,15 @@
       <!-- List -->
       <div id="comments-list" class="comments-list-container">
         <p style="text-align:center; color:var(--text-muted);">No comments yet.</p>
+      </div>
+    </section>
+
+    <!-- READ NEXT / RELATED POSTS -->
+    <section class="read-next-section">
+      <h3 class="section-title">Read Next</h3>
+      <div id="read-next-grid" class="read-next-grid">
+        <!-- 3 Random Blocks Injected Here -->
+        <div class="loading-spinner small"></div>
       </div>
     </section>
   </main>

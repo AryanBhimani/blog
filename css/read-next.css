@@ -1,0 +1,89 @@
+/* Read Next / Related Section */
+.read-next-section {
+    max-width: 1000px;
+    /* Slightly wider than article for grid */
+    margin: 60px auto;
+    padding: 0 20px;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: var(--text-main);
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+}
+
+.read-next-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+/* Mini Post Card */
+.mini-post-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.mini-post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.mini-post-image {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    background: var(--bg-main);
+}
+
+.mini-post-content {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.mini-post-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-family: 'Outfit', sans-serif;
+}
+
+.mini-post-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mini-author-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mini-author-img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}

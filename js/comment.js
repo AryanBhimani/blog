@@ -34,6 +34,9 @@ supabase.auth.getUser().then(({ data }) => {
              document.getElementById("current-user-avatar").src = uData.avatar_url;
          }
       });
+      
+    // Load Like/Save Status
+    loadInteractionState();
 
   } else {
     formWrapper.style.display = "none";
@@ -164,6 +167,7 @@ async function loadPost() {
   // Content
   let contentHtml = post.content;
 
+
   // 1. Convert Markdown links: [text](url) -> <a href="url">text</a>
   // We use a regex that looks for [text](url) pattern
   contentHtml = contentHtml.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
@@ -177,9 +181,69 @@ async function loadPost() {
   }
 
   document.getElementById("post-content").innerHTML = contentHtml;
+
+  // Load Related
+  loadReadNext();
 }
 
 loadPost();
+
+
+// ----------------------------------------------------
+// 2.5 LOAD READ NEXT (3 Random)
+// ----------------------------------------------------
+async function loadReadNext() {
+    // We want 3 random posts that are NOT the current one.
+    // Supabase doesn't have native "random()" easily in JS client without RPC.
+    // Hacky approach for small dataset: Fetch latest 20, shuffle, pick 3.
+    // Better approach: "rpc" call if we had it, but we'll stick to client shuffle for now.
+    
+    const { data, error } = await supabase
+        .from("posts")
+        .select(`id, title, image_url, created_at, users(name, avatar_url)`)
+        .neq("id", postId) // Exclude current
+        .limit(20);        // Fetch pool
+
+    const container = document.getElementById("read-next-grid");
+    
+    if (error || !data || data.length === 0) {
+        container.innerHTML = "<p>No other posts found.</p>";
+        return;
+    }
+
+    // Shuffle array
+    const shuffled = data.sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 3);
+    
+    container.innerHTML = "";
+    
+    selected.forEach(post => {
+        const dateStr = new Date(post.created_at).toLocaleDateString(undefined, {month:'short', day:'numeric'});
+        const authorName = post.users?.name || "Unknown";
+        const authorImg = post.users?.avatar_url || "./assets/images/default-avatar.png";
+        const image = post.image_url || "./assets/images/placeholder-blog.jpg"; // You might need a placeholder
+
+        const card = document.createElement("a");
+        card.href = `comment.html?postId=${post.id}`;
+        card.className = "mini-post-card";
+        
+        card.innerHTML = `
+            <img src="${image}" class="mini-post-image" loading="lazy">
+            <div class="mini-post-content">
+                <h4 class="mini-post-title">${escapeHtml(post.title)}</h4>
+                <div class="mini-post-meta">
+                    <div class="mini-author-row">
+                        <img src="${authorImg}" class="mini-author-img">
+                        <span>${escapeHtml(authorName)}</span>
+                    </div>
+                    <span>${dateStr}</span>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
 
 
 // ----------------------------------------------------
@@ -511,3 +575,204 @@ window.sharePost = async (platform) => {
       window.open(shareUrl, '_blank', 'width=600,height=400');
   }
 };
+
+// ----------------------------------------------------
+// 7. ARTICLE INTERACTION (Like & Save)
+// ----------------------------------------------------
+// ----------------------------------------------------
+// 7. ARTICLE INTERACTION (Like & Save)
+// ----------------------------------------------------
+const likeBtn = document.getElementById('like-btn');
+const saveBtn = document.getElementById('save-btn');
+
+// --- Helper: Toast ---
+function showToast(msg) {
+  const existingToast = document.querySelector('.toast');
+  if (existingToast) existingToast.remove();
+  
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  // Basic Toast Styles if not present
+  if(!document.querySelector('#toast-style')) {
+      const style = document.createElement('style');
+      style.id = 'toast-style';
+      style.textContent = `
+        .toast {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--bg-card); color: var(--text-main);
+            padding: 10px 20px; border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid var(--border-color);
+            z-index: 9999; animation: fadeInUp 0.3s ease;
+            font-size: 0.9rem; font-weight: 500;
+        }
+        @keyframes fadeInUp { from { opacity:0; transform:translate(-50%, 10px); } to { opacity:1; transform:translate(-50%, 0); } }
+      `;
+      document.head.appendChild(style);
+  }
+  document.body.appendChild(t);
+  setTimeout(() => { if (t.parentNode) t.remove(); }, 2000);
+}
+
+// --- Logic ---
+async function initInteraction() {
+    // 1. Check current status
+    // Wait for user to be loaded (already done in main flow, but we can double check 'currentUser')
+    // Best practice: Attach listeners immediately but check user on click.
+    // However, for "active" state on load, we need to check DB.
+    
+    if (!postId) return;
+
+    // We can rely on 'currentUser' variable from the top scope 
+    // but it might be set asynchronously. 
+    // We'll use a retry or check within the click handler, 
+    // and for initial state we'll wait a bit or hook into the main auth callback.
+    // Since 'currentUser' is global let, we can check it.
+}
+
+// Hook into the supabase auth callback (lines 20-45) to load initial state?
+// Actually simpler: let's just create a function we call when user is ready.
+// PRO TIP: modify existing auth block to call `loadInteractionState()`.
+
+async function loadInteractionState() {
+    if (!currentUser || !postId) return;
+
+    // Check Like
+    const { data: likeData } = await supabase
+        .from("likes")
+        .select("id")
+        .eq("post_id", postId)
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+
+    if (likeData) {
+        likeBtn.classList.add("active");
+        const icon = likeBtn.querySelector("i");
+        icon.classList.replace("fi-rr-heart", "fi-sr-heart");
+    }
+
+    // Check Save
+    const { data: saveData } = await supabase
+        .from("saved_posts")
+        .select("id")
+        .eq("post_id", postId)
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+
+    if (saveData) {
+        saveBtn.classList.add("active");
+        const icon = saveBtn.querySelector("i");
+        icon.classList.replace("fi-rr-bookmark", "fi-sr-bookmark");
+        saveBtn.querySelector("span").textContent = "Saved";
+    }
+}
+
+// Add this function call inside the main auth block (we'll do it via replacement below for cleanliness)
+// But first, let's define the handlers.
+
+if (likeBtn) {
+    likeBtn.addEventListener('click', async () => {
+        if (!currentUser) {
+            showToast("Please login to like posts");
+            return;
+        }
+        
+        // Optimistic UI
+        const icon = likeBtn.querySelector('i');
+        const isActive = likeBtn.classList.contains('active');
+        
+        // Toggle UI immediately
+        if (isActive) {
+            likeBtn.classList.remove("active");
+            icon.classList.replace('fi-sr-heart', 'fi-rr-heart');
+        } else {
+            likeBtn.classList.add("active");
+            icon.classList.replace('fi-rr-heart', 'fi-sr-heart');
+        }
+
+        // DB Update
+        if (isActive) {
+            // Remove Like
+            const { error } = await supabase
+                .from("likes")
+                .delete()
+                .eq("post_id", postId)
+                .eq("user_id", currentUser.id);
+            if (error) {
+                // Revert
+                likeBtn.classList.add("active");
+                icon.classList.replace('fi-rr-heart', 'fi-sr-heart');
+                showToast("Failed to unlike");
+            }
+        } else {
+            // Add Like
+            const { error } = await supabase
+                .from("likes")
+                .insert({ post_id: postId, user_id: currentUser.id });
+            if (error) {
+                // Revert
+                likeBtn.classList.remove("active");
+                icon.classList.replace('fi-sr-heart', 'fi-rr-heart');
+                showToast("Failed to like");
+            } else {
+                showToast("Liked! ❤️");
+            }
+        }
+    });
+}
+
+if (saveBtn) {
+    saveBtn.addEventListener('click', async () => {
+        if (!currentUser) {
+            showToast("Please login to save posts");
+            return;
+        }
+
+        const icon = saveBtn.querySelector('i');
+        const label = saveBtn.querySelector('span');
+        const isActive = saveBtn.classList.contains('active');
+
+        // Optimistic UI
+        if (isActive) {
+            saveBtn.classList.remove("active");
+            icon.classList.replace('fi-sr-bookmark', 'fi-rr-bookmark');
+            label.textContent = "Save";
+        } else {
+            saveBtn.classList.add("active");
+            icon.classList.replace('fi-rr-bookmark', 'fi-sr-bookmark');
+            label.textContent = "Saved";
+        }
+
+        // DB Update
+        if (isActive) {
+            // Remove Save
+            const { error } = await supabase
+                .from("saved_posts")
+                .delete()
+                .eq("post_id", postId)
+                .eq("user_id", currentUser.id);
+            if (error) {
+                // Revert
+                saveBtn.classList.add("active");
+                icon.classList.replace('fi-rr-bookmark', 'fi-sr-bookmark');
+                label.textContent = "Saved";
+                showToast("Failed to unsave");
+            }
+        } else {
+            // Add Save
+            const { error } = await supabase
+                .from("saved_posts")
+                .insert({ post_id: postId, user_id: currentUser.id });
+                
+            if (error) {
+                // Revert
+                saveBtn.classList.remove("active");
+                icon.classList.replace('fi-sr-bookmark', 'fi-rr-bookmark');
+                label.textContent = "Save";
+                showToast("Failed to save");
+            } else {
+                showToast("Post Saved! 🔖");
+            }
+        }
+    });
+}
