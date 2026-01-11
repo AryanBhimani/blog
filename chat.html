@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💬 Messages | Blog.in</title>
+
+    <!-- Flaticon & Fonts -->
+    <link rel="stylesheet"
+        href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css" />
+    <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <link rel="icon" type="image/png" href="./assets/images/blog.in.png">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="./css/main.css?v=2">
+    <link rel="stylesheet" href="./css/navbar.css?v=2">
+    <link rel="stylesheet" href="./css/footer.css?v=2">
+    <link rel="stylesheet" href="./css/chat.css?v=1">
+</head>
+
+<body>
+
+    <div id="navbar-placeholder"></div>
+
+    <main class="container">
+        <div class="chat-container">
+
+            <!-- Users List -->
+            <aside class="chat-sidebar" id="chat-sidebar">
+                <div class="chat-sidebar-header">
+                    Messages
+                </div>
+                <div class="chat-users-list" id="chat-users-list">
+                    <!-- Populated by JS -->
+                    <p style="padding:20px; text-align:center; color:var(--text-muted);">Loading...</p>
+                </div>
+            </aside>
+
+            <!-- Chat Window -->
+            <section class="chat-main">
+
+                <!-- Chat Header -->
+                <div class="chat-header" id="chat-header">
+                    <div class="chat-user-info">
+                        <span class="chat-user-name" id="active-chat-name">Select a user to chat</span>
+                        <span style="font-size:0.8rem; color:var(--text-muted);" id="active-user-status"></span>
+                    </div>
+                </div>
+
+                <!-- Messages Area -->
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages go here -->
+                    <div style="text-align:center; margin-top:50px; color:var(--text-muted);">
+                        <i class="fi fi-rr-comment-alt" style="font-size:3rem; opacity:0.5;"></i>
+                        <p>Select a conversation to start messaging</p>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <form class="chat-input-area" id="chat-form" style="display:none;">
+                    <input type="text" id="message-input" class="chat-input" placeholder="Type a message..."
+                        autocomplete="off">
+                    <button type="submit" class="send-btn">
+                        <i class="fi fi-rr-paper-plane"></i>
+                    </button>
+                </form>
+
+            </section>
+
+        </div>
+    </main>
+
+    <script type="module" src="./js/navbar.js"></script>
+    <script type="module" src="./js/chat.js"></script>
+
+</body>
+
+</html>

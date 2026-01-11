@@ -16,6 +16,7 @@ fetch("./components/navbar.html")
     const navLinks = document.querySelector(".nav-links");
     const authButton = document.getElementById("auth-btn");
     const profileLink = document.getElementById("nav-profile-link");
+    const messagesLink = document.getElementById("nav-messages-link");
     const notificationsLink = document.getElementById("nav-notifications-link");
 
 
@@ -73,6 +74,7 @@ fetch("./components/navbar.html")
 
         // User logged in: Show Profile & Notifications link
         if (profileLink) profileLink.style.display = "";
+        if (messagesLink) messagesLink.style.display = "";
         if (notificationsLink) notificationsLink.style.display = "";
         
         authButton.textContent = "Logout";
@@ -84,6 +86,7 @@ fetch("./components/navbar.html")
       } else {
         // User logged out: Hide Profile & Notifications link
         if (profileLink) profileLink.style.display = "none";
+        if (messagesLink) messagesLink.style.display = "none";
         if (notificationsLink) notificationsLink.style.display = "none";
 
         authButton.textContent = "Login";

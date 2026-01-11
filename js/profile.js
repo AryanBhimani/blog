@@ -10,6 +10,7 @@ const nameEl = document.getElementById("profile-name");
 const bioEl = document.getElementById("profile-bio");
 const editBtn = document.getElementById("edit-profile");
 const followBtn = document.getElementById("follow-btn");
+const messageBtn = document.getElementById("message-btn");
 const loginBtn = document.getElementById("Login");
 const postsList = document.getElementById("user-posts-list");
 const followersCountEl = document.getElementById("followers-count");
@@ -53,6 +54,7 @@ function clearUI() {
   editBtn.style.display = "none";
   settingsBtn.style.display = "none";
   followBtn.style.display = "none";
+  if (messageBtn) messageBtn.style.display = "none";
   if (savedBtn) savedBtn.style.display = "none";
 }
 
@@ -86,6 +88,12 @@ supabase.auth.onAuthStateChange(async (_event, session) => {
   settingsBtn.style.display = isOwner ? "inline-block" : "none";
   if (savedBtn) savedBtn.style.display = isOwner ? "inline-block" : "none";
   followBtn.style.display = !isOwner && user ? "inline-block" : "none";
+  if (messageBtn) {
+    messageBtn.style.display = !isOwner && user ? "inline-block" : "none";
+    messageBtn.onclick = () => {
+      window.location.href = `chat.html?userId=${viewingUserId}`;
+    };
+  }
 
   document.getElementById("post").style.display = isOwner ? "inline-block" : "none";
   document.getElementById("Login").style.display = isOwner ? "inline-block" : "none";
