@@ -6,6 +6,9 @@ const chatMessagesFn = document.getElementById("chat-messages");
 const chatForm = document.getElementById("chat-form");
 const msgInput = document.getElementById("message-input");
 const chatHeaderName = document.getElementById("active-chat-name");
+const mobileToggleBtn = document.getElementById("chat-mobile-toggle");
+const sidebarCloseBtn = document.getElementById("chat-sidebar-close");
+const chatSidebar = document.getElementById("chat-sidebar");
 
 // State
 let myUser = null;
@@ -42,6 +45,18 @@ async function init() {
   supabase.auth.onAuthStateChange((_event, session) => {
     if (!session) window.location.href = "auth.html";
   });
+
+  // Mobile Handlers
+  if (mobileToggleBtn) {
+    mobileToggleBtn.addEventListener("click", () => {
+      chatSidebar.classList.add("open");
+    });
+  }
+  if (sidebarCloseBtn) {
+    sidebarCloseBtn.addEventListener("click", () => {
+      chatSidebar.classList.remove("open");
+    });
+  }
 }
 
 // ------------------------------------------
@@ -146,6 +161,9 @@ async function loadSidebar() {
 async function selectUser(userId) {
   activeChatUserId = userId;
   
+  // Close sidebar on mobile
+  if (chatSidebar) chatSidebar.classList.remove("open");
+  
   // Update active class in sidebar if exists
   const items = document.querySelectorAll(".chat-user-item");
   items.forEach(el => el.classList.remove("active"));
@@ -214,7 +232,10 @@ function appendMessage(msg) {
   
   div.innerHTML = `
     ${escapeHtml(msg.content)}
-    <span class="message-time">${time}</span>
+    <div class="message-meta">
+        <span class="message-time">${time}</span>
+        ${isMe ? '<span class="message-status"><i class="fi fi-rr-check-double"></i></span>' : ''}
+    </div>
   `;
   
   chatMessagesFn.appendChild(div);

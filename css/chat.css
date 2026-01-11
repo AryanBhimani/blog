@@ -1,13 +1,15 @@
 /* Chat Layout */
 .chat-container {
   display: flex;
-  height: calc(100vh - 70px);
-  /* Adjust based on navbar height */
+  height: calc(100vh - 120px);
+  height: calc(100dvh - 120px);
+  /* Adjust based on navbar height (100px) + margins */
   background: var(--bg-card);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  margin-top: 20px;
+  margin-top: 0;
+  /* Placeholder handles spacing */
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
@@ -27,7 +29,22 @@
   border-bottom: 1px solid var(--border-color);
   font-weight: 600;
   font-size: 1.1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
+
+.chat-sidebar-close,
+.chat-mobile-toggle {
+  display: none;
+  /* Hidden on desktop */
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--text-main);
+}
+
 
 .chat-users-list {
   flex: 1;
@@ -140,9 +157,23 @@
 .message-time {
   font-size: 0.7rem;
   opacity: 0.7;
-  margin-top: 5px;
-  display: block;
-  text-align: right;
+}
+
+.message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.message-status {
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.message-status i {
+  display: flex;
 }
 
 /* Chat Input */
@@ -189,9 +220,27 @@
 /* Responsive */
 @media (max-width: 768px) {
   .chat-container {
-    height: calc(100vh - 60px);
+    height: calc(100vh - 100px);
+    height: calc(100dvh - 100px);
+    /* Better for mobile browsers */
     margin-top: 0;
     border-radius: 0;
+  }
+
+  .chat-header {
+    padding: 10px 15px;
+    /* More compact header */
+  }
+
+  .chat-messages {
+    padding: 15px;
+    /* Reduced padding */
+  }
+
+  .message {
+    font-size: 0.9rem;
+    /* Slightly smaller text */
+    padding: 8px 12px;
   }
 
   .chat-sidebar {
@@ -210,5 +259,29 @@
     transform: translateX(0);
   }
 
-  /* Add a toggle button for mobile if needed, or rely on logic to show/hide */
+  /* Responsive styles updates */
+  .chat-sidebar-close,
+  .chat-mobile-toggle {
+    display: block;
+  }
+
+  .chat-sidebar {
+    position: fixed;
+    /* Fixed is often better for mobile sidebars to avoid scrolling issues */
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: 80%;
+    max-width: 300px;
+    background: var(--bg-card);
+    /* Ensure background is solid */
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .chat-sidebar.open {
+    transform: translateX(0);
+  }
 }

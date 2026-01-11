@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="./css/main.css?v=2">
     <link rel="stylesheet" href="./css/navbar.css?v=2">
     <link rel="stylesheet" href="./css/footer.css?v=2">
-    <link rel="stylesheet" href="./css/chat.css?v=1">
+    <link rel="stylesheet" href="./css/chat.css?v=3">
 </head>
 
 <body>
@@ -36,7 +36,10 @@
             <!-- Users List -->
             <aside class="chat-sidebar" id="chat-sidebar">
                 <div class="chat-sidebar-header">
-                    Messages
+                    <span>Messages</span>
+                    <button class="chat-sidebar-close" id="chat-sidebar-close">
+                        <i class="fi fi-rr-cross-small"></i>
+                    </button>
                 </div>
                 <div class="chat-users-list" id="chat-users-list">
                     <!-- Populated by JS -->
@@ -49,6 +52,9 @@
 
                 <!-- Chat Header -->
                 <div class="chat-header" id="chat-header">
+                    <button class="chat-mobile-toggle" id="chat-mobile-toggle">
+                        <i class="fi fi-rr-list"></i>
+                    </button>
                     <div class="chat-user-info">
                         <span class="chat-user-name" id="active-chat-name">Select a user to chat</span>
                         <span style="font-size:0.8rem; color:var(--text-muted);" id="active-user-status"></span>
