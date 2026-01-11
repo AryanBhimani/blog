@@ -24,15 +24,15 @@ async function updateFooter() {
   const user = data?.user;
 
   // Get the "My Profile" link from footer
-  const profileLink = document.querySelector('.footer-column a[href="./profile.html"]');
+  const profileLinkItem = document.getElementById('footer-profile-link');
   
-  if (profileLink) {
+  if (profileLinkItem) {
     if (user) {
       // User is logged in: Show "My Profile" link
-      profileLink.parentElement.style.display = "";
+      profileLinkItem.style.display = "block";
     } else {
       // User is not logged in: Hide "My Profile" link
-      profileLink.parentElement.style.display = "none";
+      profileLinkItem.style.display = "none";
     }
   }
 }
