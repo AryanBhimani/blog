@@ -306,11 +306,30 @@ for each row execute procedure public.handle_new_comment();
 
 do $$
 begin
+  -- Create the publication if it doesn't exist
   if not exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
     create publication supabase_realtime;
+  end if;
+
+  -- Add public.messages to the publication if not already present
+  if not exists (
+    select 1 from pg_publication_tables 
+    where pubname = 'supabase_realtime' 
+    and schemaname = 'public' 
+    and tablename = 'messages'
+  ) then
+    alter publication supabase_realtime add table public.messages;
+  end if;
+
+  -- Add public.notifications to the publication if not already present
+  if not exists (
+    select 1 from pg_publication_tables 
+    where pubname = 'supabase_realtime' 
+    and schemaname = 'public' 
+    and tablename = 'notifications'
+  ) then
+    alter publication supabase_realtime add table public.notifications;
   end if;
 end
 $$;
 
-alter publication supabase_realtime add table public.messages;
-alter publication supabase_realtime add table public.notifications;
