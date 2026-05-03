@@ -8,6 +8,7 @@
 
 <br />
 
+
 **Blog.in** is a sleek, responsive blogging application that allows users to share their thoughts, connect with others, and manage their content seamlessly. It features a complete authentication system, dynamic feeds, and real-time data handling powered by [Supabase](https://supabase.com/).
 
 ---
